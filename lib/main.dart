@@ -1,37 +1,74 @@
 import 'package:flutter/material.dart';
+import 'modules/authorization/data/service/auth_service.dart';
+import 'modules/authorization/view/login_view.dart';
+import 'modules/manager/view/manager_view.dart';
+import 'modules/checker/view/checker_view.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
-  // This widget is the root of your application.
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const RootPage(),
     );
+  }
+}
+
+class RootPage extends StatefulWidget {
+  const RootPage({super.key});
+
+  @override
+  State<RootPage> createState() => _RootPageState();
+}
+
+class _RootPageState extends State<RootPage> {
+  bool _checking = true;
+  bool _loggedIn = false;
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+
+  void _checkLogin() async {
+    final token = await AuthService().getToken();
+    final role = await AuthService().getUserRole();
+    setState(() {
+      _loggedIn = token != null && token.isNotEmpty;
+      _userRole = role;
+      _checking = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checking) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_loggedIn && _userRole != null) {
+      if (_userRole == 'manager') {
+        return ManagerView();
+      } else if (_userRole == 'checker') {
+        return CheckerView();
+      } else {
+        return const MyHomePage(title: 'Flutter Demo Home Page');
+      }
+    }
+    return LoginView();
   }
 }
 
