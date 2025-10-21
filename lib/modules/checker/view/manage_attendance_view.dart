@@ -316,11 +316,14 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
     );
     if (confirm == true) {
       String message = '';
+      Map<String, dynamic> resp = {};
       try {
-        message = await _attendanceService.deleteAttendance(id);
-        print('[DeleteAttendance] Response: $message');
-        if (message.trim().isEmpty || message.trim().toLowerCase() == 'ok') {
-          message = 'Delete successfully';
+        resp = await _attendanceService.deleteAttendance(id);
+        print('[DeleteAttendance] Response: $resp');
+        if (resp['success'] == true) {
+          message = resp['message'] ?? 'Delete successfully';
+        } else {
+          message = resp['message'] ?? 'Failed to delete attendance.';
         }
       } catch (e) {
         print('[DeleteAttendance] Error: $e');
@@ -350,7 +353,11 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
               child: Center(
                 child: Text(
                   message,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: resp['success'] == true ? Colors.black : Colors.red,
+                  ),
                 ),
               ),
             ),

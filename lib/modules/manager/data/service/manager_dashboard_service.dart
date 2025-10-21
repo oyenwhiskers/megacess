@@ -22,6 +22,26 @@ class ManagerDashboardService {
     }
     return null;
   }
+  
+  Future<Map<String, dynamic>> submitTaskToChecker(int taskId) async {
+    try {
+      final response = await _dioClient.post('v1/tasks/$taskId/submit');
+      return {
+        'statusCode': response.statusCode,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'statusCode': e.response?.statusCode ?? 500,
+        'data': e.response?.data ?? {'success': false, 'message': e.message},
+      };
+    } catch (e) {
+      return {
+        'statusCode': 500,
+        'data': {'success': false, 'message': 'Failed to submit task.', 'error': e.toString()},
+      };
+    }
+  }
   Future<List<TaskLogModel>> fetchTaskLogs(int taskId) async {
     final response = await _dioClient.get('v1/tasks/$taskId/logs');
     print('API LOGS RESPONSE: ${response.data}');

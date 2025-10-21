@@ -19,11 +19,66 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
   String? _error;
   LocationDetailModel? _location;
   List<TaskDetailModel> _tasks = [];
+  List<TaskDetailModel> _filteredTasks = [];
+  final TextEditingController _searchController = TextEditingController();
+  
+  // Filter variables
+  bool _showFilterOptions = false;
+  String? _selectedTaskType;
+  String? _selectedStatus;
+  final List<String> _taskTypes = ['Manuring', 'Pruning', 'Sanitation', 'Harvesting', 'Planting'];
+  final List<String> _statusOptions = ['In-progress', 'Pending', 'Completed'];
 
   @override
   void initState() {
     super.initState();
     _fetchDetail();
+    
+    // Add listener to search controller for real-time filtering
+    _searchController.addListener(_filterTasks);
+  }
+  
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterTasks);
+    _searchController.dispose();
+    super.dispose();
+  }
+  
+  void _filterTasks() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredTasks = _tasks.where((task) {
+        // Filter by search query
+        bool matchesSearch = query.isEmpty || 
+                            task.taskName.toLowerCase().contains(query);
+        
+        // Filter by task type
+        bool matchesTaskType = _selectedTaskType == null || 
+                              task.taskType.toLowerCase() == _selectedTaskType!.toLowerCase();
+        
+        // Filter by status
+        bool matchesStatus = _selectedStatus == null || 
+                            task.taskStatus.toLowerCase() == _selectedStatus!.toLowerCase().replaceAll('-', '_');
+        
+        return matchesSearch && matchesTaskType && matchesStatus;
+      }).toList();
+    });
+  }
+  
+  void _applyFilters() {
+    _filterTasks();
+    setState(() {
+      _showFilterOptions = false;
+    });
+  }
+  
+  void _resetFilters() {
+    setState(() {
+      _selectedTaskType = null;
+      _selectedStatus = null;
+    });
+    _filterTasks();
   }
 
   Future<void> _fetchDetail() async {
@@ -36,6 +91,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
       if (response != null) {
         _location = response.location;
         _tasks = response.tasks;
+        _filteredTasks = response.tasks; // Initialize filtered tasks with all tasks
       }
       setState(() {
         _isLoading = false;
@@ -132,6 +188,9 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate if we have active filters
+    bool hasActiveFilters = _selectedTaskType != null || _selectedStatus != null;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFD9D9D9),
       appBar: AppBar(
@@ -139,6 +198,15 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
         elevation: 0,
         title: const Text('Manage Task', style: TextStyle(color: Colors.black)),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          if (hasActiveFilters)
+            IconButton(
+              icon: const Icon(Icons.filter_alt),
+              color: Colors.white,
+              onPressed: _resetFilters,
+              tooltip: 'Reset Filters',
+            ),
+        ],
       ),
       body: Stack(
         children: [
@@ -169,42 +237,205 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                             ),
                             child: Row(
                               children: [
-                                const Text('Search task:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(width: 8),
                                 Expanded(
                                   child: TextField(
+                                    controller: _searchController,
                                     decoration: InputDecoration(
                                       hintText: 'Enter task name..',
                                       border: InputBorder.none,
                                       isDense: true,
+                                      prefixIcon: Icon(Icons.search, color: Colors.grey[700]),
+                                      suffixIcon: _searchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear, size: 20),
+                                            onPressed: () {
+                                              _searchController.clear();
+                                            },
+                                          )
+                                        : null,
                                     ),
                                     style: const TextStyle(fontSize: 14),
-                                    // TODO: Implement search logic
                                   ),
                                 ),
-                                Icon(Icons.filter_alt_outlined, color: Colors.grey[700]),
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _showFilterOptions = !_showFilterOptions;
+                                    });
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size(60, 30),
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text('Filter', style: TextStyle(color: Colors.black87)),
+                                      Icon(Icons.filter_list, color: Colors.black87),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 8),
+                          // Filter options panel
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            height: _showFilterOptions ? 280 : 0,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFB5EDA4), // Light green background
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: _showFilterOptions ? 16 : 0),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.arrow_back),
+                                        onPressed: () {
+                                          setState(() {
+                                            _showFilterOptions = false;
+                                          });
+                                        },
+                                      ),
+                                      const Text('Filter Options', 
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text('Select task type:', 
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: _taskTypes.map((type) {
+                                      bool isSelected = _selectedTaskType == type;
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedTaskType = isSelected ? null : type;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: isSelected ? Colors.green : Colors.grey.shade300,
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              if (isSelected)
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.1),
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                            ],
+                                          ),
+                                          child: Text(type),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 10),
+                                  const Text('Select status', 
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: _statusOptions.map((status) {
+                                      bool isSelected = _selectedStatus == status;
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedStatus = isSelected ? null : status;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: isSelected ? Colors.green : Colors.grey.shade300,
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              if (isSelected)
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.1),
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                            ],
+                                          ),
+                                          child: Text(status),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                      onPressed: _applyFilters,
+                                      child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           const Text('List of existing tasks', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 8),
                           Expanded(
-                            child: _tasks.isEmpty
-                                ? const Center(child: Text('No tasks found.'))
+                            child: _filteredTasks.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      _searchController.text.isEmpty
+                                          ? 'No tasks found.'
+                                          : 'No matching tasks found for "${_searchController.text}"',
+                                    ),
+                                  )
                                 : ListView.separated(
-                                    itemCount: _tasks.length,
+                                    itemCount: _filteredTasks.length,
                                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                                     itemBuilder: (context, idx) {
-                                      final task = _tasks[idx];
+                                      final task = _filteredTasks[idx];
                                       return InkWell(
-                                        onTap: () {
-                                          Navigator.push(
+                                        onTap: () async {
+                                          final result = await Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => TaskPreviewPage(taskId: task.id),
                                             ),
                                           );
+                                          
+                                          // If returned with result true, refresh the page
+                                          if (result == true) {
+                                            _fetchDetail();
+                                          }
                                         },
                                         borderRadius: BorderRadius.circular(16),
                                         child: Container(

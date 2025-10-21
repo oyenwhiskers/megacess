@@ -227,32 +227,43 @@ class AnalyticsView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF7C948),
-                                borderRadius: BorderRadius.circular(6),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 28,
+                            runSpacing: 10,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF7C948),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text('Total Pending Tasks', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text('Total Pending Tasks', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-                            const SizedBox(width: 28),
-                            Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: Color(0xFF43C463),
-                                borderRadius: BorderRadius.circular(6),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF43C463),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text('Total Completed Tasks', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Text('Total Completed Tasks', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-                          ],
-                        ),
+                            ],
+                          ),
                       ],
                     ),
                   ),

@@ -5,12 +5,198 @@ import 'package:megacess/modules/checker/data/model/pending_task_model.dart';
 import 'package:megacess/modules/checker/data/model/checker_analytics.dart';
 import 'package:megacess/modules/checker/data/model/staff_attendance_model.dart';
 import 'package:megacess/modules/checker/data/model/user_attendance_model.dart';
+import 'package:megacess/modules/checker/data/model/management_detail_model.dart';
 import 'package:megacess/modules/checker/data/model/attendance_model.dart';
+import 'package:megacess/modules/checker/data/model/staff_detail_model.dart';
 import 'package:megacess/modules/utility/dio_client.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:dio/dio.dart';
 
 class AttendanceService {
+  Future<Map<String, dynamic>> userCheckOut({
+    required int dateAttendanceId,
+    required int userId,
+    required String checkOut,
+    String? remarkOt,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/user-attendance/check-out',
+        data: {
+          'date_attendance_id': dateAttendanceId,
+          'user_id': userId,
+          'check_out': checkOut,
+          if (remarkOt != null) 'remark_ot': remarkOt,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
+    }
+  }
+  Future<Map<String, dynamic>> userCheckIn({
+    required int dateAttendanceId,
+    required int userId,
+    required String checkIn,
+    String? remarkLate,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/user-attendance/check-in',
+        data: {
+          'date_attendance_id': dateAttendanceId,
+          'user_id': userId,
+          'check_in': checkIn,
+          if (remarkLate != null) 'remark_late': remarkLate,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
+    }
+  }
+    Future<Map<String, dynamic>> userMarkAbsent({
+      required int dateAttendanceId,
+      required int userId,
+    }) async {
+      try {
+        final response = await dioClient.post(
+          'api/v1/user-attendance/mark-absent',
+          data: {
+            'date_attendance_id': dateAttendanceId,
+            'user_id': userId,
+          },
+        );
+        return response.data as Map<String, dynamic>;
+      } on DioError catch (e) {
+        if (e.response != null && e.response?.data != null) {
+          return e.response?.data as Map<String, dynamic>;
+        }
+        return {
+          'success': false,
+          'message': 'Network error',
+        };
+      }
+    }
+  Future<UserAttendanceDetailResponse> fetchUserAttendanceDetail({required int userId}) async {
+    try {
+      final response = await dioClient.get('api/v1/user-attendance/$userId');
+      if (response.data is Map && response.data['success'] == true) {
+        return UserAttendanceDetailResponse.fromJson(response.data);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch user attendance detail');
+      }
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to fetch user attendance detail');
+      }
+      throw Exception('Failed to fetch user attendance detail');
+    }
+  }
+  Future<Map<String, dynamic>> staffMarkAbsent({
+    required int dateAttendanceId,
+    required int staffId,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/staff-attendance/mark-absent',
+        data: {
+          'date_attendance_id': dateAttendanceId,
+          'staff_id': staffId,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
+    }
+  }
+  Future<Map<String, dynamic>> staffCheckOut({
+    required int dateAttendanceId,
+    required int staffId,
+    required String checkOut,
+    String? remarkOt,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/staff-attendance/check-out',
+        data: {
+          'date_attendance_id': dateAttendanceId,
+          'staff_id': staffId,
+          'check_out': checkOut,
+          if (remarkOt != null) 'remark_ot': remarkOt,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
+    }
+  }
+  Future<Map<String, dynamic>> staffCheckIn({
+    required int dateAttendanceId,
+    required int staffId,
+    required String checkIn,
+    String? remarkLate,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/staff-attendance/check-in',
+        data: {
+          'date_attendance_id': dateAttendanceId,
+          'staff_id': staffId,
+          'check_in': checkIn,
+          if (remarkLate != null) 'remark_late': remarkLate,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
+    }
+  }
+  Future<StaffDetailResponse> fetchStaffDetail({required int staffId}) async {
+    try {
+      final response = await dioClient.get('api/v1/staff/$staffId');
+      if (response.data is Map && response.data['success'] == true) {
+        return StaffDetailResponse.fromJson(response.data);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch staff detail');
+      }
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to fetch staff detail');
+      }
+      throw Exception('Failed to fetch staff detail');
+    }
+  }
   Future<AuditTaskPreviewModel?> fetchAuditTaskPreview(int taskId) async {
     try {
       final response = await dioClient.get('api/v1/tasks/$taskId');
@@ -165,25 +351,31 @@ class AttendanceService {
     }
   }
 
-  Future<String> deleteAttendance(int id) async {
+  Future<Map<String, dynamic>> deleteAttendance(int id) async {
     try {
       final response = await dioClient.delete('api/v1/attendance/$id');
       if (response.data is Map) {
-        final data = response.data as Map;
-        if (data['success'] == false && data['message'] != null) {
-          return data['message'].toString();
-        }
-        if (data['message'] != null) {
-          return data['message'].toString();
-        }
+        return response.data as Map<String, dynamic>;
+      } else {
+        return {
+          'success': false,
+          'message': 'Unexpected response format',
+        };
       }
-      return 'Attendance deleted.';
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error',
+      };
     } catch (e) {
-      // If Dio throws, try to extract message from error response
-      if (e is DioError && e.response != null && e.response!.data is Map && e.response!.data['message'] != null) {
-        return e.response!.data['message'].toString();
-      }
-      return 'Failed to delete attendance.';
+      return {
+        'success': false,
+        'message': 'Failed to delete attendance.',
+      };
     }
   }
+// ...existing code...
 }

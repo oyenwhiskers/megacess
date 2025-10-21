@@ -2,6 +2,8 @@ import 'package:megacess/modules/checker/data/model/staff_attendance_model.dart'
 import 'package:flutter/material.dart';
 import 'package:megacess/modules/checker/data/model/user_attendance_model.dart';
 import 'package:megacess/modules/checker/data/service/attendance_service.dart';
+import 'package:megacess/modules/checker/view/manage_attendance_staff_detail_view.dart';
+import 'package:megacess/modules/checker/view/manage_attendance_management_detail_view.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
 
 class ManageAttendanceDetailsView extends StatefulWidget {
@@ -79,35 +81,6 @@ class _ManageAttendanceDetailsViewState extends State<ManageAttendanceDetailsVie
                   ),
                 ),
               ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'search worker...',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _search = value.trim();
-                  });
-                },
-              ),
             ),
           ),
           Padding(
@@ -230,6 +203,21 @@ class _ManageAttendanceDetailsViewState extends State<ManageAttendanceDetailsVie
                               ),
                               trailing: const Icon(Icons.chevron_right),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ManageAttendanceManagementDetailView(
+                                      userId: item.userId,
+                                      dateAttendanceId: widget.dateAttendanceId,
+                                    ),
+                                  ),
+                                );
+                                if (result == true) {
+                                  _fetchAttendance();
+                                  setState(() {});
+                                }
+                              },
                             ),
                           );
                         },
@@ -289,6 +277,21 @@ class _ManageAttendanceDetailsViewState extends State<ManageAttendanceDetailsVie
                               ),
                               trailing: const Icon(Icons.chevron_right),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ManageAttendanceStaffDetailView(
+                                      staffId: item.staffId,
+                                      dateAttendanceId: widget.dateAttendanceId,
+                                    ),
+                                  ),
+                                );
+                                if (result == true) {
+                                  _fetchStaffAttendance();
+                                  setState(() {});
+                                }
+                              },
                             ),
                           );
                         },

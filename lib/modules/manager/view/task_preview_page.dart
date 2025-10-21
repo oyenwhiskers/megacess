@@ -106,6 +106,122 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
   }
+  
+  Future<void> _submitTaskToChecker() async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    
+    try {
+      final result = await _service.submitTaskToChecker(widget.taskId);
+      // Pop the loading dialog
+      Navigator.pop(context);
+      
+      // Handle different response status codes
+      switch (result['statusCode']) {
+        case 200:
+          if (result['data']['success'] == true) {
+            // Update the task with the new data
+            setState(() {
+              _task = TaskPreviewModel.fromJson(result['data']['data']);
+            });
+            
+            // Show custom success dialog that matches the design
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: Color(0xFF7ED957),
+                        radius: 30,
+                        child: Icon(Icons.check, color: Colors.white, size: 40),
+                      ),
+                      const SizedBox(height: 15),
+                      const Text(
+                        'Task submitted successfully!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            
+            // Automatically close the dialog and navigate back after 1.5 seconds
+            Future.delayed(const Duration(milliseconds: 1500), () {
+              Navigator.pop(context); // Close the dialog
+              
+              // Navigate back to location_tasks_detail_page and refresh it
+              Navigator.pop(context, true);
+            });
+          }
+          break;
+        case 401:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unauthorized. Please log in again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 404:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Task not found.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 422:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['data']['message'] ?? 'Task must be in progress to be submitted.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          break;
+        case 500:
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['data']['message'] ?? 'Failed to submit task.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+      }
+    } catch (e) {
+      // Pop the loading dialog
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   int _tabIndex = 0;
 
@@ -236,7 +352,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                           elevation: 0,
                                         ),
-                                        onPressed: () {}, // Demo only
+                                        onPressed: _task?.taskStatus.toLowerCase() == 'in_progress' 
+                                          ? () => _submitTaskToChecker() 
+                                          : null,
                                         child: const Text('Send to checker', style: TextStyle(fontWeight: FontWeight.bold)),
                                       ),
                                     ),
