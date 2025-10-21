@@ -4,7 +4,7 @@ import '../data/service/staff_service.dart';
 
 class AddStaffPopup extends StatefulWidget {
   final List<StaffModel> staffList;
-  final void Function(List<StaffModel>) onAdd;
+  final Future<bool> Function(List<StaffModel>) onAdd;
   const AddStaffPopup({Key? key, required this.staffList, required this.onAdd}) : super(key: key);
 
   @override
@@ -72,7 +72,7 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
   Widget build(BuildContext context) {
     final filteredStaff = _staff.where((staff) => staff.staffFullname.toLowerCase().contains(searchQuery.toLowerCase())).toList();
     final double maxHeight = MediaQuery.of(context).size.height * 0.75;
-    return Dialog(
+  return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       child: Container(
@@ -186,10 +186,10 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
               ),
               width: double.infinity,
               child: TextButton(
-                onPressed: () {
+                onPressed: () async {
                   final selected = _staff.where((staff) => _selectedStaffIds.contains(staff.id)).toList();
-                  widget.onAdd(selected);
-                  Navigator.of(context).pop();
+                  final result = await widget.onAdd(selected);
+                  Navigator.of(context).pop(result);
                 },
                 child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
               ),

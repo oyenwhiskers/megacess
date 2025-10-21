@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../view-model/manager_dashboard_view_model.dart';
 import 'my_staff_page.dart';
+import 'analytics_page.dart';
+import 'manage_tasks_page.dart';
+import '../../authorization/view/login_view.dart';
 
 class ManagerView extends StatefulWidget {
   final String managerName;
@@ -234,7 +237,13 @@ class _ManagerViewState extends State<ManagerView> {
                                   leading: Icon(Icons.assignment, color: Colors.teal, size: 26),
                                   title: Text('Manage Tasks', style: TextStyle(fontSize: 15)),
                                   trailing: Icon(Icons.chevron_right),
-                                  onTap: () {},
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const ManageTasksPage(),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                               Card(
@@ -245,7 +254,46 @@ class _ManagerViewState extends State<ManagerView> {
                                   leading: Icon(Icons.bar_chart, color: Colors.teal, size: 26),
                                   title: Text('Analytics', style: TextStyle(fontSize: 15)),
                                   trailing: Icon(Icons.chevron_right),
-                                  onTap: () {},
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const AnalyticsPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // LOG OUT BUTTON directly after modules
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 16.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 54,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () async {
+                                      await _viewModel.logout();
+                                      if (mounted) {
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(builder: (_) => LoginView()),
+                                          (route) => false,
+                                        );
+                                      }
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.logout, size: 22),
+                                        const SizedBox(width: 10),
+                                        const Text('LOG OUT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],

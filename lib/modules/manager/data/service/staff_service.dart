@@ -1,9 +1,37 @@
+import '../model/staff_model.dart';
+import '../model/staff_brief_model.dart';
+import '../../../utility/dio_client.dart';
+import '../../../utility/secure_storage_service.dart';
+
 import 'package:dio/dio.dart';
 import '../model/staff_model.dart';
 import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
 
 class StaffService {
+  Future<bool> unclaimStaff(int staffId) async {
+    final response = await _dioClient.delete('v1/staff/$staffId/unclaim');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return true;
+    }
+    return false;
+  }
+  Future<StaffModel?> getStaffDetail(int staffId) async {
+    final response = await _dioClient.get('v1/staff/$staffId');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return StaffModel.fromJson(response.data['data']);
+    }
+    return null;
+  }
+  Future<bool> claimStaff(int staffId) async {
+    final response = await _dioClient.post(
+      'v1/staff/$staffId/claim',
+    );
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return true;
+    }
+    return false;
+  }
   final DioClient _dioClient;
 
   StaffService({
@@ -37,6 +65,17 @@ class StaffService {
     }
     throw Exception('Failed to fetch staff');
   }
+  
+    Future<List<StaffModel>> fetchClaimedStaff() async {
+      final response = await _dioClient.get(
+        'v1/staff/my-staff',
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List data = response.data['data'];
+        return data.map((json) => StaffModel.fromJson(json)).toList();
+      }
+      throw Exception('Failed to fetch claimed staff');
+    }
 }
 
 class PaginatedStaffResult {

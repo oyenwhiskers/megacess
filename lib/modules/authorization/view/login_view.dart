@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../view-model/login_view_model.dart';
 import '../../manager/view/manager_view.dart';
+import '../../checker/view/checker_view.dart';
 
 class LoginView extends StatefulWidget {
   @override
@@ -35,7 +36,13 @@ class _LoginViewState extends State<LoginView> {
           MaterialPageRoute(builder: (_) => ManagerView(managerName: _viewModel.lastLoginResponse?.user.userNickname ?? 'Manager')),
         );
       } else if (userRole == 'checker') {
-        Navigator.of(context).pushReplacementNamed('/checker');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => CheckerView(
+              checkerName: _viewModel.lastLoginResponse?.user.userNickname ?? 'Checker',
+            ),
+          ),
+        );
       }
     }
   }
