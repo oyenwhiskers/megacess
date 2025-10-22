@@ -107,6 +107,352 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     return s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
   }
   
+  Future<void> _showEditTaskDialog() async {
+    // Create text controllers for the form fields
+    final taskNameController = TextEditingController(text: _task?.taskName ?? '');
+    final taskDateController = TextEditingController(text: _task?.taskDate ?? '');
+    String? selectedTaskType = _task?.taskType;
+    
+    // Define task types
+    final taskTypes = ['manuring', 'sanitation', 'pruning', 'harvesting', 'planting'];
+    
+    // Create a form key for validation
+    final formKey = GlobalKey<FormState>();
+    
+    // Show dialog with form
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Edit Task',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Task Name field
+                      const Text(
+                        'Task Name:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: taskNameController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          hintText: 'Enter task name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Task name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Task Type dropdown
+                      const Text(
+                        'Task Type:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.transparent),
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          value: selectedTaskType,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                          ),
+                          isExpanded: true,
+                          hint: const Text('Select task type'),
+                          items: taskTypes.map((type) => 
+                            DropdownMenuItem(
+                              value: type,
+                              child: Text(_capitalize(type)),
+                            )
+                          ).toList(),
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              selectedTaskType = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Task type is required';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Task Date field
+                      const Text(
+                        'Task Date:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: taskDateController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          hintText: 'YYYY-MM-DD',
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.calendar_today),
+                            onPressed: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2030),
+                              );
+                              if (date != null) {
+                                final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                                taskDateController.text = formattedDate;
+                              }
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Task date is required';
+                          }
+                          
+                          // Simple date validation (YYYY-MM-DD)
+                          final RegExp dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+                          if (!dateRegex.hasMatch(value)) {
+                            return 'Invalid date format (YYYY-MM-DD)';
+                          }
+                          
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Action buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7ED957),
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                if (formKey.currentState!.validate()) {
+                                  Navigator.of(context).pop({
+                                    'taskName': taskNameController.text.trim(),
+                                    'taskType': selectedTaskType,
+                                    'taskDate': taskDateController.text.trim(),
+                                  });
+                                }
+                              },
+                              child: const Text('Update', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          ),
+        );
+      },
+    ).then((result) async {
+      if (result != null) {
+        _updateTask(
+          taskName: result['taskName'],
+          taskType: result['taskType'],
+          taskDate: result['taskDate'],
+        );
+      }
+    });
+  }
+  
+  Future<void> _updateTask({
+    required String taskName,
+    required String taskType,
+    required String taskDate,
+  }) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    
+    try {
+      final result = await _service.updateTask(
+        widget.taskId,
+        taskName: taskName,
+        taskType: taskType,
+        taskDate: taskDate,
+      );
+      
+      // Pop the loading dialog
+      Navigator.pop(context);
+      
+      // Handle different response status codes
+      switch (result['statusCode']) {
+        case 200:
+          if (result['data']['success'] == true) {
+            // Update the task with the new data
+            if (result['data']['data'] != null) {
+              setState(() {
+                _task = TaskPreviewModel.fromJson(result['data']['data']);
+              });
+            } else {
+              // Fetch updated task details
+              _fetchDetail();
+            }
+            
+            // Show success dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(
+                        backgroundColor: Color(0xFF7ED957),
+                        radius: 30,
+                        child: Icon(Icons.check, color: Colors.white, size: 40),
+                      ),
+                      const SizedBox(height: 15),
+                      const Text(
+                        'Task updated successfully!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            
+            // Automatically close the dialog after 1.5 seconds
+            Future.delayed(const Duration(milliseconds: 1500), () {
+              Navigator.pop(context); // Close the dialog
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['data']['message'] ?? 'Failed to update task.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          break;
+        case 401:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unauthorized. Please log in again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 404:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Task not found.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 500:
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['data']['message'] ?? 'Failed to update task.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+      }
+    } catch (e) {
+      // Pop the loading dialog
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
   Future<void> _showDeleteConfirmation() async {
     return showDialog(
       context: context,
@@ -498,10 +844,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                         ),
                                       );
                                       if (result == true) {
-                                        _fetchDetail();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Worker added successfully!')),
-                                        );
+                                        _fetchDetail(); // Refresh the task details
                                       }
                                     },
                                   ),
@@ -517,7 +860,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                           elevation: 0,
                                         ),
-                                        onPressed: () {}, // Demo only
+                                        onPressed: _task?.taskStatus.toLowerCase() == 'in_progress' 
+                                          ? _showEditTaskDialog
+                                          : null,
                                         child: const Text('Edit', style: TextStyle(fontWeight: FontWeight.bold)),
                                       ),
                                     ),

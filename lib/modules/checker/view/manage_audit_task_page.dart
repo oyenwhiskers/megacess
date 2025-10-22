@@ -101,6 +101,25 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
       });
     }
   }
+  
+  Future<void> _refreshData() async {
+    // Don't show the loading indicator during refresh
+    try {
+      final response = await AttendanceService(SecureStorageService()).fetchAuditLocationTasks(widget.locationId);
+      setState(() {
+        _location = response.location;
+        _tasks = response.tasks;
+        // Re-apply current filters to the updated task list
+        _filterTasks();
+      });
+      return;
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+      return;
+    }
+  }
 
   Widget _buildTaskTypeBadge(String type) {
     Color color;
@@ -208,7 +227,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
-                  ? Center(child: Text('Error: [31m$_error[0m'))
+                  ? Center(child: Text('Error: $_error'))
                   : Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Column(
@@ -220,7 +239,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                               Text(_location?.name ?? widget.locationName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
                               const Spacer(),
                               Text('Total Tasks: ', style: TextStyle(fontSize: 14)),
-                              Text('${_location?.taskCount ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('${_tasks.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -413,7 +432,9 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                           : 'No matching tasks found for "${_searchController.text}"',
                                     ),
                                   )
-                                : ListView.separated(
+                                : RefreshIndicator(
+                                  onRefresh: _refreshData,
+                                  child: ListView.separated(
                                     itemCount: _filteredTasks.length,
                                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                                     itemBuilder: (context, idx) {
@@ -447,13 +468,14 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                               const SizedBox(height: 8),
                                               Text(task.taskName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                               const SizedBox(height: 2),
-                                              Text('Created at: [34m${task.createdAt.split(' ').first}[0m  Created by: ${task.createdBy.name}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                              Text('Created at: ${task.createdAt.split(' ').first}  Created by: ${task.createdBy.name}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                                             ],
                                           ),
                                         ),
                                       );
                                     },
                                   ),
+                                ),
                           ),
                         ],
                       ),

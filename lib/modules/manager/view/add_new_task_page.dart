@@ -20,7 +20,7 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
   String? _error;
 
   final List<String> _taskTypes = [
-    'Manuring & Packing',
+    'Manuring',
     'Pruning',
     'Sanitation',
     'Harvesting',
@@ -33,7 +33,7 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
     try {
       String typeValue;
       switch (_selectedType) {
-        case 'Manuring & Packing':
+        case 'Manuring':
           typeValue = 'manuring';
           break;
         case 'Pruning':

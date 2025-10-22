@@ -11,6 +11,10 @@ import 'package:megacess/modules/checker/data/model/staff_detail_model.dart';
 import 'package:megacess/modules/utility/dio_client.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:dio/dio.dart';
+import 'package:path/path.dart' as path;
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http_parser/http_parser.dart';
 
 class AttendanceService {
   Future<Map<String, dynamic>> userCheckOut({
@@ -334,6 +338,198 @@ class AttendanceService {
           baseUrl: 'https://mwms.megacess.com/',
           storageService: storageService,
         );
+        
+  /// Upload a file to the server
+  /// 
+  /// [filePath] - The path to the file to upload
+  /// [directory] - Optional target directory
+  /// [metadata] - Optional metadata (description, category, etc.)
+  /// Returns a Map containing the upload response with file details
+  Future<Map<String, dynamic>> uploadFile({
+    required String filePath,
+    String? directory,
+    Map<String, String>? metadata,
+    List<int>? bytes,
+    String? mimeType,
+  }) async {
+    try {
+      // Create FormData for multipart request
+      final formData = FormData();
+      
+      // Add the file
+      final fileName = path.basename(filePath);
+      
+      // Handle file upload based on platform
+      if (kIsWeb) {
+        // Web platform - require bytes and mimeType parameters
+        if (bytes == null) {
+          return {
+            'success': false,
+            'message': 'File bytes are required for web uploads',
+          };
+        }
+        
+        formData.files.add(
+          MapEntry(
+            'file',
+            MultipartFile.fromBytes(
+              bytes,
+              filename: fileName,
+              contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+            ),
+          ),
+        );
+      } else {
+        // Mobile/Desktop platforms - can use File API
+        formData.files.add(
+          MapEntry(
+            'file',
+            await MultipartFile.fromFile(
+              filePath,
+              filename: fileName,
+            ),
+          ),
+        );
+      }
+      
+      // Add directory if provided
+      if (directory != null && directory.isNotEmpty) {
+        formData.fields.add(MapEntry('directory', directory));
+      }
+      
+      // Add metadata if provided
+      if (metadata != null && metadata.isNotEmpty) {
+        metadata.forEach((key, value) {
+          formData.fields.add(MapEntry('metadata[$key]', value));
+        });
+      }
+      
+      // Make the request
+      final response = await dioClient.post(
+        'api/v1/files/upload',
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+      
+      // Return the response data
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Upload failed: ${e.toString()}',
+      };
+    }
+  }
+  
+  /// Upload a file as evidence for an audit task
+  /// 
+  /// [taskId] - The ID of the audit task
+  /// [filePath] - The path to the file to upload
+  /// [description] - Optional description for the file
+  /// [bytes] - Optional file bytes (required for web)
+  /// [mimeType] - Optional mime type of the file (used for web)
+  /// [isVideo] - Whether the file is a video
+  /// Returns a Map containing the upload response with file details
+  Future<Map<String, dynamic>> uploadAuditTaskEvidence({
+    required int taskId,
+    required String filePath,
+    String? description,
+    List<int>? bytes,
+    String? mimeType,
+    bool isVideo = false,
+  }) async {
+    try {
+      // Create metadata with task information
+      final metadata = <String, String>{
+        'related_to': 'audit_task',
+        'related_id': taskId.toString(),
+        'media_type': isVideo ? 'video' : 'image',
+      };
+      
+      // Add description if provided
+      if (description != null && description.isNotEmpty) {
+        metadata['description'] = description;
+      }
+      
+      // Use the general upload file method with appropriate directory and metadata
+      return await uploadFile(
+        filePath: filePath,
+        directory: 'audit_tasks/$taskId/evidence',
+        metadata: metadata,
+        bytes: bytes,
+        mimeType: mimeType,
+      );
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Failed to upload audit task evidence: ${e.toString()}',
+      };
+    }
+  }
+  
+  /// Gets the file URL from path
+  /// [path] - The path of the file
+  /// Returns a Map containing the file URL details
+  Future<Map<String, dynamic>> getFileUrl(String path) async {
+    try {
+      final response = await dioClient.get(
+        'api/v1/files/url',
+        queryParameters: {'path': path},
+      );
+      
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Failed to get file URL: ${e.toString()}',
+      };
+    }
+  }
+  
+  /// Deletes a file using the API
+  /// [path] - The path of the file to delete (required)
+  /// Returns a Map containing the response with deletion status
+  Future<Map<String, dynamic>> deleteFile(String path) async {
+    try {
+      final response = await dioClient.delete(
+        'api/v1/files/delete',
+        data: {'path': path},
+      );
+      
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Failed to delete file: ${e.toString()}',
+      };
+    }
+  }
 
   Future<AttendanceListResponse> fetchAttendanceList({int page = 1, int perPage = 15, String? search}) async {
     try {
@@ -374,6 +570,73 @@ class AttendanceService {
       return {
         'success': false,
         'message': 'Failed to delete attendance.',
+      };
+    }
+  }
+
+  // Method to approve audit task
+  Future<Map<String, dynamic>> approveAuditTask({
+    required int taskId,
+    String? taskVideo,
+    List<String>? taskImages,
+    String? remarks,
+    List<Map<String, dynamic>>? workerAuditMeta,
+  }) async {
+    try {
+      // Prepare request body
+      Map<String, dynamic> requestBody = {};
+      
+      // Add task_video if provided
+      if (taskVideo != null && taskVideo.isNotEmpty) {
+        requestBody['task_video'] = taskVideo;
+      }
+      
+      // Add task_img if provided
+      if (taskImages != null && taskImages.isNotEmpty) {
+        requestBody['task_img'] = taskImages;
+      }
+      
+      // Add remarks if provided
+      if (remarks != null && remarks.isNotEmpty) {
+        requestBody['remarks'] = remarks;
+      }
+      
+      // Add worker_audit_meta if provided
+      if (workerAuditMeta != null && workerAuditMeta.isNotEmpty) {
+        requestBody['worker_audit_meta'] = workerAuditMeta;
+      }
+      
+      print('=== APPROVE TASK API REQUEST ===');
+      print('Task ID: $taskId');
+      print('Request Body: $requestBody');
+      print('task_video type: ${requestBody['task_video']?.runtimeType}');
+      print('task_video value: ${requestBody['task_video']}');
+      print('task_img type: ${requestBody['task_img']?.runtimeType}');
+      print('task_img value: ${requestBody['task_img']}');
+      
+      final response = await dioClient.post(
+        'api/v1/tasks/audits/$taskId/approve',
+        data: requestBody,
+      );
+      
+      print('=== APPROVE TASK API RESPONSE ===');
+      print('Response: ${response.data}');
+      
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      print('Error approving task: ${e.response?.data}');
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}',
+      };
+    } catch (e) {
+      print('Unexpected error approving task: $e');
+      return {
+        'success': false,
+        'message': 'Failed to approve task: ${e.toString()}',
       };
     }
   }

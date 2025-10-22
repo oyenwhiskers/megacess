@@ -103,6 +103,27 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
       });
     }
   }
+  
+  Future<void> _refreshData() async {
+    // Don't show the loading indicator during refresh
+    try {
+      final response = await _service.fetchLocationTasksDetail(widget.locationId);
+      if (response != null) {
+        setState(() {
+          _location = response.location;
+          _tasks = response.tasks;
+          // Re-apply current filters to the updated task list
+          _filterTasks();
+        });
+      }
+      return;
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+      return;
+    }
+  }
 
   Widget _buildTaskTypeBadge(String type) {
     Color color;
@@ -225,7 +246,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                               Text(_location?.name ?? widget.locationName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
                               const Spacer(),
                               Text('Total Tasks: ', style: TextStyle(fontSize: 14)),
-                              Text('${_location?.taskCount ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('${_tasks.length}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -418,7 +439,9 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                                           : 'No matching tasks found for "${_searchController.text}"',
                                     ),
                                   )
-                                : ListView.separated(
+                                : RefreshIndicator(
+                                    onRefresh: _refreshData,
+                                    child: ListView.separated(
                                     itemCount: _filteredTasks.length,
                                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                                     itemBuilder: (context, idx) {
@@ -465,6 +488,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                                       );
                                     },
                                   ),
+                                ),
                           ),
                         ],
                       ),

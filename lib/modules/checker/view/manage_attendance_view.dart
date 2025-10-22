@@ -433,12 +433,22 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'search date',
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF43C463)),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearch('');
+                              },
+                            )
+                          : null,
                     ),
-                    keyboardType: TextInputType.datetime,
+                    keyboardType: TextInputType.text,
                     onChanged: _onSearch,
                   ),
                 ),
@@ -455,10 +465,11 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                       return const Center(child: Text('No attendance records found.'));
                     }
                     final attendance = snapshot.data!;
-                    // Filter for exact date match if search is not empty
+                    // Filter for partial date match if search is not empty
                     final filtered = _search.isEmpty
                         ? attendance.data
-                        : attendance.data.where((item) => item.date == _search).toList();
+                        : attendance.data.where((item) => 
+                            item.date.toLowerCase().contains(_search.toLowerCase())).toList();
                     if (filtered.isEmpty) {
                       return const Center(child: Text('No attendance records found.'));
                     }

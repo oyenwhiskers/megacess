@@ -1,0 +1,887 @@
+import 'dart:io';import 'dart:io';
+
+import 'package:flutter/material.dart';import 'package:flutter/material.dart';
+
+import 'package:image_picker/image_picker.dart';import 'package:image_picker/image_picker.dart';
+
+import 'package:megacess/modules/checker/data/model/audit_task_preview_model.dart';import 'package:megacess/modules/checker/data/model/audit_task_preview_model.dart';
+
+import 'package:megacess/modules/checker/data/service/attendance_service.dart';import 'package:megacess/modules/checker/data/service/attendance_service.dart';
+
+import 'package:megacess/modules/utility/secure_storage_service.dart';import 'package:megacess/modules/utility/secure_storage_service.dart';
+
+
+
+class AuditTaskPreviewPage extends StatefulWidget {class AuditTaskPreviewPage extends StatefulWidget {
+
+  final int taskId;  final int taskId;
+
+  const AuditTaskPreviewPage({Key? key, required this.taskId}) : super(key: key);  const AuditTaskPreviewPage({Key? key, required this.taskId}) : super(key: key);
+
+
+
+  @override  @override
+
+  State<AuditTaskPreviewPage> createState() => _AuditTaskPreviewPageState();  State<AuditTaskPreviewPage> createState() => _AuditTaskPreviewPageState();
+
+}}
+
+
+
+class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
+
+  bool _isLoading = true;  bool _isLoading = true;
+
+  String? _error;  String? _error;
+
+  AuditTaskPreviewModel? _task;  AuditTaskPreviewModel? _task;
+
+    
+
+  final AttendanceService _attendanceService = AttendanceService(SecureStorageService());  final AttendanceService _attendanceService = AttendanceService(SecureStorageService());
+
+  final ImagePicker _imagePicker = ImagePicker();  final ImagePicker _imagePicker = ImagePicker();
+
+  List<File> _mediaFiles = [];  List<File> _mediaFiles = [];
+
+    
+
+  // Helper function to capitalize a string  // Helper function to capitalize a string
+
+  String _capitalize(String s) {  String _capitalize(String s) {
+
+    if (s.isEmpty) return s;    if (s.isEmpty) return s;
+
+    return s[0].toUpperCase() + s.substring(1);    return s[0].toUpperCase() + s.substring(1);
+
+  }  }
+
+    
+
+  // Helper function to format meta keys for display  // Helper function to format meta keys for display
+
+  String _formatMetaKey(String key) {  String _formatMetaKey(String key) {
+
+    // Replace underscores with spaces    // Replace underscores with spaces
+
+    String formatted = key.replaceAll('_', ' ');    String formatted = key.replaceAll('_', ' ');
+
+        
+
+    // Capitalize each word    // Capitalize each word
+
+    List<String> words = formatted.split(' ');    List<String> words = formatted.split(' ');
+
+    words = words.map((word) => _capitalize(word)).toList();    words = words.map((word) => _capitalize(word)).toList();
+
+        
+
+    // Join the words back together    // Join the words back together
+
+    return words.join(' ');    return words.join(' ');
+
+  }  }
+
+
+
+  @override  @override
+
+  void initState() {  void initState() {
+
+    super.initState();    super.initState();
+
+    _fetchDetail();    _fetchDetail();
+
+  }  }
+
+
+
+  Future<void> _fetchDetail() async {  Future<void> _fetchDetail() async {
+
+    setState(() {    setState(() {
+
+      _isLoading = true;      _isLoading = true;
+
+      _error = null;      _error = null;
+
+    });    });
+
+    try {    try {
+
+      final response = await _attendanceService.fetchAuditTaskPreview(widget.taskId);      final response = await _attendanceService.fetchAuditTaskPreview(widget.taskId);
+
+      if (response != null) {      if (response != null) {
+
+        _task = response;        _task = response;
+
+      }      }
+
+      setState(() {      setState(() {
+
+        _isLoading = false;        _isLoading = false;
+
+      });      });
+
+    } catch (e) {    } catch (e) {
+
+      setState(() {      setState(() {
+
+        _error = e.toString();        _error = e.toString();
+
+        _isLoading = false;        _isLoading = false;
+
+      });      });
+
+    }    }
+
+  }  }
+
+    
+
+  Future<void> _pickMedia() async {  Future<void> _pickMedia() async {
+
+    showDialog(    showDialog(
+
+      context: context,      context: context,
+
+      builder: (BuildContext context) {      builder: (BuildContext context) {
+
+        return AlertDialog(        return AlertDialog(
+
+          title: const Text('Upload Media'),          title: const Text('Upload Media'),
+
+          content: Column(          content: Column(
+
+            mainAxisSize: MainAxisSize.min,            mainAxisSize: MainAxisSize.min,
+
+            children: [            children: [
+
+              ListTile(              ListTile(
+
+                leading: const Icon(Icons.photo),                leading: const Icon(Icons.photo),
+
+                title: const Text('Take Photo'),                title: const Text('Take Photo'),
+
+                onTap: () {                onTap: () {
+
+                  Navigator.pop(context);                  Navigator.pop(context);
+
+                  _pickImage(ImageSource.camera);                  _pickImage(ImageSource.camera);
+
+                },                },
+
+              ),              ),
+
+              ListTile(              ListTile(
+
+                leading: const Icon(Icons.photo_library),                leading: const Icon(Icons.photo_library),
+
+                title: const Text('Choose from Gallery'),                title: const Text('Choose from Gallery'),
+
+                onTap: () {                onTap: () {
+
+                  Navigator.pop(context);                  Navigator.pop(context);
+
+                  _pickImage(ImageSource.gallery);                  _pickImage(ImageSource.gallery);
+
+                },                },
+
+              ),              ),
+
+            ],            ],
+
+          ),          ),
+
+        );        );
+
+      },      },
+
+    );    );
+
+  }  }
+
+    
+
+  Future<void> _pickImage(ImageSource source) async {  Future<void> _pickImage(ImageSource source) async {
+
+    try {    try {
+
+      final XFile? pickedFile = await _imagePicker.pickImage(source: source);      final XFile? pickedFile = await _imagePicker.pickImage(source: source);
+
+      if (pickedFile != null) {      if (pickedFile != null) {
+
+        File file = File(pickedFile.path);        File file = File(pickedFile.path);
+
+        setState(() {        setState(() {
+
+          _mediaFiles.add(file);          _mediaFiles.add(file);
+
+        });        });
+
+                
+
+        // Upload the file        // Upload the file
+
+        _uploadFile(file);        _uploadFile(file);
+
+      }      }
+
+    } catch (e) {    } catch (e) {
+
+      ScaffoldMessenger.of(context).showSnackBar(      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(content: Text('Error picking image: ${e.toString()}')),        SnackBar(content: Text('Error picking image: ${e.toString()}')),
+
+      );      );
+
+    }    }
+
+  }  }
+
+    
+
+  Future<void> _uploadFile(File file) async {  Future<void> _uploadFile(File file) async {
+
+    try {    try {
+
+      // Show loading indicator      // Show loading indicator
+
+      setState(() {      setState(() {
+
+        _isLoading = true;        _isLoading = true;
+
+      });      });
+
+            
+
+      final response = await _attendanceService.uploadFile(      final response = await _attendanceService.uploadFile(
+
+        file: file,        file: file,
+
+        directory: 'audit_tasks/${widget.taskId}',        directory: 'audit_tasks/${widget.taskId}',
+
+        metadata: {        metadata: {
+
+          'task_id': widget.taskId.toString(),          'task_id': widget.taskId.toString(),
+
+          'upload_type': 'evidence',          'upload_type': 'evidence',
+
+        },        },
+
+      );      );
+
+            
+
+      setState(() {      setState(() {
+
+        _isLoading = false;        _isLoading = false;
+
+      });      });
+
+            
+
+      if (response['success'] == true) {      if (response['success'] == true) {
+
+        ScaffoldMessenger.of(context).showSnackBar(        ScaffoldMessenger.of(context).showSnackBar(
+
+          const SnackBar(content: Text('File uploaded successfully')),          const SnackBar(content: Text('File uploaded successfully')),
+
+        );        );
+
+      } else {      } else {
+
+        ScaffoldMessenger.of(context).showSnackBar(        ScaffoldMessenger.of(context).showSnackBar(
+
+          SnackBar(content: Text('Failed to upload file: ${response['message']}')),          SnackBar(content: Text('Failed to upload file: ${response['message']}')),
+
+        );        );
+
+      }      }
+
+    } catch (e) {    } catch (e) {
+
+      setState(() {      setState(() {
+
+        _isLoading = false;        _isLoading = false;
+
+      });      });
+
+      ScaffoldMessenger.of(context).showSnackBar(      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(content: Text('Error uploading file: ${e.toString()}')),        SnackBar(content: Text('Error uploading file: ${e.toString()}')),
+
+      );      );
+
+    }    }
+
+  }  }
+
+
+
+  Widget _buildStatusBadge(String status) {  Widget _buildStatusBadge(String status) {
+
+    Color backgroundColor;    Color backgroundColor;
+
+    Color textColor;    Color textColor;
+
+    String label;    String label;
+
+    switch (status.toLowerCase()) {    switch (status.toLowerCase()) {
+
+      case 'in_progress':      case 'in_progress':
+
+        backgroundColor = Colors.blue;        backgroundColor = Colors.blue;
+
+        textColor = Colors.white;        textColor = Colors.white;
+
+        label = 'In-progress';        label = 'In-progress';
+
+        break;        break;
+
+      case 'completed':      case 'completed':
+
+        backgroundColor = Colors.green;        backgroundColor = Colors.green;
+
+        textColor = Colors.white;        textColor = Colors.white;
+
+        label = 'Completed';        label = 'Completed';
+
+        break;        break;
+
+      case 'pending':      case 'pending':
+
+        backgroundColor = Colors.amber; // Yellow background as shown in the image        backgroundColor = Colors.amber; // Yellow background as shown in the image
+
+        textColor = Colors.black; // Black text for better contrast on yellow        textColor = Colors.black; // Black text for better contrast on yellow
+
+        label = 'Pending';        label = 'Pending';
+
+        break;        break;
+
+      default:      default:
+
+        backgroundColor = Colors.grey;        backgroundColor = Colors.grey;
+
+        textColor = Colors.white;        textColor = Colors.white;
+
+        label = status;        label = status;
+
+    }    }
+
+    return Container(    return Container(
+
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+      decoration: BoxDecoration(      decoration: BoxDecoration(
+
+        color: backgroundColor,        color: backgroundColor,
+
+        borderRadius: BorderRadius.circular(16), // More rounded corners        borderRadius: BorderRadius.circular(16), // More rounded corners
+
+      ),      ),
+
+      child: Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),      child: Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
+
+    );    );
+
+  }  }
+
+
+
+  @override  @override
+
+  Widget build(BuildContext context) {  Widget build(BuildContext context) {
+
+    return Scaffold(    return Scaffold(
+
+      backgroundColor: const Color(0xFFD9D9D9),      backgroundColor: const Color(0xFFD9D9D9),
+
+      appBar: AppBar(      appBar: AppBar(
+
+        backgroundColor: const Color(0xFF7ED957),        backgroundColor: const Color(0xFF7ED957),
+
+        elevation: 0,        elevation: 0,
+
+        title: const Text('Audit Task', style: TextStyle(color: Colors.black)),        title: const Text('Audit Task', style: TextStyle(color: Colors.black)),
+
+        iconTheme: const IconThemeData(color: Colors.black),        iconTheme: const IconThemeData(color: Colors.black),
+
+        leading: IconButton(        leading: IconButton(
+
+          icon: const Icon(Icons.arrow_back),          icon: const Icon(Icons.arrow_back),
+
+          onPressed: () => Navigator.of(context).pop(),          onPressed: () => Navigator.of(context).pop(),
+
+        ),        ),
+
+      ),      ),
+
+      body: _isLoading      body: _isLoading
+
+          ? const Center(child: CircularProgressIndicator())          ? const Center(child: CircularProgressIndicator())
+
+          : _error != null          : _error != null
+
+              ? Center(child: Text('Error: $_error'))              ? Center(child: Text('Error: $_error'))
+
+              : _task == null              : _task == null
+
+                  ? const Center(child: Text('No data found.'))                  ? const Center(child: Text('No data found.'))
+
+                  : SingleChildScrollView(                  : SingleChildScrollView(
+
+                      padding: const EdgeInsets.symmetric(horizontal: 16),                      padding: const EdgeInsets.symmetric(horizontal: 16),
+
+                      child: Column(                      child: Column(
+
+                        crossAxisAlignment: CrossAxisAlignment.start,                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                        children: [                        children: [
+
+                          const SizedBox(height: 20),                          const SizedBox(height: 16), // Add some space at the top
+
+                          Row(                          // Task header - simpler design as in the image
+
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,                          Row(
+
+                            children: [                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                              Expanded(                            children: [
+
+                                child: Text(                              Expanded(
+
+                                  _task!.taskName,                                child: Column(
+
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),                                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                                ),                                  children: [
+
+                              ),                                    Text(
+
+                              _buildStatusBadge(_task!.status),                                      _task!.taskName,
+
+                            ],                                      style: const TextStyle(
+
+                          ),                                        fontWeight: FontWeight.bold,
+
+                          const SizedBox(height: 8),                                        fontSize: 24,
+
+                          Text(                                        color: Colors.black,
+
+                            _task!.description,                                      ),
+
+                            style: const TextStyle(fontSize: 14, color: Colors.black87),                                    ),
+
+                          ),                                    Text(
+
+                          const SizedBox(height: 16),                                      _task!.taskType,
+
+                          const Text('Task details:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),                                      style: const TextStyle(
+
+                          const SizedBox(height: 8),                                        fontSize: 16,
+
+                          Text(                                        color: Colors.black54,
+
+                            _task!.taskDate,                                      ),
+
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),                                    ),
+
+                          ),                                  ],
+
+                          const SizedBox(height: 16),                                ),
+
+                          const Text('Worker details:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),                              ),
+
+                          const SizedBox(height: 8),                              _buildStatusBadge(_task!.taskStatus),
+
+                          ..._task!.workers.map((worker) => Container(                            ],
+
+                                margin: const EdgeInsets.only(bottom: 10),                          ),
+
+                                padding: const EdgeInsets.all(12),                          const SizedBox(height: 12),
+
+                                decoration: BoxDecoration(                          Text(
+
+                                  color: Colors.white,                            'Created by:',
+
+                                  borderRadius: BorderRadius.circular(12),                            style: const TextStyle(fontSize: 14, color: Colors.black),
+
+                                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],                          ),
+
+                                ),                          Text(
+
+                                child: Row(                            _task!.createdBy.name,
+
+                                  crossAxisAlignment: CrossAxisAlignment.start,                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+
+                                  children: [                          ),
+
+                                    Container(                          const SizedBox(height: 4),
+
+                                      width: 50,                          Text(
+
+                                      height: 50,                            'Created at:',
+
+                                      decoration: BoxDecoration(                            style: const TextStyle(fontSize: 14, color: Colors.black),
+
+                                        shape: BoxShape.circle,                          ),
+
+                                        border: Border.all(color: Colors.grey.shade300),                          Text(
+
+                                        color: Colors.white,                            _task!.taskDate,
+
+                                      ),                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+
+                                      child: const Center(                          ),
+
+                                        child: Icon(Icons.person_outline, color: Colors.black, size: 30),                          const SizedBox(height: 16),
+
+                                      ),                          const Text('Worker details:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+
+                                    ),                          const SizedBox(height: 8),
+
+                                    const SizedBox(width: 12),                          ..._task!.workers.map((worker) => Container(
+
+                                    Expanded(                                margin: const EdgeInsets.only(bottom: 10),
+
+                                      child: Column(                                padding: const EdgeInsets.all(12),
+
+                                        crossAxisAlignment: CrossAxisAlignment.start,                                decoration: BoxDecoration(
+
+                                        children: [                                  color: Colors.white,
+
+                                          Text(                                  borderRadius: BorderRadius.circular(12),
+
+                                            worker.name,                                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
+
+                                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),                                ),
+
+                                          ),                                child: Row(
+
+                                          const SizedBox(height: 2),                                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                                          Text(                                  children: [
+
+                                            'Worker ID: ${worker.workerId}',                                    Container(
+
+                                            style: const TextStyle(fontSize: 12, color: Colors.black54),                                      width: 50,
+
+                                          ),                                      height: 50,
+
+                                        ],                                      decoration: BoxDecoration(
+
+                                      ),                                        shape: BoxShape.circle,
+
+                                    ),                                        border: Border.all(color: Colors.grey.shade300),
+
+                                  ],                                        color: Colors.white,
+
+                                ),                                      ),
+
+                              )),                                      child: const Center(
+
+                          const SizedBox(height: 20),                                        child: Icon(Icons.person_outline, color: Colors.black, size: 30),
+
+                          const Text('Evidence:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),                                      ),
+
+                          const SizedBox(height: 4),                                    ),
+
+                          const Text('Media(insert at least one):', style: TextStyle(fontSize: 13, color: Colors.black54)),                                    const SizedBox(width: 12),
+
+                          const SizedBox(height: 8),                                    Expanded(
+
+                          ElevatedButton.icon(                                      child: Column(
+
+                            onPressed: () {                                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                              _pickMedia();                                        children: [
+
+                            },                                          Text('Name: ${worker.fullName}', style: const TextStyle(fontSize: 14)),
+
+                            icon: const Icon(Icons.add_photo_alternate),                                          // Dynamically display all meta fields
+
+                            label: const Text('Upload Media'),                                          ...worker.meta.entries.map((entry) {
+
+                            style: ElevatedButton.styleFrom(                                            final String formattedKey = _formatMetaKey(entry.key);
+
+                              backgroundColor: const Color(0xFF7ED957),                                            return Text(
+
+                              foregroundColor: Colors.black,                                              '$formattedKey: ${entry.value}',
+
+                            ),                                              style: const TextStyle(fontSize: 14),
+
+                          ),                                            );
+
+                          const SizedBox(height: 16),                                          }).toList(),
+
+                          SizedBox(                                        ],
+
+                            height: 180,                                      ),
+
+                            child: _mediaFiles.isEmpty                                    ),
+
+                              ? Container(                                  ],
+
+                                  width: double.infinity,                                ),
+
+                                  alignment: Alignment.center,                              )),
+
+                                  child: const Text('No media uploaded yet', style: TextStyle(color: Colors.grey)),                          const SizedBox(height: 18),
+
+                                )                          const Text('Evidence:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+
+                              : SingleChildScrollView(                          const SizedBox(height: 4),
+
+                                  scrollDirection: Axis.horizontal,                          const Text('Media(insert at least one):', style: TextStyle(fontSize: 13, color: Colors.black54)),
+
+                                  child: Row(                          const SizedBox(height: 8),
+
+                                    children: _mediaFiles.map((file) => Stack(                          ElevatedButton.icon(
+
+                                      children: [                            onPressed: () {
+
+                                        Container(                              _pickMedia();
+
+                                          width: 160,                            },
+
+                                          height: 160,                            icon: const Icon(Icons.add_photo_alternate),
+
+                                          margin: const EdgeInsets.only(right: 12),                            label: const Text('Upload Media'),
+
+                                          decoration: BoxDecoration(                            style: ElevatedButton.styleFrom(
+
+                                            color: Colors.white,                              backgroundColor: const Color(0xFF7ED957),
+
+                                            borderRadius: BorderRadius.circular(12),                              foregroundColor: Colors.black,
+
+                                            border: Border.all(color: Colors.grey.shade300),                            ),
+
+                                            image: DecorationImage(                          ),
+
+                                              image: FileImage(file),                          const SizedBox(height: 16),
+
+                                              fit: BoxFit.cover,                          Container(
+
+                                            ),                            height: 180,
+
+                                          ),                            padding: const EdgeInsets.symmetric(vertical: 10),
+
+                                        ),                            child: _mediaFiles.isEmpty
+
+                                        Positioned(                              ? Container(
+
+                                          top: 5,                                  width: double.infinity,
+
+                                          right: 17,                                  alignment: Alignment.center,
+
+                                          child: GestureDetector(                                  child: const Text('No media uploaded yet', style: TextStyle(color: Colors.grey)),
+
+                                            onTap: () {                                )
+
+                                              setState(() {                              : SingleChildScrollView(
+
+                                                _mediaFiles.remove(file);                                scrollDirection: Axis.horizontal,
+
+                                              });                                child: Row(
+
+                                            },                                  children: List.generate(_mediaFiles.length, (index) {
+
+                                            child: Container(                                    File file = _mediaFiles[index];
+
+                                              padding: const EdgeInsets.all(4),                                    return Stack(
+
+                                              decoration: const BoxDecoration(                                      children: [
+
+                                                color: Colors.white,                                        Container(
+
+                                                shape: BoxShape.circle,                                          width: 160,
+
+                                              ),                                          height: 160,
+
+                                              child: const Icon(Icons.close, size: 16, color: Colors.red),                                          margin: const EdgeInsets.only(right: 12),
+
+                                            ),                                          decoration: BoxDecoration(
+
+                                          ),                                            color: Colors.white,
+
+                                        ),                                            borderRadius: BorderRadius.circular(12),
+
+                                      ],                                            border: Border.all(color: Colors.grey.shade300),
+
+                                    )).toList(),                                            image: DecorationImage(
+
+                                  ),                                              image: FileImage(file),
+
+                                ),                                              fit: BoxFit.cover,
+
+                          ),                                            ),
+
+                          const SizedBox(height: 24),                                          ),
+
+                          Row(                                        ),
+
+                            children: [                                        Positioned(
+
+                              Expanded(                                          top: 5,
+
+                                child: ElevatedButton(                                          right: 17,
+
+                                  style: ElevatedButton.styleFrom(                                          child: GestureDetector(
+
+                                    backgroundColor: Colors.red,                                            onTap: () {
+
+                                    foregroundColor: Colors.white,                                              setState(() {
+
+                                    minimumSize: const Size.fromHeight(44),                                                _mediaFiles.remove(file);
+
+                                    shape: RoundedRectangleBorder(                                              });
+
+                                      borderRadius: BorderRadius.circular(8),                                            },
+
+                                    ),                                            child: Container(
+
+                                    elevation: 0,                                              padding: const EdgeInsets.all(4),
+
+                                  ),                                              decoration: const BoxDecoration(
+
+                                  onPressed: () {},                                                color: Colors.white,
+
+                                  child: const Text('Task Rejected', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),                                                shape: BoxShape.circle,
+
+                                ),                                              ),
+
+                              ),                                              child: const Icon(Icons.close, size: 16, color: Colors.red),
+
+                            ],                                            ),
+
+                          ),                                          ),
+
+                          const SizedBox(height: 12),                                        ),
+
+                          Row(                                      ],
+
+                            children: [                                    );
+
+                              Expanded(                                  }),
+
+                                child: ElevatedButton(                                ),
+
+                                  style: ElevatedButton.styleFrom(                              ),
+
+                                    backgroundColor: const Color(0xFF7ED957),                                    ),
+
+                                    foregroundColor: Colors.white,                                    child: const Stack(
+
+                                    minimumSize: const Size.fromHeight(44),                                      alignment: Alignment.center,
+
+                                    shape: RoundedRectangleBorder(                                      children: [
+
+                                      borderRadius: BorderRadius.circular(8),                                        Icon(Icons.video_library, size: 32, color: Colors.grey),
+
+                                    ),                                        Positioned(
+
+                                    elevation: 0,                                          bottom: 10,
+
+                                  ),                                          child: Text(
+
+                                  onPressed: () {},                                            "Video",
+
+                                  child: const Text('Task Approved', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),                                            style: TextStyle(color: Colors.black54),
+
+                                ),                                          ),
+
+                              ),                                        ),
+
+                              const SizedBox(width: 12),                                      ],
+
+                              Expanded(                                    ),
+
+                                child: ElevatedButton(                                  ),
+
+                                  style: ElevatedButton.styleFrom(                                ],
+
+                                    backgroundColor: Colors.white,                              ),
+
+                                    foregroundColor: Colors.black,                            ),
+
+                                    minimumSize: const Size.fromHeight(44),                          ),
+
+                                    shape: RoundedRectangleBorder(                          const SizedBox(height: 24),
+
+                                      borderRadius: BorderRadius.circular(8),                          Row(
+
+                                    ),                            children: [
+
+                                    elevation: 0,                              Expanded(
+
+                                  ),                                child: ElevatedButton(
+
+                                  onPressed: () {},                                  style: ElevatedButton.styleFrom(
+
+                                  child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),                                    backgroundColor: Colors.red,
+
+                                ),                                    foregroundColor: Colors.white,
+
+                              ),                                    minimumSize: const Size.fromHeight(44),
+
+                            ],                                    shape: RoundedRectangleBorder(
+
+                          ),                                      borderRadius: BorderRadius.circular(8),
+
+                          const SizedBox(height: 20),                                    ),
+
+                        ],                                    elevation: 0,
+
+                      ),                                  ),
+
+                    ),                                  onPressed: () {},
+
+    );                                  child: const Text('Task Rejected', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+
+  }                                ),
+
+}                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF7ED957),
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size.fromHeight(44),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  onPressed: () {},
+                                  child: const Text('Task Approved', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.black,
+                                    minimumSize: const Size.fromHeight(44),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  onPressed: () {},
+                                  child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+    );
+  }
+}

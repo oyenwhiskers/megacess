@@ -9,12 +9,12 @@ import '../../../utility/secure_storage_service.dart';
 class ManagerDashboardService {
   Future<Map<String, dynamic>?> assignWorkersToTask({
     required int taskId,
-    required List<int> workerIds,
+    required List<Map<String, dynamic>> workers,
   }) async {
     final response = await _dioClient.post(
       'v1/tasks/$taskId/assign-workers',
       data: {
-        'workers': workerIds,
+        'workers': workers,
       },
     );
     if (response.statusCode == 200 && response.data['success'] == true) {
@@ -23,6 +23,35 @@ class ManagerDashboardService {
     return null;
   }
   
+  Future<Map<String, dynamic>> updateTask(int taskId, {
+    String? taskName,
+    String? taskType,
+    String? taskDate,
+  }) async {
+    try {
+      Map<String, dynamic> data = {};
+      if (taskName != null) data['task_name'] = taskName;
+      if (taskType != null) data['task_type'] = taskType;
+      if (taskDate != null) data['task_date'] = taskDate;
+      
+      final response = await _dioClient.put('v1/tasks/$taskId', data: data);
+      return {
+        'statusCode': response.statusCode,
+        'data': response.data,
+      };
+    } on DioException catch (e) {
+      return {
+        'statusCode': e.response?.statusCode ?? 500,
+        'data': e.response?.data ?? {'success': false, 'message': e.message},
+      };
+    } catch (e) {
+      return {
+        'statusCode': 500,
+        'data': {'success': false, 'message': 'Failed to update task.', 'error': e.toString()},
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> deleteTask(int taskId) async {
     try {
       final response = await _dioClient.delete('v1/tasks/$taskId');
