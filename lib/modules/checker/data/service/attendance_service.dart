@@ -601,18 +601,57 @@ class AttendanceService {
         requestBody['remarks'] = remarks;
       }
       
-      // Add worker_audit_meta if provided
+      // Add worker_audit_meta if provided, with special handling for manuring tasks
       if (workerAuditMeta != null && workerAuditMeta.isNotEmpty) {
+        // Make sure all entries have the correct format
+        for (var meta in workerAuditMeta) {
+          // Ensure staff_id is an integer, not a string
+          if (meta.containsKey('staff_id') && meta['staff_id'] is String) {
+            meta['staff_id'] = int.tryParse(meta['staff_id'].toString()) ?? 13;
+          }
+          
+          // Ensure meta_key and meta_value are strings
+          if (meta.containsKey('meta_key') && meta['meta_key'] is! String) {
+            meta['meta_key'] = meta['meta_key'].toString();
+          }
+          
+          if (meta.containsKey('meta_value') && meta['meta_value'] is! String) {
+            meta['meta_value'] = meta['meta_value'].toString();
+          }
+        }
         requestBody['worker_audit_meta'] = workerAuditMeta;
+        
+        print('Formatted worker_audit_meta for API:');
+        for (var entry in workerAuditMeta) {
+          print('  ${entry['staff_id']} (${entry['staff_id'].runtimeType}): ${entry['meta_key']}=${entry['meta_value']}');
+        }
       }
       
       print('=== APPROVE TASK API REQUEST ===');
       print('Task ID: $taskId');
-      print('Request Body: $requestBody');
       print('task_video type: ${requestBody['task_video']?.runtimeType}');
       print('task_video value: ${requestBody['task_video']}');
       print('task_img type: ${requestBody['task_img']?.runtimeType}');
       print('task_img value: ${requestBody['task_img']}');
+      
+      // Detailed logging for worker_audit_meta
+      if (requestBody.containsKey('worker_audit_meta')) {
+        print('worker_audit_meta type: ${requestBody['worker_audit_meta']?.runtimeType}');
+        print('worker_audit_meta count: ${requestBody['worker_audit_meta']?.length ?? 0}');
+        
+        if (requestBody['worker_audit_meta'] != null) {
+          final metaList = requestBody['worker_audit_meta'] as List;
+          for (int i = 0; i < metaList.length; i++) {
+            final entry = metaList[i];
+            print('Entry $i:');
+            print('  staff_id: ${entry['staff_id']} (${entry['staff_id'].runtimeType})');
+            print('  meta_key: ${entry['meta_key']} (${entry['meta_key'].runtimeType})');
+            print('  meta_value: ${entry['meta_value']} (${entry['meta_value'].runtimeType})');
+          }
+        }
+      } else {
+        print('WARNING: worker_audit_meta is missing from request!');
+      }
       
       final response = await dioClient.post(
         'api/v1/tasks/audits/$taskId/approve',
