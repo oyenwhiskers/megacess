@@ -27,7 +27,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   final AttendanceService _attendanceService = AttendanceService(SecureStorageService());
   VideoPlayerController? _videoController;
   bool _isVideoSelected = false;
-  final TextEditingController _remarksController = TextEditingController();
   
   // Method to pick and upload an image
   Future<void> _pickAndUploadImage(ImageSource source) async {
@@ -996,6 +995,30 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     // Join the words back together
     return words.join(' ');
   }
+  
+  // Helper method to get the unit description for meta value input
+  String _getMetaValueUnit(String metaKey, String taskType) {
+    switch (metaKey.toLowerCase()) {
+      case 'normal pruning':
+        return 'tree amount';
+      case 'routine pruning':
+        return 'acre amount';
+      case 'normal harvesting':
+        return 'kg amount';
+      case 'collect loose fruits':
+        return 'kg amount';
+      case 'planting':
+        return 'tree amount';
+      case 'manuring':
+        return 'tree amount';
+      case 'spraying':
+        return 'acre amount';
+      case 'slashing':
+        return 'acre amount';
+      default:
+        return 'value';
+    }
+  }
 
   // Check if this platform supports video features
   bool get _isPlatformSupportedForVideo {
@@ -1025,8 +1048,146 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   void dispose() {
     // Dispose of video controller when widget is disposed
     _videoController?.dispose();
-    _remarksController.dispose();
     super.dispose();
+  }
+
+  // Method to show meta data input dialog based on task type
+  Future<Map<String, String>?> _showMetaDataInputDialog() async {
+    if (_task == null) return null;
+    
+    final taskType = _task!.taskType.toLowerCase();
+    Map<String, TextEditingController> controllers = {};
+    
+    // Define meta keys based on task type
+    List<String> metaKeys = [];
+    String dialogTitle = '';
+    
+    switch (taskType) {
+      case 'pruning':
+        metaKeys = ['normal pruning', 'routine pruning'];
+        dialogTitle = 'Pruning Task Data';
+        break;
+      case 'harvesting':
+        metaKeys = ['normal harvesting', 'collect loose fruits'];
+        dialogTitle = 'Harvesting Task Data';
+        break;
+      case 'planting':
+        metaKeys = ['planting'];
+        dialogTitle = 'Planting Task Data';
+        break;
+      case 'manuring':
+        metaKeys = ['manuring'];
+        dialogTitle = 'Manuring Task Data';
+        break;
+      case 'sanitation':
+        metaKeys = ['spraying', 'slashing'];
+        dialogTitle = 'Sanitation Task Data';
+        break;
+      default:
+        // For unknown task types, return empty map
+        return {};
+    }
+    
+    // Create controllers for each meta key
+    for (var key in metaKeys) {
+      controllers[key] = TextEditingController();
+    }
+    
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(dialogTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter the values for this task:',
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 16),
+              ...metaKeys.map((key) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatMetaKey(key),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: controllers[key],
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Enter ${_getMetaValueUnit(key, taskType)}',
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(null);
+            },
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Validate that at least one field has a value
+              Map<String, String> result = {};
+              bool hasValue = false;
+              
+              controllers.forEach((key, controller) {
+                final value = controller.text.trim();
+                if (value.isNotEmpty) {
+                  result[key] = value;
+                  hasValue = true;
+                }
+              });
+              
+              if (!hasValue) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter at least one value'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(result);
+            },
+            child: const Text(
+              'SUBMIT',
+              style: TextStyle(color: Color(0xFF7ED957)),
+            ),
+          ),
+        ],
+      ),
+    );
+    
+    return result;
   }
 
   Future<void> _fetchDetail() async {
@@ -1059,6 +1220,18 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       );
       return;
     }
+    
+    // Show meta data input dialog first
+    print('\n===== SHOWING META DATA INPUT DIALOG =====');
+    final metaData = await _showMetaDataInputDialog();
+    
+    // If user cancelled the dialog, return
+    if (metaData == null) {
+      print('User cancelled meta data input dialog');
+      return;
+    }
+    
+    print('User provided meta data: $metaData');
     
     // Show confirmation dialog
     final bool confirm = await showDialog(
@@ -1129,247 +1302,53 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
       }
       
-      // Prepare worker_audit_meta from task workers
+      // Build worker_audit_meta from user input
       List<Map<String, dynamic>>? workerAuditMeta;
       
       print('\n\n===== DEBUG: TASK DATA =====');
       print('Task ID: ${widget.taskId}');
       print('Task Type: ${_task?.taskType ?? "Unknown"}');
       print('Workers Count: ${_task?.workers.length ?? 0}');
+      print('User Input Meta Data: $metaData');
       
-      // Special handling for manuring tasks
-      if (_task != null && _task!.taskType.toLowerCase() == 'manuring') {
-        print('\n===== MANURING TASK DETECTED - SPECIAL HANDLING =====');
-        
-        // Always initialize workerAuditMeta for manuring tasks
-        workerAuditMeta = [];
-        
-        if (_task!.workers.isEmpty) {
-          print('WARNING: No workers found for manuring task!');
-          // Add default worker meta even with no workers (critical for API)
-          workerAuditMeta.add({
-            'staff_id': 1, // Default ID
-            'meta_key': 'fertilizer_type',
-            'meta_value': 'BORATE', // Using example value from screenshot
-          });
-          
-          workerAuditMeta.add({
-            'staff_id': 1, // Default ID
-            'meta_key': 'fertilizer_amount',
-            'meta_value': '100', // Using example value from screenshot
-          });
-          
-          print('Added default meta for missing workers');
-        } else {
-          // Print original worker data for debugging
-          for (var i = 0; i < _task!.workers.length; i++) {
-            var worker = _task!.workers[i];
-            print('Worker ${i+1}: ID=${worker.id}, Name=${worker.fullName}');
-            print('Original Meta: ${worker.meta}');
-          }
-          
-          // For each worker, we need to add specific meta fields required for manuring tasks
-          for (var worker in _task!.workers) {
-            // Extract fertilizer type from UI elements or worker meta
-            String fertilizerType = 'BORATE'; // Default from screenshot
-            
-            // Try to get from UI first (most accurate)
-            if (worker.fullName.contains('Fertilizer Type:')) {
-              // Extract from fullName which might contain "Fertilizer Type: BORATE"
-              final typeRegex = RegExp(r'Fertilizer Type:\s*(\w+)');
-              final typeMatch = typeRegex.firstMatch(worker.fullName);
-              if (typeMatch != null && typeMatch.groupCount >= 1) {
-                fertilizerType = typeMatch.group(1)!.toUpperCase();
-              }
-            }
-            
-            // Fallbacks if UI extraction failed
-            if (worker.meta.containsKey('fertilizer_type')) {
-              fertilizerType = worker.meta['fertilizer_type'].toString().toUpperCase();
-            } else if (worker.meta.containsKey('fertilizer')) {
-              fertilizerType = worker.meta['fertilizer'].toString().toUpperCase();
-            } else if (worker.meta.containsKey('type')) {
-              fertilizerType = worker.meta['type'].toString().toUpperCase();
-            }
-            
-            // Extract fertilizer amount from UI elements or worker meta
-            String fertilizerAmount = '100'; // Default from screenshot
-            
-            // Try to get from UI first (most accurate)
-            if (worker.fullName.contains('Fertilizer Amount:')) {
-              // Extract from fullName which might contain "Fertilizer Amount: 100"
-              final amountRegex = RegExp(r'Fertilizer Amount:\s*(\d+)');
-              final amountMatch = amountRegex.firstMatch(worker.fullName);
-              if (amountMatch != null && amountMatch.groupCount >= 1) {
-                fertilizerAmount = amountMatch.group(1)!;
-              }
-            }
-            
-            // Fallbacks if UI extraction failed
-            if (worker.meta.containsKey('fertilizer_amount')) {
-              var amount = worker.meta['fertilizer_amount'];
-              fertilizerAmount = amount is num ? amount.toString() : amount.toString();
-            } else if (worker.meta.containsKey('amount')) {
-              var amount = worker.meta['amount'];
-              fertilizerAmount = amount is num ? amount.toString() : amount.toString();
-            } else {
-              // Try to find any numeric value in the meta
-              for (var entry in worker.meta.entries) {
-                if (entry.value is num) {
-                  fertilizerAmount = entry.value.toString();
-                  break;
-                } else if (entry.value is String && int.tryParse(entry.value) != null) {
-                  fertilizerAmount = entry.value;
-                  break;
-                }
-              }
-            }
-            
-            // Add required meta entries (fertilizer_type and fertilizer_amount)
-            // Use worker.id directly (it's already the correct type)
-            final staffId = worker.id;
-            
-            // Create fertilizer_type entry with strict formatting
-            workerAuditMeta.add({
-              'staff_id': staffId,
-              'meta_key': 'fertilizer_type',
-              'meta_value': fertilizerType,
-            });
-            
-            // Create fertilizer_amount entry with strict formatting
-            workerAuditMeta.add({
-              'staff_id': staffId,
-              'meta_key': 'fertilizer_amount',
-              'meta_value': fertilizerAmount,
-            });
-            
-            print('Added manuring meta for worker ${worker.id}:');
-            print('  - fertilizer_type: $fertilizerType');
-            print('  - fertilizer_amount: $fertilizerAmount');
-          }
-        }
-      }
-      // Standard handling for other task types
-      else if (_task != null && _task!.workers.isNotEmpty) {
-        print('\n===== STANDARD META HANDLING FOR ${_task!.taskType} =====');
+      // Build worker_audit_meta from user input using correct nested format
+      if (_task != null && _task!.workers.isNotEmpty && metaData.isNotEmpty) {
+        print('\n===== BUILDING WORKER_AUDIT_META FROM USER INPUT =====');
         
         workerAuditMeta = [];
         
-        // Process each worker with the CORRECT API format
+        // For each worker, create entry with user-provided meta data
         for (var worker in _task!.workers) {
           print('\nProcessing worker: ID=${worker.id}, Name=${worker.fullName}');
-          print('Original Meta Data: ${worker.meta}');
           
-          // Build the meta object based on task type according to documentation
+          // Build the meta object from user input
           Map<String, String> metaObject = {};
           
-          switch (_task!.taskType.toLowerCase()) {
-            case 'pruning':
-              // Pruning tasks can have "normal pruning" (tree amount) or "routine pruning" (acre amount)
-              if (worker.meta.containsKey('normal pruning') || worker.meta.containsKey('normal_pruning')) {
-                String value = (worker.meta['normal pruning'] ?? worker.meta['normal_pruning'] ?? '0').toString();
-                metaObject['normal pruning'] = value;
-              }
-              if (worker.meta.containsKey('routine pruning') || worker.meta.containsKey('routine_pruning')) {
-                String value = (worker.meta['routine pruning'] ?? worker.meta['routine_pruning'] ?? '0').toString();
-                metaObject['routine pruning'] = value;
-              }
-              // If no specific keys found, use first numeric value for normal pruning
-              if (metaObject.isEmpty) {
-                for (var entry in worker.meta.entries) {
-                  if (entry.value is num || (entry.value is String && int.tryParse(entry.value) != null)) {
-                    metaObject['normal pruning'] = entry.value.toString();
-                    break;
-                  }
-                }
-              }
-              break;
-              
-            case 'harvesting':
-              // Harvesting tasks can have "normal harvesting" (kg amount) or "collect loose fruits" (kg amount)
-              if (worker.meta.containsKey('normal harvesting') || worker.meta.containsKey('normal_harvesting')) {
-                String value = (worker.meta['normal harvesting'] ?? worker.meta['normal_harvesting'] ?? '0').toString();
-                metaObject['normal harvesting'] = value;
-              }
-              if (worker.meta.containsKey('collect loose fruits') || worker.meta.containsKey('collect_loose_fruits')) {
-                String value = (worker.meta['collect loose fruits'] ?? worker.meta['collect_loose_fruits'] ?? '0').toString();
-                metaObject['collect loose fruits'] = value;
-              }
-              // If no specific keys found, use first numeric value for normal harvesting
-              if (metaObject.isEmpty) {
-                for (var entry in worker.meta.entries) {
-                  if (entry.value is num || (entry.value is String && int.tryParse(entry.value) != null)) {
-                    metaObject['normal harvesting'] = entry.value.toString();
-                    break;
-                  }
-                }
-              }
-              break;
-              
-            case 'planting':
-              // Planting tasks need "planting" (tree amount per tree planted)
-              if (worker.meta.containsKey('planting')) {
-                metaObject['planting'] = worker.meta['planting'].toString();
-              } else {
-                // Use first numeric value found
-                for (var entry in worker.meta.entries) {
-                  if (entry.value is num || (entry.value is String && int.tryParse(entry.value) != null)) {
-                    metaObject['planting'] = entry.value.toString();
-                    break;
-                  }
-                }
-                // Default if nothing found
-                if (metaObject.isEmpty) {
-                  metaObject['planting'] = '0';
-                }
-              }
-              break;
-              
-            case 'sanitation':
-              // Sanitation tasks can have "spraying" (acre amount) or "slashing" (acre amount)
-              if (worker.meta.containsKey('spraying')) {
-                metaObject['spraying'] = worker.meta['spraying'].toString();
-              }
-              if (worker.meta.containsKey('slashing')) {
-                metaObject['slashing'] = worker.meta['slashing'].toString();
-              }
-              // If no specific keys found, determine from other meta data
-              if (metaObject.isEmpty) {
-                // Check for herbicide_amount (spraying) or fuel_amount (slashing)
-                if (worker.meta.containsKey('herbicide_amount')) {
-                  metaObject['spraying'] = worker.meta['herbicide_amount'].toString();
-                } else if (worker.meta.containsKey('fuel_amount')) {
-                  metaObject['slashing'] = worker.meta['fuel_amount'].toString();
-                } else {
-                  // Use first numeric value for spraying by default
-                  for (var entry in worker.meta.entries) {
-                    if (entry.value is num || (entry.value is String && int.tryParse(entry.value) != null)) {
-                      metaObject['spraying'] = entry.value.toString();
-                      break;
-                    }
-                  }
-                }
-              }
-              break;
-              
-            default:
-              // For unknown task types, try to use the meta as-is
-              worker.meta.forEach((key, value) {
-                metaObject[key] = value.toString();
-              });
-          }
+          // Add each meta key-value pair from user input
+          metaData.forEach((key, value) {
+            metaObject[key] = value;
+            print('  - Added: $key = $value');
+          });
           
-          // Add the worker entry with nested meta object
+          // Add the worker entry with nested meta object (correct API format)
           final workerEntry = {
             'staff_id': worker.id,
+            'staff_name': worker.fullName,
             'meta': metaObject
           };
           
           print('Created worker entry: $workerEntry');
           workerAuditMeta.add(workerEntry);
         }
-      } else {
-        print('WARNING: No workers found in task data!');
+      } else if (metaData.isEmpty) {
+        print('ERROR: No meta data provided by user!');
+      } else if (_task == null || _task!.workers.isEmpty) {
+        print('ERROR: No workers found in task data!');
+      }
+      
+      // For special handling for manuring tasks if needed
+      if (_task != null && _task!.taskType.toLowerCase() == 'manuring') {
+        print('\n===== MANURING TASK - Using user input =====');
       }
       
       // Final logging of prepared worker_audit_meta
@@ -1382,11 +1361,8 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         print('WARNING: No worker_audit_meta prepared!');
       }
       
-      // Get remarks from controller
-      String? remarks = _remarksController.text.trim();
-      if (remarks.isEmpty) {
-        remarks = null;
-      }
+      // Automatically set remarks to "Task completed successfully"
+      String remarks = "Task completed successfully";
       
   print('\n===== FINAL DATA TO SEND =====');
   print('- Task ID: ${widget.taskId}');
@@ -1500,7 +1476,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   final Map<String, dynamic> payload = {};
   if (taskVideo != null && taskVideo.isNotEmpty) payload['task_video'] = taskVideo;
   if (taskImages.isNotEmpty) payload['task_img'] = taskImages;
-  if (remarks != null) payload['remarks'] = remarks;
+  payload['remarks'] = remarks;
   
   // For manuring tasks, ensure the worker_audit_meta has the EXACT format the API expects
   if (_task?.taskType.toLowerCase() == 'manuring') {
@@ -2252,59 +2228,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          
-                          // Remarks TextField
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 1,
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Remarks',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _remarksController,
-                                  maxLines: 4,
-                                  decoration: InputDecoration(
-                                    hintText: 'Enter your remarks here (optional)',
-                                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: const BorderSide(color: Color(0xFF7ED957), width: 2),
-                                    ),
-                                    contentPadding: const EdgeInsets.all(12),
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
                           const SizedBox(height: 24),
