@@ -52,7 +52,9 @@ class AttendanceListResponse {
       lastPage: d['last_page'] ?? 1,
       from: d['from'] ?? 1,
       to: d['to'] ?? 1,
-      data: (d['data'] as List<dynamic>? ?? []).map((e) => AttendanceItem.fromJson(e)).toList(),
+      data: (d['data'] as List<dynamic>? ?? [])
+          .map((e) => AttendanceItem.fromJson(e))
+          .toList(),
     );
   }
 }

@@ -71,7 +71,14 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 
@@ -86,14 +93,26 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       ),
       child: Row(
         children: [
-          const CircleAvatar(radius: 22, backgroundColor: Color(0xFFD9D9D9), child: Icon(Icons.person, color: Colors.grey, size: 28)),
+          const CircleAvatar(
+            radius: 22,
+            backgroundColor: Color(0xFFD9D9D9),
+            child: Icon(Icons.person, color: Colors.grey, size: 28),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Name: ${worker.fullName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ...worker.meta.entries.map((e) => Text('${_capitalize(e.key)}: ${e.value}', style: const TextStyle(fontSize: 13))),
+                Text(
+                  'Name: ${worker.fullName}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                ...worker.meta.entries.map(
+                  (e) => Text(
+                    '${_capitalize(e.key)}: ${e.value}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
               ],
             ),
           ),
@@ -106,19 +125,29 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
   }
-  
+
   Future<void> _showEditTaskDialog() async {
     // Create text controllers for the form fields
-    final taskNameController = TextEditingController(text: _task?.taskName ?? '');
-    final taskDateController = TextEditingController(text: _task?.taskDate ?? '');
+    final taskNameController = TextEditingController(
+      text: _task?.taskName ?? '',
+    );
+    final taskDateController = TextEditingController(
+      text: _task?.taskDate ?? '',
+    );
     String? selectedTaskType = _task?.taskType;
-    
+
     // Define task types
-    final taskTypes = ['manuring', 'sanitation', 'pruning', 'harvesting', 'planting'];
-    
+    final taskTypes = [
+      'manuring',
+      'sanitation',
+      'pruning',
+      'harvesting',
+      'planting',
+    ];
+
     // Create a form key for validation
     final formKey = GlobalKey<FormState>();
-    
+
     // Show dialog with form
     await showDialog(
       context: context,
@@ -174,7 +203,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                         },
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Task Type dropdown
                       const Text(
                         'Task Type:',
@@ -195,12 +224,14 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                           ),
                           isExpanded: true,
                           hint: const Text('Select task type'),
-                          items: taskTypes.map((type) => 
-                            DropdownMenuItem(
-                              value: type,
-                              child: Text(_capitalize(type)),
-                            )
-                          ).toList(),
+                          items: taskTypes
+                              .map(
+                                (type) => DropdownMenuItem(
+                                  value: type,
+                                  child: Text(_capitalize(type)),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (value) {
                             setStateDialog(() {
                               selectedTaskType = value;
@@ -215,7 +246,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Task Date field
                       const Text(
                         'Task Date:',
@@ -242,7 +273,8 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                 lastDate: DateTime(2030),
                               );
                               if (date != null) {
-                                final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                                final formattedDate =
+                                    "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
                                 taskDateController.text = formattedDate;
                               }
                             },
@@ -252,18 +284,20 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                           if (value == null || value.isEmpty) {
                             return 'Task date is required';
                           }
-                          
+
                           // Simple date validation (YYYY-MM-DD)
-                          final RegExp dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+                          final RegExp dateRegex = RegExp(
+                            r'^\d{4}-\d{2}-\d{2}$',
+                          );
                           if (!dateRegex.hasMatch(value)) {
                             return 'Invalid date format (YYYY-MM-DD)';
                           }
-                          
+
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Action buttons
                       Row(
                         children: [
@@ -281,7 +315,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                              child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -290,7 +327,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF7ED957),
                                 foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                                 elevation: 0,
                               ),
                               onPressed: () {
@@ -302,7 +341,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                   });
                                 }
                               },
-                              child: const Text('Update', style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                'Update',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
                         ],
@@ -311,7 +353,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                   ),
                 ),
               );
-            }
+            },
           ),
         );
       },
@@ -325,7 +367,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       }
     });
   }
-  
+
   Future<void> _updateTask({
     required String taskName,
     required String taskType,
@@ -335,11 +377,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       final result = await _service.updateTask(
         widget.taskId,
@@ -347,10 +387,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         taskType: taskType,
         taskDate: taskDate,
       );
-      
+
       // Pop the loading dialog
       Navigator.pop(context);
-      
+
       // Handle different response status codes
       switch (result['statusCode']) {
         case 200:
@@ -364,7 +404,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
               // Fetch updated task details
               _fetchDetail();
             }
-            
+
             // Show success dialog
             showDialog(
               context: context,
@@ -401,7 +441,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                 ),
               ),
             );
-            
+
             // Automatically close the dialog after 1.5 seconds
             Future.delayed(const Duration(milliseconds: 1500), () {
               Navigator.pop(context); // Close the dialog
@@ -409,7 +449,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(result['data']['message'] ?? 'Failed to update task.'),
+                content: Text(
+                  result['data']['message'] ?? 'Failed to update task.',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -435,7 +477,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         default:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['data']['message'] ?? 'Failed to update task.'),
+              content: Text(
+                result['data']['message'] ?? 'Failed to update task.',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -452,7 +496,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       );
     }
   }
-  
+
   Future<void> _showDeleteConfirmation() async {
     return showDialog(
       context: context,
@@ -533,16 +577,14 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       final result = await _service.deleteTask(widget.taskId);
       // Pop the loading dialog
       Navigator.pop(context);
-      
+
       // Handle different response status codes
       switch (result['statusCode']) {
         case 200:
@@ -583,11 +625,11 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                 ),
               ),
             );
-            
+
             // Automatically close the dialog and navigate back after 1.5 seconds
             Future.delayed(const Duration(milliseconds: 1500), () {
               Navigator.pop(context); // Close the dialog
-              
+
               // Navigate back with refresh indicator
               Navigator.pop(context, true);
             });
@@ -613,7 +655,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         default:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['data']['message'] ?? 'Failed to delete task.'),
+              content: Text(
+                result['data']['message'] ?? 'Failed to delete task.',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -630,22 +674,20 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       );
     }
   }
-  
+
   Future<void> _submitTaskToChecker() async {
     // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       final result = await _service.submitTaskToChecker(widget.taskId);
       // Pop the loading dialog
       Navigator.pop(context);
-      
+
       // Handle different response status codes
       switch (result['statusCode']) {
         case 200:
@@ -654,7 +696,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
             setState(() {
               _task = TaskPreviewModel.fromJson(result['data']['data']);
             });
-            
+
             // Show custom success dialog that matches the design
             showDialog(
               context: context,
@@ -691,11 +733,11 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                 ),
               ),
             );
-            
+
             // Automatically close the dialog and navigate back after 1.5 seconds
             Future.delayed(const Duration(milliseconds: 1500), () {
               Navigator.pop(context); // Close the dialog
-              
+
               // Navigate back to location_tasks_detail_page and refresh it
               Navigator.pop(context, true);
             });
@@ -720,7 +762,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         case 422:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['data']['message'] ?? 'Task must be in progress to be submitted.'),
+              content: Text(
+                result['data']['message'] ??
+                    'Task must be in progress to be submitted.',
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -729,7 +774,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         default:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['data']['message'] ?? 'Failed to submit task.'),
+              content: Text(
+                result['data']['message'] ?? 'Failed to submit task.',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -756,7 +803,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF7ED957),
         elevation: 0,
-        title: const Text('Task Preview', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Task Preview',
+          style: TextStyle(color: Colors.black),
+        ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Column(
@@ -768,26 +818,40 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _tabIndex == 0 ? const Color(0xFF7ED957) : Colors.white,
+                      backgroundColor: _tabIndex == 0
+                          ? const Color(0xFF7ED957)
+                          : Colors.white,
                       foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       elevation: 0,
                     ),
                     onPressed: () => setState(() => _tabIndex = 0),
-                    child: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Details',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _tabIndex == 1 ? const Color(0xFF7ED957) : Colors.white,
+                      backgroundColor: _tabIndex == 1
+                          ? const Color(0xFF7ED957)
+                          : Colors.white,
                       foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       elevation: 0,
                     ),
                     onPressed: () => setState(() => _tabIndex = 1),
-                    child: const Text('Logs', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Logs',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],
@@ -796,126 +860,206 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
           Expanded(
             child: _tabIndex == 0
                 ? _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _error != null
-                        ? Center(child: Text('Error: $_error'))
-                        : SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(_task?.taskName ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
-                                          Text(_task?.taskType ?? '', style: const TextStyle(fontSize: 15, color: Colors.black54)),
-                                        ],
-                                      ),
-                                    ),
-                                    _buildStatusBadge(_task?.taskStatus ?? ''),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text('Created by: ${_task?.createdBy.name ?? ''}', style: const TextStyle(fontSize: 13)),
-                                Text('Created at: ${_task?.createdAt.split(' ').first ?? ''}', style: const TextStyle(fontSize: 13)),
-                                const SizedBox(height: 18),
-                                const Text('Worker details:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                ..._task?.workers.map(_buildWorkerCard) ?? [],
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF7ED957),
-                                      foregroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                      elevation: 0,
-                                    ),
-                                    icon: const Icon(Icons.add, color: Colors.black),
-                                    label: const Text('Add worker', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    onPressed: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddWorkerPage(taskId: widget.taskId),
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                      ? Center(child: Text('Error: $_error'))
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _task?.taskName ?? '',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 22,
+                                          ),
                                         ),
-                                      );
-                                      if (result == true) {
-                                        _fetchDetail(); // Refresh the task details
-                                      }
-                                    },
+                                        Text(
+                                          _task?.taskType ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  _buildStatusBadge(_task?.taskStatus ?? ''),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Created by: ${_task?.createdBy.name ?? ''}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              Text(
+                                'Created at: ${_task?.createdAt.split(' ').first ?? ''}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const SizedBox(height: 18),
+                              const Text(
+                                'Worker details:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
-                                const SizedBox(height: 18),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.black,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          elevation: 0,
+                              ),
+                              ..._task?.workers.map(_buildWorkerCard) ?? [],
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF7ED957),
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.black,
+                                  ),
+                                  label: const Text(
+                                    'Add worker',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddWorkerPage(
+                                          taskId: widget.taskId,
                                         ),
-                                        onPressed: _task?.taskStatus.toLowerCase() == 'in_progress' 
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      _fetchDetail(); // Refresh the task details
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      onPressed:
+                                          _task?.taskStatus.toLowerCase() ==
+                                              'in_progress'
                                           ? _showEditTaskDialog
                                           : null,
-                                        child: const Text('Edit', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      child: const Text(
+                                        'Edit',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.black,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          elevation: 0,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
-                                        onPressed: _task?.taskStatus.toLowerCase() == 'in_progress' 
-                                          ? () => _submitTaskToChecker() 
+                                        elevation: 0,
+                                      ),
+                                      onPressed:
+                                          _task?.taskStatus.toLowerCase() ==
+                                              'in_progress'
+                                          ? () => _submitTaskToChecker()
                                           : null,
-                                        child: const Text('Send to checker', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.red,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          elevation: 0,
+                                      child: const Text(
+                                        'Send to checker',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        onPressed: _showDeleteConfirmation,
-                                        child: const Text('Remove', style: TextStyle(fontWeight: FontWeight.bold)),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.black,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          elevation: 0,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.red,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
-                                        onPressed: () {}, // Demo only
-                                        child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        elevation: 0,
+                                      ),
+                                      onPressed: _showDeleteConfirmation,
+                                      child: const Text(
+                                        'Remove',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      onPressed: () {}, // Demo only
+                                      child: const Text(
+                                        'Save',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
                 : LogsTabView(taskId: widget.taskId),
           ),
         ],

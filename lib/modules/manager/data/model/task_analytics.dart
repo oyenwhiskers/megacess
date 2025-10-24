@@ -1,4 +1,3 @@
-
 class AnalyticsResponse {
   final UsageAnalytics usageAnalytics;
   final TaskAnalytics taskAnalytics;

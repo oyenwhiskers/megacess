@@ -13,7 +13,9 @@ class UserAttendanceDetailResponse {
     return UserAttendanceDetailResponse(
       success: json['success'] ?? false,
       message: json['message'],
-      data: json['data'] != null ? UserAttendanceDetailData.fromJson(json['data']) : null,
+      data: json['data'] != null
+          ? UserAttendanceDetailData.fromJson(json['data'])
+          : null,
     );
   }
 }

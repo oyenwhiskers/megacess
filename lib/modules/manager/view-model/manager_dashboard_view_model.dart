@@ -10,6 +10,7 @@ class ManagerDashboardViewModel {
       // fallback: do nothing
     }
   }
+
   final ManagerDashboardService _service = ManagerDashboardService();
   TaskAnalytics? analytics;
   bool isLoading = false;

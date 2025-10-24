@@ -28,7 +28,7 @@ class _MyStaffPageState extends State<MyStaffPage> {
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       _fetchClaimedStaff();
     });
-  _refreshTimer?.cancel();
+    _refreshTimer?.cancel();
   }
 
   Future<void> _fetchClaimedStaff() async {
@@ -45,15 +45,20 @@ class _MyStaffPageState extends State<MyStaffPage> {
       setState(() {
         _isLoadingStaff = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load staff: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load staff: $e')));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final filteredStaff = staffList
-        .where((staff) => staff.staffFullname.toLowerCase().contains(searchQuery.toLowerCase()))
+        .where(
+          (staff) => staff.staffFullname.toLowerCase().contains(
+            searchQuery.toLowerCase(),
+          ),
+        )
         .toList();
     return Scaffold(
       backgroundColor: const Color(0xFFD9D9D9),
@@ -62,7 +67,12 @@ class _MyStaffPageState extends State<MyStaffPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.only(left: 12, right: 12, top: 18, bottom: 12),
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 18,
+                bottom: 12,
+              ),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
@@ -101,7 +111,10 @@ class _MyStaffPageState extends State<MyStaffPage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'search staff...',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -120,54 +133,69 @@ class _MyStaffPageState extends State<MyStaffPage> {
               child: _isLoadingStaff
                   ? const Center(child: CircularProgressIndicator())
                   : filteredStaff.isEmpty
-                      ? const Center(child: Text('No staff found'))
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          itemCount: filteredStaff.length,
-                          itemBuilder: (context, index) {
-                            final staff = filteredStaff[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                color: Colors.white,
-                                child: ListTile(
-                                  leading: staff.staffImg.isNotEmpty
-                                      ? CircleAvatar(
-                                          radius: 22,
-                                          backgroundColor: Colors.grey[200],
-                                          child: ClipOval(
-                                            child: Image.network(
-                                              staff.staffImg,
-                                              width: 44,
-                                              height: 44,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return const Icon(Icons.account_circle, size: 40, color: Colors.black45);
+                  ? const Center(child: Text('No staff found'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: filteredStaff.length,
+                      itemBuilder: (context, index) {
+                        final staff = filteredStaff[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: staff.staffImg.isNotEmpty
+                                  ? CircleAvatar(
+                                      radius: 22,
+                                      backgroundColor: Colors.grey[200],
+                                      child: ClipOval(
+                                        child: Image.network(
+                                          staff.staffImg,
+                                          width: 44,
+                                          height: 44,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.account_circle,
+                                                  size: 40,
+                                                  color: Colors.black45,
+                                                );
                                               },
-                                            ),
-                                          ),
-                                        )
-                                      : const Icon(Icons.account_circle, size: 40, color: Colors.black45),
-                                  title: Text(staff.staffFullname, style: const TextStyle(fontSize: 16)),
-                                  subtitle: Text(staff.staffPhone),
-                                  trailing: const Icon(Icons.chevron_right),
-                                  onTap: () async {
-                                    final result = await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => StaffDetailPage(staffId: staff.id),
+                                        ),
                                       ),
-                                    );
-                                    if (result == true) {
-                                      _fetchClaimedStaff();
-                                    }
-                                  },
-                                ),
+                                    )
+                                  : const Icon(
+                                      Icons.account_circle,
+                                      size: 40,
+                                      color: Colors.black45,
+                                    ),
+                              title: Text(
+                                staff.staffFullname,
+                                style: const TextStyle(fontSize: 16),
                               ),
-                            );
-                          },
-                        ),
+                              subtitle: Text(staff.staffPhone),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () async {
+                                final result = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        StaffDetailPage(staffId: staff.id),
+                                  ),
+                                );
+                                if (result == true) {
+                                  _fetchClaimedStaff();
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
             if (_isLoadingPopup)
               const Center(child: CircularProgressIndicator()),
@@ -218,9 +246,9 @@ class _MyStaffPageState extends State<MyStaffPage> {
             setState(() {
               _isLoadingPopup = false;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to load staff: $e')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Failed to load staff: $e')));
           }
         },
       ),

@@ -21,10 +21,7 @@ class CreatedByModel {
   CreatedByModel({required this.id, required this.name});
 
   factory CreatedByModel.fromJson(Map<String, dynamic> json) {
-    return CreatedByModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-    );
+    return CreatedByModel(id: json['id'] ?? 0, name: json['name'] ?? '');
   }
 }
 
@@ -52,7 +49,9 @@ class TaskMetaModel {
       staffId: json['staff_id'] ?? 0,
       metaKey: json['meta_key'] ?? '',
       metaValue: json['meta_value'] ?? '',
-      staff: json['staff'] != null ? StaffMetaModel.fromJson(json['staff']) : null,
+      staff: json['staff'] != null
+          ? StaffMetaModel.fromJson(json['staff'])
+          : null,
     );
   }
 }
@@ -62,7 +61,11 @@ class StaffMetaModel {
   final String staffName;
   final int staffId;
 
-  StaffMetaModel({required this.id, required this.staffName, required this.staffId});
+  StaffMetaModel({
+    required this.id,
+    required this.staffName,
+    required this.staffId,
+  });
 
   factory StaffMetaModel.fromJson(Map<String, dynamic> json) {
     return StaffMetaModel(
@@ -112,8 +115,12 @@ class TaskDetailModel {
       taskStatus: json['taskStatus'] ?? '',
       createdBy: CreatedByModel.fromJson(json['createdBy'] ?? {}),
       submittedAt: json['submittedAt'],
-      workers: (json['workers'] as List<dynamic>? ?? []).map((e) => WorkerModel.fromJson(e)).toList(),
-      taskMeta: (json['task_meta'] as List<dynamic>? ?? []).map((e) => TaskMetaModel.fromJson(e)).toList(),
+      workers: (json['workers'] as List<dynamic>? ?? [])
+          .map((e) => WorkerModel.fromJson(e))
+          .toList(),
+      taskMeta: (json['task_meta'] as List<dynamic>? ?? [])
+          .map((e) => TaskMetaModel.fromJson(e))
+          .toList(),
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
     );
@@ -156,16 +163,23 @@ class LocationTasksDetailResponse {
     final data = json['data'] ?? {};
     return LocationTasksDetailResponse(
       location: LocationDetailModel.fromJson(data['location'] ?? {}),
-      tasks: (data['tasks'] as List<dynamic>? ?? []).map((e) => TaskDetailModel.fromJson(e)).toList(),
+      tasks: (data['tasks'] as List<dynamic>? ?? [])
+          .map((e) => TaskDetailModel.fromJson(e))
+          .toList(),
     );
   }
 }
+
 class LocationModel {
   final int id;
   final String name;
   final int taskCount;
 
-  LocationModel({required this.id, required this.name, required this.taskCount});
+  LocationModel({
+    required this.id,
+    required this.name,
+    required this.taskCount,
+  });
 
   factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(

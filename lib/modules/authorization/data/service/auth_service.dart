@@ -15,10 +15,7 @@ class AuthService {
   Future<LoginResponse?> login(String username, String password) async {
     final response = await _dioClient.post(
       'v1/auth/login',
-      data: {
-        'user_nickname': username,
-        'password': password,
-      },
+      data: {'user_nickname': username, 'password': password},
       options: Options(
         headers: {
           'Content-Type': 'application/json',
@@ -41,6 +38,7 @@ class AuthService {
     }
     return null;
   }
+
   /// Get user role securely
   Future<String?> getUserRole() async {
     return _storageService.getUserRole();

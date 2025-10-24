@@ -4,7 +4,11 @@ import '../data/service/manager_dashboard_service.dart';
 class AddNewTaskPage extends StatefulWidget {
   final int locationId;
   final String locationName;
-  const AddNewTaskPage({Key? key, required this.locationId, required this.locationName}) : super(key: key);
+  const AddNewTaskPage({
+    Key? key,
+    required this.locationId,
+    required this.locationName,
+  }) : super(key: key);
 
   @override
   State<AddNewTaskPage> createState() => _AddNewTaskPageState();
@@ -28,8 +32,14 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
   ];
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate() || _selectedType == null || _selectedDate == null) return;
-    setState(() { _isSubmitting = true; _error = null; });
+    if (!_formKey.currentState!.validate() ||
+        _selectedType == null ||
+        _selectedDate == null)
+      return;
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+    });
     try {
       String typeValue;
       switch (_selectedType) {
@@ -58,12 +68,17 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
         taskDate: _selectedDate!.toIso8601String().split('T').first,
       );
       bool isSuccess = false;
-      if (response != null && response['data'] != null && (response['statusCode'] == 200 || response['statusCode'] == 201)) {
+      if (response != null &&
+          response['data'] != null &&
+          (response['statusCode'] == 200 || response['statusCode'] == 201)) {
         isSuccess = true;
       } else if (response != null) {
         if (response['success'] == true) {
           isSuccess = true;
-        } else if (response['message'] != null && response['message'].toString().toLowerCase().contains('successfully')) {
+        } else if (response['message'] != null &&
+            response['message'].toString().toLowerCase().contains(
+              'successfully',
+            )) {
           isSuccess = true;
         }
       }
@@ -77,7 +92,10 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                 color: Colors.transparent,
                 child: Container(
                   width: 260,
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 18),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 32,
+                    horizontal: 18,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
@@ -85,9 +103,20 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle, color: Color(0xFF43C463), size: 56),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF43C463),
+                        size: 56,
+                      ),
                       const SizedBox(height: 18),
-                      const Text('Group Task successfully created!', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      const Text(
+                        'Group Task successfully created!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                        ),
+                      ),
                       const SizedBox(height: 18),
                       SizedBox(
                         width: 120,
@@ -95,11 +124,16 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF43C463),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                             elevation: 0,
                           ),
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],
@@ -111,12 +145,18 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
           Navigator.of(context).pop(true); // return success
         }
       } else {
-        setState(() { _error = response?['message'] ?? 'Failed to create task.'; });
+        setState(() {
+          _error = response?['message'] ?? 'Failed to create task.';
+        });
       }
     } catch (e) {
-      setState(() { _error = e.toString(); });
+      setState(() {
+        _error = e.toString();
+      });
     } finally {
-      setState(() { _isSubmitting = false; });
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 
@@ -140,14 +180,21 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Text('Choose the type of task', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: Text(
+                    'Choose the type of task',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
-              ..._taskTypes.map((type) => ListTile(
-                title: Center(child: Text(type, style: const TextStyle(fontSize: 16))),
-                onTap: () => Navigator.of(context).pop(type),
-              )),
+              ..._taskTypes.map(
+                (type) => ListTile(
+                  title: Center(
+                    child: Text(type, style: const TextStyle(fontSize: 16)),
+                  ),
+                  onTap: () => Navigator.of(context).pop(type),
+                ),
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -155,7 +202,9 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
       },
     );
     if (selected != null) {
-      setState(() { _selectedType = selected; });
+      setState(() {
+        _selectedType = selected;
+      });
     }
   }
 
@@ -180,7 +229,9 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
       },
     );
     if (picked != null) {
-      setState(() { _selectedDate = picked; });
+      setState(() {
+        _selectedDate = picked;
+      });
     }
   }
 
@@ -204,10 +255,16 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
               children: [
                 const SizedBox(height: 8),
                 const Center(
-                  child: Text('Add new task:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  child: Text(
+                    'Add new task:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
                 ),
                 const SizedBox(height: 18),
-                const Text('Task name:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Task name:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _taskNameController,
@@ -215,39 +272,77 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                     hintText: 'Enter task name..',
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Task name required' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Task name required'
+                      : null,
                 ),
                 const SizedBox(height: 18),
-                const Text('Type of task:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Type of task:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: _showTaskTypePicker,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(_selectedType ?? 'Select one..', style: TextStyle(fontSize: 15, color: _selectedType == null ? Colors.grey : Colors.black)),
+                    child: Text(
+                      _selectedType ?? 'Select one..',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: _selectedType == null
+                            ? Colors.grey
+                            : Colors.black,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text('Date created:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Date created:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: _showDatePicker,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(_selectedDate == null ? 'Select one..' : _selectedDate!.toIso8601String().split('T').first, style: TextStyle(fontSize: 15, color: _selectedDate == null ? Colors.grey : Colors.black)),
+                    child: Text(
+                      _selectedDate == null
+                          ? 'Select one..'
+                          : _selectedDate!.toIso8601String().split('T').first,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: _selectedDate == null
+                            ? Colors.grey
+                            : Colors.black,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -264,13 +359,22 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         side: const BorderSide(color: Colors.black12),
                       ),
                       onPressed: _isSubmitting ? null : _submit,
                       child: _isSubmitting
-                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Confirm', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'Confirm',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                     ),
                   ),
                 ),

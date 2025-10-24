@@ -38,12 +38,10 @@ class AttendanceService {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     }
   }
+
   Future<Map<String, dynamic>> userCheckIn({
     required int dateAttendanceId,
     required int userId,
@@ -65,50 +63,51 @@ class AttendanceService {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     }
   }
-    Future<Map<String, dynamic>> userMarkAbsent({
-      required int dateAttendanceId,
-      required int userId,
-    }) async {
-      try {
-        final response = await dioClient.post(
-          'api/v1/user-attendance/mark-absent',
-          data: {
-            'date_attendance_id': dateAttendanceId,
-            'user_id': userId,
-          },
-        );
-        return response.data as Map<String, dynamic>;
-      } on DioError catch (e) {
-        if (e.response != null && e.response?.data != null) {
-          return e.response?.data as Map<String, dynamic>;
-        }
-        return {
-          'success': false,
-          'message': 'Network error',
-        };
+
+  Future<Map<String, dynamic>> userMarkAbsent({
+    required int dateAttendanceId,
+    required int userId,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        'api/v1/user-attendance/mark-absent',
+        data: {'date_attendance_id': dateAttendanceId, 'user_id': userId},
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioError catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
       }
+      return {'success': false, 'message': 'Network error'};
     }
-  Future<UserAttendanceDetailResponse> fetchUserAttendanceDetail({required int userId}) async {
+  }
+
+  Future<UserAttendanceDetailResponse> fetchUserAttendanceDetail({
+    required int userId,
+  }) async {
     try {
       final response = await dioClient.get('api/v1/user-attendance/$userId');
       if (response.data is Map && response.data['success'] == true) {
         return UserAttendanceDetailResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch user attendance detail');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch user attendance detail',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch user attendance detail');
+        throw Exception(
+          e.response?.data['message'] ??
+              'Failed to fetch user attendance detail',
+        );
       }
       throw Exception('Failed to fetch user attendance detail');
     }
   }
+
   Future<Map<String, dynamic>> staffMarkAbsent({
     required int dateAttendanceId,
     required int staffId,
@@ -116,22 +115,17 @@ class AttendanceService {
     try {
       final response = await dioClient.post(
         'api/v1/staff-attendance/mark-absent',
-        data: {
-          'date_attendance_id': dateAttendanceId,
-          'staff_id': staffId,
-        },
+        data: {'date_attendance_id': dateAttendanceId, 'staff_id': staffId},
       );
       return response.data as Map<String, dynamic>;
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     }
   }
+
   Future<Map<String, dynamic>> staffCheckOut({
     required int dateAttendanceId,
     required int staffId,
@@ -153,12 +147,10 @@ class AttendanceService {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     }
   }
+
   Future<Map<String, dynamic>> staffCheckIn({
     required int dateAttendanceId,
     required int staffId,
@@ -180,103 +172,141 @@ class AttendanceService {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     }
   }
+
   Future<StaffDetailResponse> fetchStaffDetail({required int staffId}) async {
     try {
       final response = await dioClient.get('api/v1/staff/$staffId');
       if (response.data is Map && response.data['success'] == true) {
         return StaffDetailResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch staff detail');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch staff detail',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch staff detail');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch staff detail',
+        );
       }
       throw Exception('Failed to fetch staff detail');
     }
   }
+
   Future<AuditTaskPreviewModel?> fetchAuditTaskPreview(int taskId) async {
     try {
       final response = await dioClient.get('api/v1/tasks/$taskId');
       if (response.data is Map && response.data['success'] == true) {
         return AuditTaskPreviewModel.fromJson(response.data['data']);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch audit task preview');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch audit task preview',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch audit task preview');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch audit task preview',
+        );
       }
       throw Exception('Failed to fetch audit task preview');
     }
   }
-  Future<AuditTaskLocationTasksResponse> fetchAuditLocationTasks(int locationId) async {
+
+  Future<AuditTaskLocationTasksResponse> fetchAuditLocationTasks(
+    int locationId,
+  ) async {
     try {
-      final response = await dioClient.get('api/v1/locations/$locationId/tasks');
+      final response = await dioClient.get(
+        'api/v1/locations/$locationId/tasks',
+      );
       if (response.data is Map && response.data['success'] == true) {
         return AuditTaskLocationTasksResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch audit tasks');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch audit tasks',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch audit tasks');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch audit tasks',
+        );
       }
       throw Exception('Failed to fetch audit tasks');
     }
   }
+
   Future<LocationListResponse> fetchLocationList() async {
     try {
       final response = await dioClient.get('api/v1/locations');
       if (response.data is Map && response.data['success'] == true) {
         return LocationListResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch locations');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch locations',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch locations');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch locations',
+        );
       }
       throw Exception('Failed to fetch locations');
     }
   }
+
   Future<PendingTaskListResponse> fetchPendingTasks() async {
     try {
-      final response = await dioClient.get('api/v1/analytics/checker/pending-tasks');
+      final response = await dioClient.get(
+        'api/v1/analytics/checker/pending-tasks',
+      );
       if (response.data is Map && response.data['success'] == true) {
         return PendingTaskListResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch pending tasks');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch pending tasks',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch pending tasks');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch pending tasks',
+        );
       }
       throw Exception('Failed to fetch pending tasks');
     }
   }
+
   Future<CheckerAnalytics> fetchCheckerAnalytics() async {
     try {
       final response = await dioClient.get('api/v1/analytics/checker');
       if (response.data is Map && response.data['success'] == true) {
         return CheckerAnalytics.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch analytics');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch analytics',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch analytics');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch analytics',
+        );
       }
       throw Exception('Failed to fetch analytics');
     }
   }
-  Future<StaffAttendanceListResponse> fetchStaffAttendanceList({required int dateAttendanceId, int page = 1, int perPage = 15}) async {
+
+  Future<StaffAttendanceListResponse> fetchStaffAttendanceList({
+    required int dateAttendanceId,
+    int page = 1,
+    int perPage = 15,
+  }) async {
     try {
       final response = await dioClient.get(
         'api/v1/staff-attendance',
@@ -289,16 +319,25 @@ class AttendanceService {
       if (response.data is Map && response.data['success'] == true) {
         return StaffAttendanceListResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch staff attendance');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch staff attendance',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch staff attendance');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch staff attendance',
+        );
       }
       throw Exception('Failed to fetch staff attendance');
     }
   }
-  Future<UserAttendanceListResponse> fetchUserAttendanceList({required int dateAttendanceId, int page = 1, int perPage = 15}) async {
+
+  Future<UserAttendanceListResponse> fetchUserAttendanceList({
+    required int dateAttendanceId,
+    int page = 1,
+    int perPage = 15,
+  }) async {
     try {
       final response = await dioClient.get(
         'api/v1/user-attendance',
@@ -311,15 +350,20 @@ class AttendanceService {
       if (response.data is Map && response.data['success'] == true) {
         return UserAttendanceListResponse.fromJson(response.data);
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch user attendance');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch user attendance',
+        );
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to fetch user attendance');
+        throw Exception(
+          e.response?.data['message'] ?? 'Failed to fetch user attendance',
+        );
       }
       throw Exception('Failed to fetch user attendance');
     }
   }
+
   Future<Map<String, dynamic>> createAttendance({required String date}) async {
     try {
       final response = await dioClient.post(
@@ -331,16 +375,17 @@ class AttendanceService {
       rethrow;
     }
   }
+
   final DioClient dioClient;
 
   AttendanceService(SecureStorageService storageService)
-      : dioClient = DioClient(
-          baseUrl: 'https://mwms.megacess.com/',
-          storageService: storageService,
-        );
-        
+    : dioClient = DioClient(
+        baseUrl: 'https://mwms.megacess.com/',
+        storageService: storageService,
+      );
+
   /// Upload a file to the server
-  /// 
+  ///
   /// [filePath] - The path to the file to upload
   /// [directory] - Optional target directory
   /// [metadata] - Optional metadata (description, category, etc.)
@@ -355,10 +400,10 @@ class AttendanceService {
     try {
       // Create FormData for multipart request
       final formData = FormData();
-      
+
       // Add the file
       final fileName = path.basename(filePath);
-      
+
       // Handle file upload based on platform
       if (kIsWeb) {
         // Web platform - require bytes and mimeType parameters
@@ -368,7 +413,7 @@ class AttendanceService {
             'message': 'File bytes are required for web uploads',
           };
         }
-        
+
         formData.files.add(
           MapEntry(
             'file',
@@ -384,55 +429,44 @@ class AttendanceService {
         formData.files.add(
           MapEntry(
             'file',
-            await MultipartFile.fromFile(
-              filePath,
-              filename: fileName,
-            ),
+            await MultipartFile.fromFile(filePath, filename: fileName),
           ),
         );
       }
-      
+
       // Add directory if provided
       if (directory != null && directory.isNotEmpty) {
         formData.fields.add(MapEntry('directory', directory));
       }
-      
+
       // Add metadata if provided
       if (metadata != null && metadata.isNotEmpty) {
         metadata.forEach((key, value) {
           formData.fields.add(MapEntry('metadata[$key]', value));
         });
       }
-      
+
       // Make the request
       final response = await dioClient.post(
         'api/v1/files/upload',
         data: formData,
-        options: Options(
-          contentType: 'multipart/form-data',
-        ),
+        options: Options(contentType: 'multipart/form-data'),
       );
-      
+
       // Return the response data
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error: ${e.message}',
-      };
+      return {'success': false, 'message': 'Network error: ${e.message}'};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Upload failed: ${e.toString()}',
-      };
+      return {'success': false, 'message': 'Upload failed: ${e.toString()}'};
     }
   }
-  
+
   /// Upload a file as evidence for an audit task
-  /// 
+  ///
   /// [taskId] - The ID of the audit task
   /// [filePath] - The path to the file to upload
   /// [description] - Optional description for the file
@@ -455,12 +489,12 @@ class AttendanceService {
         'related_id': taskId.toString(),
         'media_type': isVideo ? 'video' : 'image',
       };
-      
+
       // Add description if provided
       if (description != null && description.isNotEmpty) {
         metadata['description'] = description;
       }
-      
+
       // Use the general upload file method with appropriate directory and metadata
       return await uploadFile(
         filePath: filePath,
@@ -476,7 +510,7 @@ class AttendanceService {
       };
     }
   }
-  
+
   /// Gets the file URL from path
   /// [path] - The path of the file
   /// Returns a Map containing the file URL details
@@ -486,16 +520,13 @@ class AttendanceService {
         'api/v1/files/url',
         queryParameters: {'path': path},
       );
-      
+
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error: ${e.message}',
-      };
+      return {'success': false, 'message': 'Network error: ${e.message}'};
     } catch (e) {
       return {
         'success': false,
@@ -503,7 +534,7 @@ class AttendanceService {
       };
     }
   }
-  
+
   /// Deletes a file using the API
   /// [path] - The path of the file to delete (required)
   /// Returns a Map containing the response with deletion status
@@ -513,16 +544,13 @@ class AttendanceService {
         'api/v1/files/delete',
         data: {'path': path},
       );
-      
+
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error: ${e.message}',
-      };
+      return {'success': false, 'message': 'Network error: ${e.message}'};
     } catch (e) {
       return {
         'success': false,
@@ -531,9 +559,13 @@ class AttendanceService {
     }
   }
 
-  Future<AttendanceListResponse> fetchAttendanceList({int page = 1, int perPage = 15, String? search}) async {
+  Future<AttendanceListResponse> fetchAttendanceList({
+    int page = 1,
+    int perPage = 15,
+    String? search,
+  }) async {
     try {
-  final response = await this.dioClient.get(
+      final response = await this.dioClient.get(
         'api/v1/attendance',
         queryParameters: {
           'page': page,
@@ -553,24 +585,15 @@ class AttendanceService {
       if (response.data is Map) {
         return response.data as Map<String, dynamic>;
       } else {
-        return {
-          'success': false,
-          'message': 'Unexpected response format',
-        };
+        return {'success': false, 'message': 'Unexpected response format'};
       }
     } on DioError catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error',
-      };
+      return {'success': false, 'message': 'Network error'};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Failed to delete attendance.',
-      };
+      return {'success': false, 'message': 'Failed to delete attendance.'};
     }
   }
 
@@ -585,23 +608,23 @@ class AttendanceService {
     try {
       // Prepare request body
       Map<String, dynamic> requestBody = {};
-      
+
       // Add task_video if provided
       if (taskVideo != null && taskVideo.isNotEmpty) {
         requestBody['task_video'] = taskVideo;
       }
-      
+
       // Add task_img if provided
       if (taskImages != null && taskImages.isNotEmpty) {
         requestBody['task_img'] = taskImages;
       }
-      
+
       // Add remarks if provided
       if (remarks != null && remarks.isNotEmpty) {
         requestBody['remarks'] = remarks;
       }
-      
-      // Add worker_audit_meta if provided, with special handling for manuring tasks
+
+      // Add worker_audit_meta if provided
       if (workerAuditMeta != null && workerAuditMeta.isNotEmpty) {
         // Make sure all entries have the correct format
         for (var meta in workerAuditMeta) {
@@ -609,68 +632,104 @@ class AttendanceService {
           if (meta.containsKey('staff_id') && meta['staff_id'] is String) {
             meta['staff_id'] = int.tryParse(meta['staff_id'].toString()) ?? 13;
           }
+
+          // Handle both NESTED format (with 'meta' object) and FLAT format (with 'meta_key'/'meta_value')
+          // NESTED format: {"staff_id": 13, "meta": {"spraying": "100"}}
+          // FLAT format: {"staff_id": 13, "meta_key": "spraying", "meta_value": "100"}
           
-          // Ensure meta_key and meta_value are strings
+          // For FLAT format - ensure meta_key and meta_value are strings
           if (meta.containsKey('meta_key') && meta['meta_key'] is! String) {
             meta['meta_key'] = meta['meta_key'].toString();
           }
-          
+
           if (meta.containsKey('meta_value') && meta['meta_value'] is! String) {
             meta['meta_value'] = meta['meta_value'].toString();
           }
+          
+          // For NESTED format - no conversion needed, just pass as-is
+          // The backend will handle the nested 'meta' object
         }
         requestBody['worker_audit_meta'] = workerAuditMeta;
-        
+
         print('Formatted worker_audit_meta for API:');
         for (var entry in workerAuditMeta) {
-          print('  ${entry['staff_id']} (${entry['staff_id'].runtimeType}): ${entry['meta_key']}=${entry['meta_value']}');
+          if (entry.containsKey('meta_key')) {
+            // FLAT format logging
+            print(
+              '  ${entry['staff_id']} (${entry['staff_id'].runtimeType}): ${entry['meta_key']}=${entry['meta_value']}',
+            );
+          } else if (entry.containsKey('meta')) {
+            // NESTED format logging
+            print(
+              '  ${entry['staff_id']} (${entry['staff_id'].runtimeType}): meta=${entry['meta']}',
+            );
+          }
         }
       }
-      
+
       print('=== APPROVE TASK API REQUEST ===');
       print('Task ID: $taskId');
       print('task_video type: ${requestBody['task_video']?.runtimeType}');
       print('task_video value: ${requestBody['task_video']}');
       print('task_img type: ${requestBody['task_img']?.runtimeType}');
       print('task_img value: ${requestBody['task_img']}');
-      
+
       // Detailed logging for worker_audit_meta
       if (requestBody.containsKey('worker_audit_meta')) {
-        print('worker_audit_meta type: ${requestBody['worker_audit_meta']?.runtimeType}');
-        print('worker_audit_meta count: ${requestBody['worker_audit_meta']?.length ?? 0}');
-        
+        print(
+          'worker_audit_meta type: ${requestBody['worker_audit_meta']?.runtimeType}',
+        );
+        print(
+          'worker_audit_meta count: ${requestBody['worker_audit_meta']?.length ?? 0}',
+        );
+
         if (requestBody['worker_audit_meta'] != null) {
           final metaList = requestBody['worker_audit_meta'] as List;
           for (int i = 0; i < metaList.length; i++) {
             final entry = metaList[i];
             print('Entry $i:');
-            print('  staff_id: ${entry['staff_id']} (${entry['staff_id'].runtimeType})');
-            print('  meta_key: ${entry['meta_key']} (${entry['meta_key'].runtimeType})');
-            print('  meta_value: ${entry['meta_value']} (${entry['meta_value'].runtimeType})');
+            print(
+              '  staff_id: ${entry['staff_id']} (${entry['staff_id'].runtimeType})',
+            );
+            
+            // Check format type and log accordingly
+            if (entry.containsKey('meta_key')) {
+              // FLAT format
+              print(
+                '  meta_key: ${entry['meta_key']} (${entry['meta_key'].runtimeType})',
+              );
+              print(
+                '  meta_value: ${entry['meta_value']} (${entry['meta_value'].runtimeType})',
+              );
+            } else if (entry.containsKey('meta')) {
+              // NESTED format
+              print(
+                '  meta: ${entry['meta']} (${entry['meta'].runtimeType})',
+              );
+            } else {
+              print('  WARNING: Entry has neither meta_key/meta_value nor meta object!');
+            }
           }
         }
       } else {
         print('WARNING: worker_audit_meta is missing from request!');
       }
-      
+
       final response = await dioClient.post(
         'api/v1/tasks/audits/$taskId/approve',
         data: requestBody,
       );
-      
+
       print('=== APPROVE TASK API RESPONSE ===');
       print('Response: ${response.data}');
-      
+
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       print('Error approving task: ${e.response?.data}');
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
-      return {
-        'success': false,
-        'message': 'Network error: ${e.message}',
-      };
+      return {'success': false, 'message': 'Network error: ${e.message}'};
     } catch (e) {
       print('Unexpected error approving task: $e');
       return {
@@ -679,5 +738,6 @@ class AttendanceService {
       };
     }
   }
-// ...existing code...
+
+  // ...existing code...
 }

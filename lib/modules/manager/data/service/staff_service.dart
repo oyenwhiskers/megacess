@@ -16,6 +16,7 @@ class StaffService {
     }
     return false;
   }
+
   Future<StaffModel?> getStaffDetail(int staffId) async {
     final response = await _dioClient.get('v1/staff/$staffId');
     if (response.statusCode == 200 && response.data['success'] == true) {
@@ -23,25 +24,30 @@ class StaffService {
     }
     return null;
   }
+
   Future<bool> claimStaff(int staffId) async {
-    final response = await _dioClient.post(
-      'v1/staff/$staffId/claim',
-    );
+    final response = await _dioClient.post('v1/staff/$staffId/claim');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return true;
     }
     return false;
   }
+
   final DioClient _dioClient;
 
-  StaffService({
-    DioClient? dioClient,
-  }) : _dioClient = dioClient ?? DioClient(
-      baseUrl: 'https://mwms.megacess.com/api/', // <-- Replace with your actual base URL
-      storageService: SecureStorageService(),
-    );
+  StaffService({DioClient? dioClient})
+    : _dioClient =
+          dioClient ??
+          DioClient(
+            baseUrl:
+                'https://mwms.megacess.com/api/', // <-- Replace with your actual base URL
+            storageService: SecureStorageService(),
+          );
 
-  Future<PaginatedStaffResult> fetchUnclaimedStaff({int page = 1, String? search}) async {
+  Future<PaginatedStaffResult> fetchUnclaimedStaff({
+    int page = 1,
+    String? search,
+  }) async {
     final response = await _dioClient.get(
       'v1/staff',
       queryParameters: {
@@ -65,17 +71,15 @@ class StaffService {
     }
     throw Exception('Failed to fetch staff');
   }
-  
-    Future<List<StaffModel>> fetchClaimedStaff() async {
-      final response = await _dioClient.get(
-        'v1/staff/my-staff',
-      );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List data = response.data['data'];
-        return data.map((json) => StaffModel.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch claimed staff');
+
+  Future<List<StaffModel>> fetchClaimedStaff() async {
+    final response = await _dioClient.get('v1/staff/my-staff');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      final List data = response.data['data'];
+      return data.map((json) => StaffModel.fromJson(json)).toList();
     }
+    throw Exception('Failed to fetch claimed staff');
+  }
 }
 
 class PaginatedStaffResult {

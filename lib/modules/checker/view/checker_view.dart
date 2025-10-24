@@ -9,19 +9,15 @@ import '../../utility/secure_storage_service.dart';
 import 'manage_attendance_view.dart';
 import 'audit_tasks_page.dart';
 
-
 class CheckerView extends StatefulWidget {
   final String checkerName;
 
-  const CheckerView({
-    Key? key,
-    this.checkerName = 'checker_name',
-  }) : super(key: key);
+  const CheckerView({Key? key, this.checkerName = 'checker_name'})
+    : super(key: key);
 
   @override
   State<CheckerView> createState() => _CheckerViewState();
 }
-
 
 class _CheckerViewState extends State<CheckerView> {
   late Future<CheckerAnalytics> _analyticsFuture;
@@ -69,7 +65,10 @@ class _CheckerViewState extends State<CheckerView> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError || _error != null) {
               return Center(
-                child: Text(_error ?? 'Failed to load analytics', style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  _error ?? 'Failed to load analytics',
+                  style: const TextStyle(color: Colors.red),
+                ),
               );
             } else if (snapshot.hasData) {
               final data = snapshot.data!;
@@ -80,7 +79,10 @@ class _CheckerViewState extends State<CheckerView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
@@ -107,7 +109,11 @@ class _CheckerViewState extends State<CheckerView> {
                             ),
                             const CircleAvatar(
                               backgroundColor: Colors.white,
-                              child: Icon(Icons.person, color: Colors.grey, size: 28),
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                                size: 28,
+                              ),
                             ),
                           ],
                         ),
@@ -121,21 +127,43 @@ class _CheckerViewState extends State<CheckerView> {
                             Card(
                               elevation: 0,
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 18.0,
+                                  horizontal: 8.0,
+                                ),
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const Text('Days before payroll', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                        const Text(
+                                          'Days before payroll',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
                                         SizedBox(width: 6),
-                                        const Icon(Icons.payments, size: 18, color: Colors.purple),
+                                        const Icon(
+                                          Icons.payments,
+                                          size: 18,
+                                          color: Colors.purple,
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 6),
-                                    Text('${data.timeUntilPayroll}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                                    Text(
+                                      '${data.timeUntilPayroll}',
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -145,21 +173,43 @@ class _CheckerViewState extends State<CheckerView> {
                             Card(
                               elevation: 0,
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14.0,
+                                  horizontal: 8.0,
+                                ),
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const Icon(Icons.pause_circle_filled, color: Colors.amber),
+                                        const Icon(
+                                          Icons.pause_circle_filled,
+                                          color: Colors.amber,
+                                        ),
                                         SizedBox(width: 6),
-                                        const Text('Pending Approval', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                        const Text(
+                                          'Pending Approval',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 6),
-                                    Text('${data.pendingTaskCount}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.amber)),
+                                    Text(
+                                      '${data.pendingTaskCount}',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -172,21 +222,39 @@ class _CheckerViewState extends State<CheckerView> {
                                   child: Card(
                                     elevation: 0,
                                     color: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14.0,
+                                      ),
                                       child: Column(
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              const Icon(Icons.remove_circle, color: Colors.red),
+                                              const Icon(
+                                                Icons.remove_circle,
+                                                color: Colors.red,
+                                              ),
                                               SizedBox(width: 4),
-                                              const Text('Absent', style: TextStyle(fontSize: 13)),
+                                              const Text(
+                                                'Absent',
+                                                style: TextStyle(fontSize: 13),
+                                              ),
                                             ],
                                           ),
                                           const SizedBox(height: 2),
-                                          Text('${data.absentPeopleCount}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red)),
+                                          Text(
+                                            '${data.absentPeopleCount}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.red,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -197,21 +265,39 @@ class _CheckerViewState extends State<CheckerView> {
                                   child: Card(
                                     elevation: 0,
                                     color: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14.0,
+                                      ),
                                       child: Column(
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              const Icon(Icons.check_circle, color: Colors.green),
+                                              const Icon(
+                                                Icons.check_circle,
+                                                color: Colors.green,
+                                              ),
                                               SizedBox(width: 4),
-                                              const Text('Completed', style: TextStyle(fontSize: 13)),
+                                              const Text(
+                                                'Completed',
+                                                style: TextStyle(fontSize: 13),
+                                              ),
                                             ],
                                           ),
                                           const SizedBox(height: 2),
-                                          Text('${data.completeTaskCount}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                                          Text(
+                                            '${data.completeTaskCount}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.green,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -222,22 +308,38 @@ class _CheckerViewState extends State<CheckerView> {
                             const SizedBox(height: 14),
                             const Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('Modules:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              child: Text(
+                                'Modules:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 8),
                             // Modules
                             Card(
                               elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               color: Colors.white,
                               child: ListTile(
-                                leading: const Icon(Icons.verified_user, color: Colors.teal, size: 26),
-                                title: const Text('Check Attendance', style: TextStyle(fontSize: 15)),
+                                leading: const Icon(
+                                  Icons.verified_user,
+                                  color: Colors.teal,
+                                  size: 26,
+                                ),
+                                title: const Text(
+                                  'Check Attendance',
+                                  style: TextStyle(fontSize: 15),
+                                ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) => const ManageAttendanceView(),
+                                      builder: (_) =>
+                                          const ManageAttendanceView(),
                                     ),
                                   );
                                 },
@@ -245,11 +347,20 @@ class _CheckerViewState extends State<CheckerView> {
                             ),
                             Card(
                               elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               color: Colors.white,
                               child: ListTile(
-                                leading: const Icon(Icons.assignment, color: Colors.teal, size: 26),
-                                title: const Text('Audit Tasks', style: TextStyle(fontSize: 15)),
+                                leading: const Icon(
+                                  Icons.assignment,
+                                  color: Colors.teal,
+                                  size: 26,
+                                ),
+                                title: const Text(
+                                  'Audit Tasks',
+                                  style: TextStyle(fontSize: 15),
+                                ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
                                   Navigator.of(context).push(
@@ -262,19 +373,29 @@ class _CheckerViewState extends State<CheckerView> {
                             ),
                             Card(
                               elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               color: Colors.white,
                               child: ListTile(
-                                leading: const Icon(Icons.bar_chart, color: Colors.teal, size: 26),
-                                title: const Text('Analytics', style: TextStyle(fontSize: 15)),
+                                leading: const Icon(
+                                  Icons.bar_chart,
+                                  color: Colors.teal,
+                                  size: 26,
+                                ),
+                                title: const Text(
+                                  'Analytics',
+                                  style: TextStyle(fontSize: 15),
+                                ),
                                 trailing: const Icon(Icons.chevron_right),
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => const AnalyticsView(),
-                                      ),
-                                    );
-                                  },
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AnalyticsView(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -294,7 +415,13 @@ class _CheckerViewState extends State<CheckerView> {
                             elevation: 0,
                           ),
                           icon: const Icon(Icons.logout),
-                          label: const Text('LOG OUT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          label: const Text(
+                            'LOG OUT',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           onPressed: _logout,
                         ),
                       ),
@@ -302,7 +429,7 @@ class _CheckerViewState extends State<CheckerView> {
                   ),
                 ),
               );
-  // (Removed duplicate/invalid _logout at the end of the file)
+              // (Removed duplicate/invalid _logout at the end of the file)
             } else {
               return const Center(child: Text('No data available'));
             }

@@ -16,7 +16,12 @@ class AuditTasksPage extends StatelessWidget {
         preferredSize: const Size.fromHeight(80),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 18),
+          padding: const EdgeInsets.only(
+            top: 32,
+            left: 16,
+            right: 16,
+            bottom: 18,
+          ),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF43C463), Color(0xFFB2F7EF)],
@@ -37,16 +42,18 @@ class AuditTasksPage extends StatelessWidget {
               const SizedBox(width: 8),
               const Text(
                 'Hello, checker_name',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 18),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 18,
+                ),
               ),
               const Spacer(),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 4),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
                 ),
                 child: const Padding(
                   padding: EdgeInsets.all(6),
@@ -70,24 +77,30 @@ class AuditTasksPage extends StatelessWidget {
             const SizedBox(height: 12),
             Expanded(
               child: FutureBuilder<LocationListResponse>(
-                future: AttendanceService(SecureStorageService()).fetchLocationList(),
+                future: AttendanceService(
+                  SecureStorageService(),
+                ).fetchLocationList(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
-                    return const Center(child: Text('Failed to load locations.'));
-                  } else if (!snapshot.hasData || snapshot.data!.locations.isEmpty) {
+                    return const Center(
+                      child: Text('Failed to load locations.'),
+                    );
+                  } else if (!snapshot.hasData ||
+                      snapshot.data!.locations.isEmpty) {
                     return const Center(child: Text('No locations found.'));
                   }
                   final locations = snapshot.data!.locations;
                   return GridView.builder(
                     padding: EdgeInsets.zero,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.2,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 1.2,
+                        ),
                     itemCount: locations.length,
                     itemBuilder: (context, i) {
                       final loc = locations[i];

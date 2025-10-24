@@ -2,12 +2,17 @@ class AuditTaskWorker {
   final int id;
   final String fullName;
   final String phone;
-  AuditTaskWorker({required this.id, required this.fullName, required this.phone});
-  factory AuditTaskWorker.fromJson(Map<String, dynamic> json) => AuditTaskWorker(
-    id: json['id'] ?? 0,
-    fullName: json['fullName'] ?? '',
-    phone: json['phone'] ?? '',
-  );
+  AuditTaskWorker({
+    required this.id,
+    required this.fullName,
+    required this.phone,
+  });
+  factory AuditTaskWorker.fromJson(Map<String, dynamic> json) =>
+      AuditTaskWorker(
+        id: json['id'] ?? 0,
+        fullName: json['fullName'] ?? '',
+        phone: json['phone'] ?? '',
+      );
 }
 
 class AuditTaskMeta {
@@ -17,14 +22,23 @@ class AuditTaskMeta {
   final String metaKey;
   final String metaValue;
   final AuditTaskMetaStaff? staff;
-  AuditTaskMeta({required this.id, required this.taskId, required this.staffId, required this.metaKey, required this.metaValue, this.staff});
+  AuditTaskMeta({
+    required this.id,
+    required this.taskId,
+    required this.staffId,
+    required this.metaKey,
+    required this.metaValue,
+    this.staff,
+  });
   factory AuditTaskMeta.fromJson(Map<String, dynamic> json) => AuditTaskMeta(
     id: json['id'] ?? 0,
     taskId: json['task_id'] ?? 0,
     staffId: json['staff_id'] ?? 0,
     metaKey: json['meta_key'] ?? '',
     metaValue: json['meta_value'] ?? '',
-    staff: json['staff'] != null ? AuditTaskMetaStaff.fromJson(json['staff']) : null,
+    staff: json['staff'] != null
+        ? AuditTaskMetaStaff.fromJson(json['staff'])
+        : null,
   );
 }
 
@@ -32,32 +46,33 @@ class AuditTaskMetaStaff {
   final int id;
   final String staffName;
   final int staffId;
-  AuditTaskMetaStaff({required this.id, required this.staffName, required this.staffId});
-  factory AuditTaskMetaStaff.fromJson(Map<String, dynamic> json) => AuditTaskMetaStaff(
-    id: json['id'] ?? 0,
-    staffName: json['staff_name'] ?? '',
-    staffId: json['staff_id'] ?? 0,
-  );
+  AuditTaskMetaStaff({
+    required this.id,
+    required this.staffName,
+    required this.staffId,
+  });
+  factory AuditTaskMetaStaff.fromJson(Map<String, dynamic> json) =>
+      AuditTaskMetaStaff(
+        id: json['id'] ?? 0,
+        staffName: json['staff_name'] ?? '',
+        staffId: json['staff_id'] ?? 0,
+      );
 }
 
 class AuditTaskCreatedBy {
   final int id;
   final String name;
   AuditTaskCreatedBy({required this.id, required this.name});
-  factory AuditTaskCreatedBy.fromJson(Map<String, dynamic> json) => AuditTaskCreatedBy(
-    id: json['id'] ?? 0,
-    name: json['name'] ?? '',
-  );
+  factory AuditTaskCreatedBy.fromJson(Map<String, dynamic> json) =>
+      AuditTaskCreatedBy(id: json['id'] ?? 0, name: json['name'] ?? '');
 }
 
 class AuditTaskLocation {
   final int id;
   final String name;
   AuditTaskLocation({required this.id, required this.name});
-  factory AuditTaskLocation.fromJson(Map<String, dynamic> json) => AuditTaskLocation(
-    id: json['id'] ?? 0,
-    name: json['name'] ?? '',
-  );
+  factory AuditTaskLocation.fromJson(Map<String, dynamic> json) =>
+      AuditTaskLocation(id: json['id'] ?? 0, name: json['name'] ?? '');
 }
 
 class AuditTaskModel {
@@ -96,8 +111,12 @@ class AuditTaskModel {
     taskStatus: json['taskStatus'] ?? '',
     createdBy: AuditTaskCreatedBy.fromJson(json['createdBy'] ?? {}),
     submittedAt: json['submittedAt'] ?? '',
-    workers: (json['workers'] as List<dynamic>? ?? []).map((e) => AuditTaskWorker.fromJson(e)).toList(),
-    taskMeta: (json['task_meta'] as List<dynamic>? ?? []).map((e) => AuditTaskMeta.fromJson(e)).toList(),
+    workers: (json['workers'] as List<dynamic>? ?? [])
+        .map((e) => AuditTaskWorker.fromJson(e))
+        .toList(),
+    taskMeta: (json['task_meta'] as List<dynamic>? ?? [])
+        .map((e) => AuditTaskMeta.fromJson(e))
+        .toList(),
     createdAt: json['createdAt'] ?? '',
     updatedAt: json['updatedAt'] ?? '',
   );
@@ -109,14 +128,21 @@ class AuditTaskLocationDetail {
   final int taskCount;
   final String createdAt;
   final String updatedAt;
-  AuditTaskLocationDetail({required this.id, required this.name, required this.taskCount, required this.createdAt, required this.updatedAt});
-  factory AuditTaskLocationDetail.fromJson(Map<String, dynamic> json) => AuditTaskLocationDetail(
-    id: json['id'] ?? 0,
-    name: json['name'] ?? '',
-    taskCount: json['taskCount'] ?? 0,
-    createdAt: json['createdAt'] ?? '',
-    updatedAt: json['updatedAt'] ?? '',
-  );
+  AuditTaskLocationDetail({
+    required this.id,
+    required this.name,
+    required this.taskCount,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  factory AuditTaskLocationDetail.fromJson(Map<String, dynamic> json) =>
+      AuditTaskLocationDetail(
+        id: json['id'] ?? 0,
+        name: json['name'] ?? '',
+        taskCount: json['taskCount'] ?? 0,
+        createdAt: json['createdAt'] ?? '',
+        updatedAt: json['updatedAt'] ?? '',
+      );
 }
 
 class AuditTaskLocationTasksResponse {
@@ -127,7 +153,9 @@ class AuditTaskLocationTasksResponse {
     final data = json['data'] ?? {};
     return AuditTaskLocationTasksResponse(
       location: AuditTaskLocationDetail.fromJson(data['location'] ?? {}),
-      tasks: (data['tasks'] as List<dynamic>? ?? []).map((e) => AuditTaskModel.fromJson(e)).toList(),
+      tasks: (data['tasks'] as List<dynamic>? ?? [])
+          .map((e) => AuditTaskModel.fromJson(e))
+          .toList(),
     );
   }
 }

@@ -20,8 +20,19 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
     String getFormattedDate(DateTime? date) {
       if (date == null) return '';
       final months = [
-        '', 'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        '',
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
       ];
       return '${date.day} ${months[date.month]} ${date.year}';
     }
@@ -33,9 +44,14 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 18,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -43,7 +59,13 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Select Date:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'Select Date:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.of(context).pop(),
@@ -63,7 +85,8 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                         if (picked != null) {
                           setState(() {
                             selectedDate = picked;
-                            dateController.text = "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                            dateController.text =
+                                "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
                           });
                         }
                       },
@@ -73,14 +96,22 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today, color: Color(0xFF43C463)),
+                            const Icon(
+                              Icons.calendar_today,
+                              color: Color(0xFF43C463),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                selectedDate != null ? getFormattedDate(selectedDate) : 'date...',
+                                selectedDate != null
+                                    ? getFormattedDate(selectedDate)
+                                    : 'date...',
                                 style: const TextStyle(fontSize: 15),
                               ),
                             ),
@@ -97,30 +128,48 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF43C463),
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
                               onPressed: () async {
                                 if (dateController.text.isEmpty) return;
                                 setState(() => isLoading = true);
                                 try {
-                                  final resp = await _attendanceService.createAttendance(date: dateController.text);
-                                  if (resp['success'] == true && resp['message'] != null) {
+                                  final resp = await _attendanceService
+                                      .createAttendance(
+                                        date: dateController.text,
+                                      );
+                                  if (resp['success'] == true &&
+                                      resp['message'] != null) {
                                     Navigator.of(context).pop();
                                     // Show custom snackbar for 1 second
                                     final overlay = Overlay.of(context);
                                     final overlayEntry = OverlayEntry(
                                       builder: (ctx) => Positioned(
-                                        top: MediaQuery.of(ctx).size.height * 0.45,
-                                        left: MediaQuery.of(ctx).size.width * 0.15,
-                                        right: MediaQuery.of(ctx).size.width * 0.15,
+                                        top:
+                                            MediaQuery.of(ctx).size.height *
+                                            0.45,
+                                        left:
+                                            MediaQuery.of(ctx).size.width *
+                                            0.15,
+                                        right:
+                                            MediaQuery.of(ctx).size.width *
+                                            0.15,
                                         child: Material(
                                           color: Colors.transparent,
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 24,
+                                              vertical: 16,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius: BorderRadius.circular(24),
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
                                               boxShadow: [
                                                 BoxShadow(
                                                   color: Colors.black12,
@@ -131,7 +180,10 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                                             child: Center(
                                               child: Text(
                                                 resp['message'].toString(),
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -139,7 +191,9 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                                       ),
                                     );
                                     overlay.insert(overlayEntry);
-                                    await Future.delayed(const Duration(seconds: 1));
+                                    await Future.delayed(
+                                      const Duration(seconds: 1),
+                                    );
                                     overlayEntry.remove();
                                     _fetchAttendance();
                                   }
@@ -148,16 +202,24 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                                   final overlay = Overlay.of(context);
                                   final overlayEntry = OverlayEntry(
                                     builder: (ctx) => Positioned(
-                                      top: MediaQuery.of(ctx).size.height * 0.45,
-                                      left: MediaQuery.of(ctx).size.width * 0.15,
-                                      right: MediaQuery.of(ctx).size.width * 0.15,
+                                      top:
+                                          MediaQuery.of(ctx).size.height * 0.45,
+                                      left:
+                                          MediaQuery.of(ctx).size.width * 0.15,
+                                      right:
+                                          MediaQuery.of(ctx).size.width * 0.15,
                                       child: Material(
                                         color: Colors.transparent,
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 16,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(24),
+                                            borderRadius: BorderRadius.circular(
+                                              24,
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.black12,
@@ -168,7 +230,11 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                                           child: Center(
                                             child: Text(
                                               'Failed to add attendance.',
-                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.red,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -176,11 +242,16 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                                     ),
                                   );
                                   overlay.insert(overlayEntry);
-                                  await Future.delayed(const Duration(seconds: 1));
+                                  await Future.delayed(
+                                    const Duration(seconds: 1),
+                                  );
                                   overlayEntry.remove();
                                 }
                               },
-                              child: const Text('Create', style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                'Create',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
                   ],
@@ -192,6 +263,7 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
       },
     );
   }
+
   late AttendanceService _attendanceService;
   late Future<AttendanceListResponse> _attendanceFuture;
   final TextEditingController _searchController = TextEditingController();
@@ -201,15 +273,16 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
   @override
   void initState() {
     super.initState();
-    _attendanceService = AttendanceService(
-      SecureStorageService(),
-    );
+    _attendanceService = AttendanceService(SecureStorageService());
     _fetchAttendance();
   }
 
   void _fetchAttendance() {
     setState(() {
-      _attendanceFuture = _attendanceService.fetchAttendanceList(page: _page, search: _search);
+      _attendanceFuture = _attendanceService.fetchAttendanceList(
+        page: _page,
+        search: _search,
+      );
     });
   }
 
@@ -237,8 +310,19 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
       final dt = DateTime.tryParse(item.date);
       if (dt != null) {
         final months = [
-          '', 'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
+          '',
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
         ];
         formattedDate = '"${dt.day} ${months[dt.month]} ${dt.year}"';
       } else {
@@ -286,12 +370,17 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey.shade200,
                         foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         side: const BorderSide(color: Colors.grey),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('No', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'No',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -300,11 +389,16 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Yes', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Yes',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -343,12 +437,7 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
               ),
               child: Center(
                 child: Text(
@@ -387,7 +476,12 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 18),
+                padding: const EdgeInsets.only(
+                  top: 40,
+                  left: 16,
+                  right: 16,
+                  bottom: 18,
+                ),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Color(0xFF43C463), Color(0xFFB2F7EF)],
@@ -418,7 +512,10 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -436,8 +533,14 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                     decoration: InputDecoration(
                       hintText: 'search date',
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF43C463)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF43C463),
+                      ),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear),
@@ -461,20 +564,33 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                       return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Failed to load attendance.'));
-                    } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-                      return const Center(child: Text('No attendance records found.'));
+                    } else if (!snapshot.hasData ||
+                        snapshot.data!.data.isEmpty) {
+                      return const Center(
+                        child: Text('No attendance records found.'),
+                      );
                     }
                     final attendance = snapshot.data!;
                     // Filter for partial date match if search is not empty
                     final filtered = _search.isEmpty
                         ? attendance.data
-                        : attendance.data.where((item) => 
-                            item.date.toLowerCase().contains(_search.toLowerCase())).toList();
+                        : attendance.data
+                              .where(
+                                (item) => item.date.toLowerCase().contains(
+                                  _search.toLowerCase(),
+                                ),
+                              )
+                              .toList();
                     if (filtered.isEmpty) {
-                      return const Center(child: Text('No attendance records found.'));
+                      return const Center(
+                        child: Text('No attendance records found.'),
+                      );
                     }
                     return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         final item = filtered[index];
@@ -492,11 +608,22 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                             ],
                           ),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             title: Row(
                               children: [
-                                const Text('Date: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text(item.date, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                const Text(
+                                  'Date: ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  item.date,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             trailing: IconButton(
@@ -507,13 +634,13 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                    // You may need to import the details view at the top
-                                    // import 'manage_attendance_details_view.dart';
-                                    // Pass the id and date string
-                                    ManageAttendanceDetailsView(
-                                      dateAttendanceId: item.id,
-                                      dateLabel: item.date,
-                                    ),
+                                      // You may need to import the details view at the top
+                                      // import 'manage_attendance_details_view.dart';
+                                      // Pass the id and date string
+                                      ManageAttendanceDetailsView(
+                                        dateAttendanceId: item.id,
+                                        dateLabel: item.date,
+                                      ),
                                 ),
                               );
                             },

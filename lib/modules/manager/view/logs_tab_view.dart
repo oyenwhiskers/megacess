@@ -72,42 +72,51 @@ class _LogsTabViewState extends State<LogsTabView> {
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : _error != null
-            ? Center(child: Text('Error: $_error'))
-            : _logs.isEmpty
-                ? const Center(child: Text('No logs found.'))
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                    itemCount: _logs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, idx) {
-                      final log = _logs[idx];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _statusColor(log.taskStatus), width: 2),
+        ? Center(child: Text('Error: $_error'))
+        : _logs.isEmpty
+        ? const Center(child: Text('No logs found.'))
+        : ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            itemCount: _logs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, idx) {
+              final log = _logs[idx];
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _statusColor(log.taskStatus),
+                    width: 2,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                      child: Text(
+                        log.remarks,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
                         ),
-                        child: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-                              child: Text(
-                                log.remarks,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                            Positioned(
-                              right: 16,
-                              bottom: 8,
-                              child: Text(
-                                log.createdAt.split(' ').first,
-                                style: const TextStyle(fontSize: 12, color: Colors.black54),
-                              ),
-                            ),
-                          ],
+                      ),
+                    ),
+                    Positioned(
+                      right: 16,
+                      bottom: 8,
+                      child: Text(
+                        log.createdAt.split(' ').first,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
                         ),
-                      );
-                    },
-                  );
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
   }
 }

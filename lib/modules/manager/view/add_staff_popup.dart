@@ -5,7 +5,8 @@ import '../data/service/staff_service.dart';
 class AddStaffPopup extends StatefulWidget {
   final List<StaffModel> staffList;
   final Future<bool> Function(List<StaffModel>) onAdd;
-  const AddStaffPopup({Key? key, required this.staffList, required this.onAdd}) : super(key: key);
+  const AddStaffPopup({Key? key, required this.staffList, required this.onAdd})
+    : super(key: key);
 
   @override
   State<AddStaffPopup> createState() => _AddStaffPopupState();
@@ -45,7 +46,10 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100 && !_isLoading && _currentPage < _lastPage) {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 100 &&
+        !_isLoading &&
+        _currentPage < _lastPage) {
       _fetchMore();
     }
   }
@@ -70,9 +74,15 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredStaff = _staff.where((staff) => staff.staffFullname.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+    final filteredStaff = _staff
+        .where(
+          (staff) => staff.staffFullname.toLowerCase().contains(
+            searchQuery.toLowerCase(),
+          ),
+        )
+        .toList();
     final double maxHeight = MediaQuery.of(context).size.height * 0.75;
-  return Dialog(
+    return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       child: Container(
@@ -93,7 +103,10 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Select Staff:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'Select Staff:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                   GestureDetector(
                     child: const Icon(Icons.close, color: Colors.black),
                     onTap: () => Navigator.of(context).pop(),
@@ -108,7 +121,10 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'name...',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -132,14 +148,26 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
                     itemBuilder: (context, index) {
                       final staff = filteredStaff[index];
                       return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 18),
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 18,
+                        ),
                         child: Card(
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           color: Colors.white,
                           child: ListTile(
-                            leading: const Icon(Icons.account_circle, size: 40, color: Colors.black45),
-                            title: Text(staff.staffFullname, style: const TextStyle(fontSize: 16)),
+                            leading: const Icon(
+                              Icons.account_circle,
+                              size: 40,
+                              color: Colors.black45,
+                            ),
+                            title: Text(
+                              staff.staffFullname,
+                              style: const TextStyle(fontSize: 16),
+                            ),
                             trailing: Checkbox(
                               value: _selectedStaffIds.contains(staff.id),
                               onChanged: (checked) {
@@ -187,11 +215,20 @@ class _AddStaffPopupState extends State<AddStaffPopup> {
               width: double.infinity,
               child: TextButton(
                 onPressed: () async {
-                  final selected = _staff.where((staff) => _selectedStaffIds.contains(staff.id)).toList();
+                  final selected = _staff
+                      .where((staff) => _selectedStaffIds.contains(staff.id))
+                      .toList();
                   final result = await widget.onAdd(selected);
                   Navigator.of(context).pop(result);
                 },
-                child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+                child: const Text(
+                  'Add',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
+                ),
               ),
             ),
           ],

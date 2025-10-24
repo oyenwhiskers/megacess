@@ -3,13 +3,19 @@ class StaffDetailResponse {
   final String message;
   final StaffDetailData? data;
 
-  StaffDetailResponse({required this.success, required this.message, required this.data});
+  StaffDetailResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
 
   factory StaffDetailResponse.fromJson(Map<String, dynamic> json) {
     return StaffDetailResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      data: json['data'] != null ? StaffDetailData.fromJson(json['data']) : null,
+      data: json['data'] != null
+          ? StaffDetailData.fromJson(json['data'])
+          : null,
     );
   }
 }
@@ -45,7 +51,13 @@ class StaffDetailData {
       try {
         final dob = DateTime.parse(json['staff_dob']);
         final now = DateTime.now();
-        calculatedAge = now.year - dob.year - ((now.month < dob.month || (now.month == dob.month && now.day < dob.day)) ? 1 : 0);
+        calculatedAge =
+            now.year -
+            dob.year -
+            ((now.month < dob.month ||
+                    (now.month == dob.month && now.day < dob.day))
+                ? 1
+                : 0);
       } catch (_) {}
     }
     return StaffDetailData(

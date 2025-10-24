@@ -33,13 +33,19 @@ class _LoginViewState extends State<LoginView> {
       final userRole = _viewModel.userRole;
       if (userRole == 'manager') {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => ManagerView(managerName: _viewModel.lastLoginResponse?.user.userNickname ?? 'Manager')),
+          MaterialPageRoute(
+            builder: (_) => ManagerView(
+              managerName:
+                  _viewModel.lastLoginResponse?.user.userNickname ?? 'Manager',
+            ),
+          ),
         );
       } else if (userRole == 'checker') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => CheckerView(
-              checkerName: _viewModel.lastLoginResponse?.user.userNickname ?? 'Checker',
+              checkerName:
+                  _viewModel.lastLoginResponse?.user.userNickname ?? 'Checker',
             ),
           ),
         );
@@ -111,8 +117,14 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 // Minimalist Card for Form
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
                   decoration: BoxDecoration(
                     color: cardColor,
                     borderRadius: BorderRadius.circular(24),
@@ -141,7 +153,10 @@ class _LoginViewState extends State<LoginView> {
                       TextField(
                         controller: _usernameController,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.person_outline, color: accent.withOpacity(0.7)),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: accent.withOpacity(0.7),
+                          ),
                           labelText: 'Username',
                           labelStyle: TextStyle(color: accent.withOpacity(0.7)),
                           filled: true,
@@ -158,7 +173,10 @@ class _LoginViewState extends State<LoginView> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: button, width: 2),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
                         ),
                         style: TextStyle(color: accent),
                       ),
@@ -168,7 +186,10 @@ class _LoginViewState extends State<LoginView> {
                         controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock_outline, color: accent.withOpacity(0.7)),
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: accent.withOpacity(0.7),
+                          ),
                           labelText: 'Password',
                           labelStyle: TextStyle(color: accent.withOpacity(0.7)),
                           filled: true,
@@ -185,7 +206,10 @@ class _LoginViewState extends State<LoginView> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: button, width: 2),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
                         ),
                         style: TextStyle(color: accent),
                       ),
@@ -196,7 +220,11 @@ class _LoginViewState extends State<LoginView> {
                           child: Center(
                             child: Text(
                               _errorMessage!,
-                              style: TextStyle(color: errorColor, fontSize: 14, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                color: errorColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -222,7 +250,11 @@ class _LoginViewState extends State<LoginView> {
                               )
                             : const Text(
                                 'Login',
-                                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                       ),
                     ],

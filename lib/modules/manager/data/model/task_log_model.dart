@@ -38,9 +38,6 @@ class TaskLogUser {
   final String userFullname;
   TaskLogUser({required this.id, required this.userFullname});
   factory TaskLogUser.fromJson(Map<String, dynamic> json) {
-    return TaskLogUser(
-      id: json['id'],
-      userFullname: json['user_fullname'],
-    );
+    return TaskLogUser(id: json['id'], userFullname: json['user_fullname']);
   }
 }

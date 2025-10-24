@@ -46,22 +46,43 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       children: [
         Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           color: Colors.white,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 18.0,
+              horizontal: 8.0,
+            ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Total Tasks', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text(
+                      'Total Tasks',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     SizedBox(width: 6),
-                    Icon(Icons.calendar_today, size: 18, color: Colors.grey[700]),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: Colors.grey[700],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('${t.totalTasks}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                Text(
+                  '${t.totalTasks}',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -70,11 +91,21 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         Row(
           children: [
             Expanded(
-              child: _buildStatusCard('In-Progress', t.inProgress, Icons.play_arrow, Colors.green),
+              child: _buildStatusCard(
+                'In-Progress',
+                t.inProgress,
+                Icons.play_arrow,
+                Colors.green,
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: _buildStatusCard('Pending', t.pending, Icons.pause_circle_filled, Colors.amber),
+              child: _buildStatusCard(
+                'Pending',
+                t.pending,
+                Icons.pause_circle_filled,
+                Colors.amber,
+              ),
             ),
           ],
         ),
@@ -82,11 +113,21 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         Row(
           children: [
             Expanded(
-              child: _buildStatusCard('Reject', t.rejected, Icons.cancel, Colors.red),
+              child: _buildStatusCard(
+                'Reject',
+                t.rejected,
+                Icons.cancel,
+                Colors.red,
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: _buildStatusCard('Completed', t.completed, Icons.check_circle, Colors.green),
+              child: _buildStatusCard(
+                'Completed',
+                t.completed,
+                Icons.check_circle,
+                Colors.green,
+              ),
             ),
           ],
         ),
@@ -108,7 +149,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             const SizedBox(height: 2),
             Text(label, style: const TextStyle(fontSize: 13)),
             const SizedBox(height: 2),
-            Text('$value', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+            Text(
+              '$value',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
@@ -131,19 +179,30 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
             const SizedBox(height: 8),
             SizedBox(
               height: 220,
               child: LineChart(
                 LineChartData(
                   minY: 0,
-                  maxY: (monthlyData.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble(),
+                  maxY: (monthlyData.reduce((a, b) => a > b ? a : b) * 1.2)
+                      .ceilToDouble(),
                   gridData: FlGridData(show: true, drawVerticalLine: false),
-                  borderData: FlBorderData(show: true, border: Border.all(color: Colors.black12)),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border.all(color: Colors.black12),
+                  ),
                   titlesData: FlTitlesData(
                     leftTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: true, reservedSize: 32),
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 32,
+                      ),
                     ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
@@ -151,7 +210,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                         getTitlesWidget: (value, meta) {
                           int idx = value.toInt();
                           if (idx >= 0 && idx < months.length) {
-                            return Text(months[idx], style: const TextStyle(fontSize: 12));
+                            return Text(
+                              months[idx],
+                              style: const TextStyle(fontSize: 12),
+                            );
                           }
                           return const SizedBox.shrink();
                         },
@@ -159,14 +221,18 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                         interval: 1,
                       ),
                     ),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
                   lineBarsData: [
                     LineChartBarData(
                       spots: [
                         for (int i = 0; i < monthlyData.length; i++)
-                          FlSpot(i.toDouble(), monthlyData[i])
+                          FlSpot(i.toDouble(), monthlyData[i]),
                       ],
                       isCurved: true,
                       color: color,
@@ -178,9 +244,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('Month of the year', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+            Text(
+              'Month of the year',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13),
+            ),
             const SizedBox(height: 4),
-            Text('Usage ($unit)', textAlign: TextAlign.left, style: const TextStyle(fontSize: 13)),
+            Text(
+              'Usage ($unit)',
+              textAlign: TextAlign.left,
+              style: const TextStyle(fontSize: 13),
+            ),
           ],
         ),
       ),
@@ -205,37 +279,40 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : _analytics == null
-                  ? const Center(child: Text('No data'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildTaskSummary(_analytics!.taskAnalytics),
-                          const SizedBox(height: 16),
-                          _buildUsageLineChart(
-                            title: 'Fertilizer Usage',
-                            monthlyData: fertilizerMonthly,
-                            unit: _analytics!.usageAnalytics.fertilizerUsage.unit,
-                            color: Colors.green,
-                          ),
-                          _buildUsageLineChart(
-                            title: 'Herbicide Usage',
-                            monthlyData: herbicideMonthly,
-                            unit: _analytics!.usageAnalytics.herbicideUsage.unit,
-                            color: Colors.blue,
-                          ),
-                          _buildUsageLineChart(
-                            title: 'Fuel Usage',
-                            monthlyData: fuelMonthly,
-                            unit: _analytics!.usageAnalytics.fuelUsage.unit,
-                            color: Colors.orange,
-                          ),
-                        ],
-                      ),
-                    ),
+          ? Center(child: Text('Error: $_error'))
+          : _analytics == null
+          ? const Center(child: Text('No data'))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildTaskSummary(_analytics!.taskAnalytics),
+                  const SizedBox(height: 16),
+                  _buildUsageLineChart(
+                    title: 'Fertilizer Usage',
+                    monthlyData: fertilizerMonthly,
+                    unit: _analytics!.usageAnalytics.fertilizerUsage.unit,
+                    color: Colors.green,
+                  ),
+                  _buildUsageLineChart(
+                    title: 'Herbicide Usage',
+                    monthlyData: herbicideMonthly,
+                    unit: _analytics!.usageAnalytics.herbicideUsage.unit,
+                    color: Colors.blue,
+                  ),
+                  _buildUsageLineChart(
+                    title: 'Fuel Usage',
+                    monthlyData: fuelMonthly,
+                    unit: _analytics!.usageAnalytics.fuelUsage.unit,
+                    color: Colors.orange,
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
