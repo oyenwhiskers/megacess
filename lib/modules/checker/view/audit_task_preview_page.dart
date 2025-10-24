@@ -21,6 +21,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   bool _isLoading = true;
   bool _isUploading = false;
   bool _isApproving = false;
+  bool _isRejecting = false;
   String? _error;
   AuditTaskPreviewModel? _task;
   final ImagePicker _picker = ImagePicker();
@@ -1063,6 +1064,26 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       return _showSanitationMetaDialog();
     }
 
+    // For manuring tasks, show worker-specific inputs
+    if (taskType == 'manuring') {
+      return _showManuringMetaDialog();
+    }
+
+    // For harvesting tasks, show worker-specific inputs
+    if (taskType == 'harvesting') {
+      return _showHarvestingMetaDialog();
+    }
+
+    // For pruning tasks, show worker-specific inputs
+    if (taskType == 'pruning') {
+      return _showPruningMetaDialog();
+    }
+
+    // For planting tasks, show worker-specific inputs
+    if (taskType == 'planting') {
+      return _showPlantingMetaDialog();
+    }
+
     // For other task types, use the original simple form
     Map<String, TextEditingController> controllers = {};
 
@@ -1071,22 +1092,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     String dialogTitle = '';
 
     switch (taskType) {
-      case 'pruning':
-        metaKeys = ['normal pruning', 'routine pruning'];
-        dialogTitle = 'Pruning Task Data';
-        break;
-      case 'harvesting':
-        metaKeys = ['normal harvesting', 'collect loose fruits'];
-        dialogTitle = 'Harvesting Task Data';
-        break;
-      case 'planting':
-        metaKeys = ['planting'];
-        dialogTitle = 'Planting Task Data';
-        break;
-      case 'manuring':
-        metaKeys = ['manuring'];
-        dialogTitle = 'Manuring Task Data';
-        break;
       default:
         // For unknown task types, return empty map
         return {};
@@ -1451,6 +1456,836 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     return result;
   }
 
+  // Special method for manuring tasks - worker-specific input
+  Future<Map<String, String>?> _showManuringMetaDialog() async {
+    if (_task == null || _task!.workers.isEmpty) return null;
+
+    print('\n===== MANURING META DIALOG =====');
+    print('Total workers: ${_task!.workers.length}');
+
+    // Create a map to store controllers for each worker
+    // Key format: "worker_id:manuring" (e.g., "13:manuring")
+    Map<String, TextEditingController> controllers = {};
+
+    // Build list of workers with their details
+    List<Map<String, dynamic>> workerList = [];
+
+    for (var worker in _task!.workers) {
+      print('\n--- Worker: ${worker.fullName} (ID: ${worker.id}) ---');
+      
+      workerList.add({
+        'worker_id': worker.id,
+        'worker_name': worker.fullName,
+      });
+      
+      // Create controller for this worker
+      final key = '${worker.id}:manuring';
+      controllers[key] = TextEditingController();
+    }
+
+    print('\n===== FINAL WORKER LIST =====');
+    for (var w in workerList) {
+      print('Worker: ${w['worker_name']}');
+    }
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Manuring Task Data'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter values for each worker:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Build input fields for each worker
+              ...workerList.map((worker) {
+                final key = '${worker['worker_id']}:manuring';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Worker name with icon
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 20,
+                            color: Colors.green[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              worker['worker_name'],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Task type display
+                      Text(
+                        'Type: manuring',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Input field
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: TextField(
+                          controller: controllers[key],
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter tree amount',
+                            hintStyle: TextStyle(fontSize: 13),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(null);
+            },
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Validate that all workers have values
+              Map<String, String> result = {};
+              bool allFilled = true;
+              List<String> emptyWorkers = [];
+
+              controllers.forEach((key, controller) {
+                final value = controller.text.trim();
+                if (value.isEmpty) {
+                  allFilled = false;
+                  // Extract worker name from key
+                  final workerId = key.split(':')[0];
+                  final worker = workerList.firstWhere(
+                    (w) => w['worker_id'].toString() == workerId,
+                  );
+                  emptyWorkers.add(worker['worker_name']);
+                } else {
+                  result[key] = value;
+                }
+              });
+
+              if (!allFilled) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Please enter values for all workers: ${emptyWorkers.join(", ")}',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(result);
+            },
+            child: const Text(
+              'SUBMIT',
+              style: TextStyle(color: Color(0xFF7ED957)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result;
+  }
+
+  // Special method for harvesting tasks - worker-specific input
+  Future<Map<String, String>?> _showHarvestingMetaDialog() async {
+    if (_task == null || _task!.workers.isEmpty) return null;
+
+    print('\n===== HARVESTING META DIALOG =====');
+    print('Total workers: ${_task!.workers.length}');
+
+    // Create a map to store controllers for each worker-task combination
+    // Key format: "worker_id:task_type" (e.g., "13:normal harvesting")
+    Map<String, TextEditingController> controllers = {};
+
+    // Build list of workers with their task types
+    List<Map<String, dynamic>> workerList = [];
+
+    for (var worker in _task!.workers) {
+      print('\n--- Worker: ${worker.fullName} (ID: ${worker.id}) ---');
+      print('Worker meta keys: ${worker.meta.keys.toList()}');
+      print('Worker meta data: ${worker.meta}');
+      
+      // Get the specific harvesting type for this worker from their meta data
+      String? harvestingType;
+      
+      // Check worker meta for task type in multiple possible formats
+      if (worker.meta.containsKey('normal harvesting')) {
+        harvestingType = 'normal harvesting';
+        print('Found task type: normal harvesting (from meta key)');
+      } else if (worker.meta.containsKey('collect loose fruits')) {
+        harvestingType = 'collect loose fruits';
+        print('Found task type: collect loose fruits (from meta key)');
+      } else if (worker.meta.containsKey('harvesting_type')) {
+        final type = worker.meta['harvesting_type']?.toString().toLowerCase();
+        if (type == 'normal harvesting' || type == 'collect loose fruits') {
+          harvestingType = type;
+          print('Found task type: $type (from harvesting_type field)');
+        }
+      } else if (worker.meta.containsKey('type')) {
+        final type = worker.meta['type']?.toString().toLowerCase();
+        if (type == 'normal harvesting' || type == 'collect loose fruits') {
+          harvestingType = type;
+          print('Found task type: $type (from type field)');
+        }
+      } else if (worker.meta.isNotEmpty) {
+        // Check if first key is one of the harvesting types
+        final firstKey = worker.meta.keys.first.toLowerCase();
+        if (firstKey == 'normal harvesting' || firstKey == 'collect loose fruits') {
+          harvestingType = firstKey;
+          print('Found task type: $firstKey (from first meta key)');
+        }
+      }
+      
+      // If no specific task type found, allow both options
+      if (harvestingType == null) {
+        print('WARNING: No task type found for worker. Showing both options.');
+        // Add both options so user can choose
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': 'normal harvesting',
+        });
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': 'collect loose fruits',
+        });
+      } else {
+        // Add only the specific task type
+        print('Adding worker task: ${worker.fullName} - $harvestingType');
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': harvestingType,
+        });
+      }
+    }
+
+    print('\n===== FINAL WORKER LIST =====');
+    for (var w in workerList) {
+      print('Worker: ${w['worker_name']}, Type: ${w['task_type']}');
+    }
+
+    // Create controllers for each worker-task combination
+    for (var worker in workerList) {
+      final key = '${worker['worker_id']}:${worker['task_type']}';
+      controllers[key] = TextEditingController();
+    }
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Harvesting Task Data'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter values for each worker:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Build input fields for each worker
+              ...workerList.map((worker) {
+                final key = '${worker['worker_id']}:${worker['task_type']}';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Worker name
+                      Row(
+                        children: [
+                          Icon(Icons.person, size: 20, color: Colors.brown[700]),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              worker['worker_name'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Task type
+                      Text(
+                        'Type: ${worker['task_type']}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Input field for kg amount
+                      TextField(
+                        controller: controllers[key],
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Enter kg amount',
+                          labelText: _capitalize(worker['task_type']),
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(null);
+            },
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Validate that at least one field has a value
+              Map<String, String> result = {};
+              bool hasValue = false;
+              List<String> emptyWorkers = [];
+
+              controllers.forEach((key, controller) {
+                final value = controller.text.trim();
+                if (value.isEmpty) {
+                  // Extract worker name from key
+                  final workerId = key.split(':')[0];
+                  final worker = workerList.firstWhere(
+                    (w) => w['worker_id'].toString() == workerId,
+                    orElse: () => {'worker_name': 'Unknown'},
+                  );
+                  emptyWorkers.add(worker['worker_name']);
+                } else {
+                  result[key] = value;
+                  hasValue = true;
+                }
+              });
+
+              if (!hasValue) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Please enter at least one value for: ${emptyWorkers.join(", ")}',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(result);
+            },
+            child: const Text(
+              'SUBMIT',
+              style: TextStyle(color: Color(0xFF7ED957)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result;
+  }
+
+  // Special method for pruning tasks - worker-specific input
+  Future<Map<String, String>?> _showPruningMetaDialog() async {
+    if (_task == null || _task!.workers.isEmpty) return null;
+
+    print('\n===== PRUNING META DIALOG =====');
+    print('Total workers: ${_task!.workers.length}');
+
+    // Create a map to store controllers for each worker-task combination
+    // Key format: "worker_id:task_type" (e.g., "13:normal pruning")
+    Map<String, TextEditingController> controllers = {};
+
+    // Build list of workers with their task types
+    List<Map<String, dynamic>> workerList = [];
+
+    for (var worker in _task!.workers) {
+      print('\n--- Worker: ${worker.fullName} (ID: ${worker.id}) ---');
+      print('Worker meta keys: ${worker.meta.keys.toList()}');
+      print('Worker meta data: ${worker.meta}');
+      
+      // Get the specific pruning type for this worker from their meta data
+      String? pruningType;
+      
+      // Check worker meta for task type in multiple possible formats
+      if (worker.meta.containsKey('normal pruning')) {
+        pruningType = 'normal pruning';
+        print('Found task type: normal pruning (from meta key)');
+      } else if (worker.meta.containsKey('routine pruning')) {
+        pruningType = 'routine pruning';
+        print('Found task type: routine pruning (from meta key)');
+      } else if (worker.meta.containsKey('pruning_type')) {
+        final type = worker.meta['pruning_type']?.toString().toLowerCase();
+        if (type == 'normal pruning' || type == 'routine pruning') {
+          pruningType = type;
+          print('Found task type: $type (from pruning_type field)');
+        }
+      } else if (worker.meta.containsKey('type')) {
+        final type = worker.meta['type']?.toString().toLowerCase();
+        if (type == 'normal pruning' || type == 'routine pruning') {
+          pruningType = type;
+          print('Found task type: $type (from type field)');
+        }
+      } else if (worker.meta.isNotEmpty) {
+        // Check if first key is one of the pruning types
+        final firstKey = worker.meta.keys.first.toLowerCase();
+        if (firstKey == 'normal pruning' || firstKey == 'routine pruning') {
+          pruningType = firstKey;
+          print('Found task type: $firstKey (from first meta key)');
+        }
+      }
+      
+      // If no specific task type found, allow both options
+      if (pruningType == null) {
+        print('WARNING: No task type found for worker. Showing both options.');
+        // Add both options so user can choose
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': 'normal pruning',
+        });
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': 'routine pruning',
+        });
+      } else {
+        // Add only the specific task type
+        print('Adding worker task: ${worker.fullName} - $pruningType');
+        workerList.add({
+          'worker_id': worker.id,
+          'worker_name': worker.fullName,
+          'task_type': pruningType,
+        });
+      }
+    }
+
+    print('\n===== FINAL WORKER LIST =====');
+    for (var w in workerList) {
+      print('Worker: ${w['worker_name']}, Type: ${w['task_type']}');
+    }
+
+    // Create controllers for each worker-task combination
+    for (var worker in workerList) {
+      final key = '${worker['worker_id']}:${worker['task_type']}';
+      controllers[key] = TextEditingController();
+    }
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Pruning Task Data'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please enter values for each worker:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Build input fields for each worker
+              ...workerList.map((worker) {
+                final key = '${worker['worker_id']}:${worker['task_type']}';
+                final isNormalPruning = worker['task_type'] == 'normal pruning';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Worker name
+                      Row(
+                        children: [
+                          Icon(Icons.person, size: 20, color: Colors.orange[700]),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              worker['worker_name'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Task type
+                      Text(
+                        'Type: ${worker['task_type']}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Input field for tree amount or acre amount
+                      TextField(
+                        controller: controllers[key],
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: isNormalPruning 
+                              ? 'Enter tree amount' 
+                              : 'Enter acre amount',
+                          labelText: _capitalize(worker['task_type']),
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(null);
+            },
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Validate that at least one field has a value
+              Map<String, String> result = {};
+              bool hasValue = false;
+              List<String> emptyWorkers = [];
+
+              controllers.forEach((key, controller) {
+                final value = controller.text.trim();
+                if (value.isEmpty) {
+                  // Extract worker name from key
+                  final workerId = key.split(':')[0];
+                  final worker = workerList.firstWhere(
+                    (w) => w['worker_id'].toString() == workerId,
+                    orElse: () => {'worker_name': 'Unknown'},
+                  );
+                  emptyWorkers.add(worker['worker_name']);
+                } else {
+                  result[key] = value;
+                  hasValue = true;
+                }
+              });
+
+              if (!hasValue) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Please enter at least one value for: ${emptyWorkers.join(", ")}',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // Clean up controllers
+              controllers.forEach((_, controller) => controller.dispose());
+              Navigator.of(context).pop(result);
+            },
+            child: const Text(
+              'SUBMIT',
+              style: TextStyle(color: Color(0xFF7ED957)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result;
+  }
+
+  // Special method for planting tasks - worker-specific input
+  Future<Map<String, String>?> _showPlantingMetaDialog() async {
+    if (_task == null || _task!.workers.isEmpty) return null;
+
+    print('\n===== PLANTING META DIALOG =====');
+    print('Total workers: ${_task!.workers.length}');
+
+    // Create a map to store controllers for each worker
+    // Key format: "worker_id:planting" (e.g., "13:planting")
+    Map<String, TextEditingController> controllers = {};
+
+    // Build list of workers with their details
+    List<Map<String, dynamic>> workerList = [];
+
+    for (var worker in _task!.workers) {
+      print('\n--- Worker: ${worker.fullName} (ID: ${worker.id}) ---');
+      
+      workerList.add({
+        'worker_id': worker.id,
+        'worker_name': worker.fullName,
+      });
+      
+      // Create controller for this worker
+      final key = '${worker.id}:planting';
+      controllers[key] = TextEditingController();
+    }
+
+    print('\n===== FINAL WORKER LIST =====');
+    for (var w in workerList) {
+      print('Worker: ${w['worker_name']}');
+    }
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Planting Task Data'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Please enter values for each worker:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...workerList.map((worker) {
+                final key = '${worker['worker_id']}:planting';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Worker name with icon
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 20,
+                            color: Colors.green[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              worker['worker_name'],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Task type display
+                      Text(
+                        'Type: planting',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Input field
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: TextField(
+                          controller: controllers[key],
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter tree amount',
+                            hintStyle: TextStyle(fontSize: 13),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Dispose all controllers
+              controllers.values.forEach((c) => c.dispose());
+              Navigator.of(context).pop(null);
+            },
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Build result map from controllers
+              Map<String, String> result = {};
+              
+              controllers.forEach((key, controller) {
+                final value = controller.text.trim();
+                if (value.isNotEmpty) {
+                  result[key] = value;
+                }
+              });
+
+              // Validate that at least one value is entered
+              if (result.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Please enter at least one value',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              // Validate specific workers if needed
+              List<String> missingWorkers = [];
+              for (var worker in workerList) {
+                final key = '${worker['worker_id']}:planting';
+                if (!result.containsKey(key) || result[key]!.isEmpty) {
+                  missingWorkers.add(worker['worker_name']);
+                }
+              }
+
+              if (missingWorkers.isNotEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Missing values for: ${missingWorkers.join(", ")}',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              // Dispose all controllers
+              controllers.values.forEach((c) => c.dispose());
+              Navigator.of(context).pop(result);
+            },
+            child: const Text(
+              'SUBMIT',
+              style: TextStyle(color: Color(0xFF7ED957)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result;
+  }
+
   Future<void> _fetchDetail() async {
     setState(() {
       _isLoading = true;
@@ -1594,16 +2429,22 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
         workerAuditMeta = [];
 
-        // Check if this is sanitation task with worker-specific format
-        final isSanitationFormat = metaData.keys.any(
+        // Check if this is worker-specific format (format: "worker_id:task_type")
+        // This applies to: sanitation, manuring, harvesting, pruning, planting
+        final isWorkerSpecificFormat = metaData.keys.any(
           (key) => key.contains(':'),
         );
 
-        if (isSanitationFormat) {
-          // Sanitation task: metaData format is "worker_id:task_type" = "value"
-          // Example: {"13:spraying": "100"}
+        if (isWorkerSpecificFormat) {
+          // Worker-specific format: metaData format is "worker_id:task_type" = "value"
+          // Examples: 
+          //   Sanitation: {"13:spraying": "100", "14:slashing": "50"}
+          //   Manuring: {"3:manuring": "90", "5:manuring": "90999"}
+          //   Harvesting: {"13:normal harvesting": "100"}
+          //   Pruning: {"13:normal pruning": "50"}
+          //   Planting: {"13:planting": "100"}
           // Convert to NESTED format: {"staff_id": 13, "meta": {"spraying": "100"}}
-          print('Using SANITATION worker-specific NESTED format');
+          print('Using WORKER-SPECIFIC NESTED format');
 
           // Group by worker_id first
           Map<int, Map<String, String>> workerMetaMap = {};
@@ -1613,7 +2454,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             final parts = key.split(':');
             if (parts.length == 2) {
               final workerId = int.tryParse(parts[0]);
-              final taskType = parts[1]; // "spraying" or "slashing"
+              final taskType = parts[1]; // e.g., "manuring", "spraying", "normal harvesting"
 
               if (workerId != null) {
                 if (!workerMetaMap.containsKey(workerId)) {
@@ -1626,15 +2467,15 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             }
           });
 
-          // Build NESTED entries - EXACTLY like manuring format
+          // Build NESTED entries
           workerMetaMap.forEach((workerId, metaObject) {
             if (metaObject.isNotEmpty) {
-              // Create entry with EXACT same structure as manuring
+              // Create entry with NESTED structure
               final workerEntry = {
                 'staff_id': workerId, // Must be int
                 'meta': metaObject,   // Must be Map<String, String>
               };
-              print('Created sanitation entry (manuring-style): $workerEntry');
+              print('Created worker entry: $workerEntry');
               workerAuditMeta!.add(workerEntry);
             }
           });
@@ -1875,95 +2716,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
 
         print('Sanitation task NESTED format validation passed.');
-      } // Ensure worker_audit_meta is properly formatted for manuring tasks
-      if (_task?.taskType.toLowerCase() == 'manuring') {
-        // Always verify meta data format for manuring tasks, regardless of existing data
-        print('\n===== FINAL MANURING TASK META VERIFICATION =====');
-
-        // Create or recreate worker_audit_meta if it's missing or empty
-        if (payload['worker_audit_meta'] == null ||
-            (payload['worker_audit_meta'] as List).isEmpty) {
-          print(
-            'CRITICAL ERROR: Missing worker_audit_meta for manuring task before API call!',
-          );
-          print('Adding emergency default meta data...');
-
-          // Create emergency default meta data - use values from screenshot
-          final defaultWorkerId = (_task != null && _task!.workers.isNotEmpty)
-              ? _task!.workers.first.id
-              : 1;
-          payload['worker_audit_meta'] = [
-            {
-              'staff_id': defaultWorkerId,
-              'meta_key': 'fertilizer_type',
-              'meta_value': 'BORATE', // From screenshot
-            },
-            {
-              'staff_id': defaultWorkerId,
-              'meta_key': 'fertilizer_amount',
-              'meta_value': '100', // From screenshot
-            },
-          ];
-
-          print('Emergency meta data added: ${payload['worker_audit_meta']}');
-        }
-        // Verify all required fields exist in existing data
-        else {
-          final metaList = payload['worker_audit_meta'] as List;
-          print('Verifying ${metaList.length} existing meta entries');
-
-          // Check for fertilizer_type and fertilizer_amount keys
-          bool hasFertilizerType = false;
-          bool hasFertilizerAmount = false;
-          int? firstStaffId;
-
-          for (var meta in metaList) {
-            if (meta is Map && meta.containsKey('staff_id')) {
-              firstStaffId ??= meta['staff_id'];
-
-              if (meta.containsKey('meta_key') &&
-                  meta['meta_key'] == 'fertilizer_type') {
-                hasFertilizerType = true;
-              }
-              if (meta.containsKey('meta_key') &&
-                  meta['meta_key'] == 'fertilizer_amount') {
-                hasFertilizerAmount = true;
-              }
-            }
-          }
-
-          // Add missing entries if needed
-          if (!hasFertilizerType || !hasFertilizerAmount) {
-            print(
-              'WARNING: Missing required meta fields. Adding default values.',
-            );
-            final staffId =
-                firstStaffId ??
-                ((_task != null && _task!.workers.isNotEmpty)
-                    ? _task!.workers.first.id
-                    : 1);
-
-            if (!hasFertilizerType) {
-              (payload['worker_audit_meta'] as List).add({
-                'staff_id': staffId,
-                'meta_key': 'fertilizer_type',
-                'meta_value': 'BORATE', // From screenshot
-              });
-              print('Added missing fertilizer_type');
-            }
-
-            if (!hasFertilizerAmount) {
-              (payload['worker_audit_meta'] as List).add({
-                'staff_id': staffId,
-                'meta_key': 'fertilizer_amount',
-                'meta_value': '100', // From screenshot
-              });
-              print('Added missing fertilizer_amount');
-            }
-          }
-        }
-
-        print('Final worker_audit_meta: ${payload['worker_audit_meta']}');
       }
 
       // Print the exact payload we're sending to the API for debugging
@@ -1979,63 +2731,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         for (int i = 0; i < metaList.length; i++) {
           print('  [$i]: ${metaList[i]}');
         }
-      }
-
-      // For manuring tasks, use the CORRECT format expected by the API
-      if (_task?.taskType.toLowerCase() == 'manuring') {
-        print(
-          '\n===== CRITICAL FIX: USING CORRECT API FORMAT FOR MANURING =====',
-        );
-
-        // According to documentation, manuring tasks need:
-        // [{"staff_id": 1, "meta": {"manuring": "100"}}]
-        // where "manuring" is the meta_key and "100" is the tree amount per tree manured
-
-        // Get the staff_id from the task data if available
-        final staffId = (_task != null && _task!.workers.isNotEmpty)
-            ? _task!.workers.first.id
-            : 13;
-
-        // Get the manuring amount from task data (tree amount per tree manured)
-        String manuringAmount = '100'; // Default value
-
-        if (_task != null && _task!.workers.isNotEmpty) {
-          final worker = _task!.workers.first;
-
-          // Try to find the amount from various possible keys
-          if (worker.meta.containsKey('manuring')) {
-            manuringAmount = worker.meta['manuring'].toString();
-          } else if (worker.meta.containsKey('fertilizer_amount')) {
-            manuringAmount = worker.meta['fertilizer_amount'].toString();
-          } else if (worker.meta.containsKey('amount')) {
-            manuringAmount = worker.meta['amount'].toString();
-          } else {
-            // Try to find any numeric value
-            for (var entry in worker.meta.entries) {
-              if (entry.value is num ||
-                  (entry.value is String &&
-                      int.tryParse(entry.value) != null)) {
-                manuringAmount = entry.value.toString();
-                break;
-              }
-            }
-          }
-        }
-
-        // Build the CORRECT structure according to documentation
-        payload['worker_audit_meta'] = [
-          {
-            'staff_id': staffId,
-            'meta': {
-              'manuring':
-                  manuringAmount, // Key is "manuring", value is tree amount
-            },
-          },
-        ];
-
-        print(
-          'Using CORRECT API format for manuring task: ${payload['worker_audit_meta']}',
-        );
       }
 
       // Make the API call with the prepared payload - use it as-is since we've already formatted it correctly
@@ -2072,18 +2767,60 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       if (response['success'] == true) {
         print('API call succeeded');
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Task approved successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Optionally navigate back or refresh
-        await Future.delayed(const Duration(seconds: 1));
+        // Show custom success dialog
         if (mounted) {
-          Navigator.of(context).pop(true); // Return true to indicate success
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Green checkmark circle
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Success message
+                      Text(
+                        response['message'] ?? 'Task approved successfully',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+
+          // Auto-close dialog after 2 seconds and navigate back with refresh signal
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(true); // Return true to trigger refresh
+            }
+          });
         }
       } else {
         print('API call failed');
@@ -2240,6 +2977,247 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       if (mounted) {
         setState(() {
           _isApproving = false;
+        });
+      }
+    }
+  }
+
+  // Method to show remarks input dialog for rejection
+  Future<String?> _showRemarksDialog() async {
+    final TextEditingController remarksController = TextEditingController();
+    
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Task Rejection',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Please provide a reason for rejecting this task:',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: remarksController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Enter remarks...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(null);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                final remarks = remarksController.text.trim();
+                if (remarks.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter remarks before rejecting'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop(remarks);
+              },
+              child: const Text('Confirm Reject'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Method to reject audit task
+  Future<void> _rejectTask() async {
+    try {
+      setState(() {
+        _isRejecting = true;
+      });
+
+      // Show remarks dialog first
+      final remarks = await _showRemarksDialog();
+      
+      if (remarks == null || remarks.isEmpty) {
+        setState(() {
+          _isRejecting = false;
+        });
+        return;
+      }
+
+      // Show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text(
+            'Confirm Rejection',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Are you sure you want to reject this task? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, Reject'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) {
+        setState(() {
+          _isRejecting = false;
+        });
+        return;
+      }
+
+      // Call reject API
+      print('\n===== CALLING API: rejectAuditTask =====');
+      print('Task ID: ${widget.taskId}');
+      print('Remarks: $remarks');
+
+      final response = await _attendanceService.rejectAuditTask(
+        taskId: widget.taskId,
+        remarks: remarks,
+      );
+
+      print('=== REJECT API RESPONSE ===');
+      print('Response: $response');
+
+      if (response['success'] == true) {
+        // Show success dialog
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Red X icon
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Success message
+                      Text(
+                        response['message'] ?? 'Task rejected successfully',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+
+          // Auto-close dialog after 2 seconds and navigate back with refresh signal
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(true); // Return true to trigger refresh
+            }
+          });
+        }
+      } else {
+        print('API call failed');
+        // Handle error response
+        String errorMessage = response['message'] ?? 'Failed to reject task';
+
+        // Check for validation errors
+        if (response['errors'] != null) {
+          final errors = response['errors'] as Map<String, dynamic>;
+          final errorMessages = <String>[];
+
+          errors.forEach((key, value) {
+            if (value is List) {
+              errorMessages.addAll(value.map((e) => e.toString()).toList());
+            }
+          });
+
+          if (errorMessages.isNotEmpty) {
+            errorMessage = errorMessages.join('\n');
+          }
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error rejecting task: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error rejecting task: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRejecting = false;
         });
       }
     }
@@ -2736,22 +3714,31 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
                             minimumSize: const Size.fromHeight(44),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             elevation: 0,
                           ),
-                          onPressed: () {},
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
+                          onPressed: (_isRejecting || _isApproving) ? null : _rejectTask,
+                          child: _isRejecting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Task Rejected',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

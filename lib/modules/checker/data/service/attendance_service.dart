@@ -739,5 +739,44 @@ class AttendanceService {
     }
   }
 
+  // Method to reject audit task
+  Future<Map<String, dynamic>> rejectAuditTask({
+    required int taskId,
+    required String remarks,
+  }) async {
+    try {
+      // Prepare request body
+      Map<String, dynamic> requestBody = {
+        'remarks': remarks,
+      };
+
+      print('=== REJECT TASK API REQUEST ===');
+      print('Task ID: $taskId');
+      print('Remarks: $remarks');
+
+      final response = await dioClient.post(
+        'api/v1/tasks/audits/$taskId/reject',
+        data: requestBody,
+      );
+
+      print('=== REJECT TASK API RESPONSE ===');
+      print('Response: ${response.data}');
+
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      print('Error rejecting task: ${e.response?.data}');
+      if (e.response != null && e.response?.data != null) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    } catch (e) {
+      print('Unexpected error rejecting task: $e');
+      return {
+        'success': false,
+        'message': 'Failed to reject task: ${e.toString()}',
+      };
+    }
+  }
+
   // ...existing code...
 }

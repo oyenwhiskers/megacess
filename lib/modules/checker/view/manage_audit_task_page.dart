@@ -19,6 +19,7 @@ class ManageAuditTaskPage extends StatefulWidget {
 
 class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
   bool _isLoading = true;
+  bool _isRefreshing = false;
   String? _error;
   AuditTaskLocationDetail? _location;
   List<AuditTaskModel> _tasks = [];
@@ -119,7 +120,11 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
   }
 
   Future<void> _refreshData() async {
-    // Don't show the loading indicator during refresh
+    // Show loading indicator during refresh
+    setState(() {
+      _isRefreshing = true;
+    });
+    
     try {
       final response = await AttendanceService(
         SecureStorageService(),
@@ -129,11 +134,13 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
         _tasks = response.tasks;
         // Re-apply current filters to the updated task list
         _filterTasks();
+        _isRefreshing = false;
       });
       return;
     } catch (e) {
       setState(() {
         _error = e.toString();
+        _isRefreshing = false;
       });
       return;
     }
@@ -237,16 +244,28 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text(
-          'Manage Audit Task',
-          style: TextStyle(color: Colors.black),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+    return WillPopScope(
+      onWillPop: () async {
+        // Return true to indicate refresh is needed
+        Navigator.of(context).pop(true);
+        return false; // Prevent default pop behavior since we're handling it
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFD9D9D9),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF7ED957),
+          elevation: 0,
+          title: const Text(
+            'Manage Audit Task',
+            style: TextStyle(color: Colors.black),
+          ),
+          iconTheme: const IconThemeData(color: Colors.black),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
         actions: [
           if (_selectedTaskType != null || _selectedStatus != null)
             IconButton(
@@ -564,8 +583,8 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                   itemBuilder: (context, idx) {
                                     final task = _filteredTasks[idx];
                                     return InkWell(
-                                      onTap: () {
-                                        Navigator.of(context).push(
+                                      onTap: () async {
+                                        final result = await Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (_) =>
                                                 AuditTaskPreviewPage(
@@ -573,6 +592,10 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                                 ),
                                           ),
                                         );
+                                        // If task was approved successfully, refresh the list
+                                        if (result == true) {
+                                          _refreshData();
+                                        }
                                       },
                                       borderRadius: BorderRadius.circular(16),
                                       child: Container(
@@ -634,7 +657,18 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                     ],
                   ),
                 ),
+          // Loading overlay when refreshing
+          if (_isRefreshing)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7ED957)),
+                ),
+              ),
+            ),
         ],
+      ),
       ),
     );
   }

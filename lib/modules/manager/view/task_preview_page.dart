@@ -921,7 +921,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF7ED957),
+                                    backgroundColor: _task?.taskStatus.toLowerCase() == 'pending'
+                                        ? Colors.grey
+                                        : const Color(0xFF7ED957),
                                     foregroundColor: Colors.black,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -938,7 +940,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  onPressed: () async {
+                                  onPressed: _task?.taskStatus.toLowerCase() == 'pending'
+                                      ? null
+                                      : () async {
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -981,7 +985,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
@@ -1003,15 +1007,12 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                         'Send to checker',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
@@ -1027,28 +1028,6 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       onPressed: _showDeleteConfirmation,
                                       child: const Text(
                                         'Remove',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed: () {}, // Demo only
-                                      child: const Text(
-                                        'Save',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),

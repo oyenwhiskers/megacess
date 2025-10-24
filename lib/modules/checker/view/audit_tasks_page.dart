@@ -4,8 +4,33 @@ import 'package:megacess/modules/checker/data/service/attendance_service.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:megacess/modules/checker/view/manage_audit_task_page.dart';
 
-class AuditTasksPage extends StatelessWidget {
+class AuditTasksPage extends StatefulWidget {
   const AuditTasksPage({Key? key}) : super(key: key);
+
+  @override
+  State<AuditTasksPage> createState() => _AuditTasksPageState();
+}
+
+class _AuditTasksPageState extends State<AuditTasksPage> {
+  late Future<LocationListResponse> _locationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocations();
+  }
+
+  void _loadLocations() {
+    _locationsFuture = AttendanceService(
+      SecureStorageService(),
+    ).fetchLocationList();
+  }
+
+  void _refreshLocations() {
+    setState(() {
+      _loadLocations();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +102,7 @@ class AuditTasksPage extends StatelessWidget {
             const SizedBox(height: 12),
             Expanded(
               child: FutureBuilder<LocationListResponse>(
-                future: AttendanceService(
-                  SecureStorageService(),
-                ).fetchLocationList(),
+                future: _locationsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -106,8 +129,8 @@ class AuditTasksPage extends StatelessWidget {
                       final loc = locations[i];
                       return InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          Navigator.of(context).push(
+                        onTap: () async {
+                          final result = await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => ManageAuditTaskPage(
                                 locationId: loc.id,
@@ -115,6 +138,10 @@ class AuditTasksPage extends StatelessWidget {
                               ),
                             ),
                           );
+                          // If coming back from manage task page, refresh locations
+                          if (result == true) {
+                            _refreshLocations();
+                          }
                         },
                         child: Container(
                           decoration: BoxDecoration(
