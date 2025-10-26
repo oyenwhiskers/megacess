@@ -66,7 +66,7 @@ class _AuditTasksPageState extends State<AuditTasksPage> {
               ),
               const SizedBox(width: 8),
               const Text(
-                'Hello, checker_name',
+                'Audit Tasks',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,

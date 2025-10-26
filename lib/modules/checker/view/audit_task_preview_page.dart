@@ -127,7 +127,8 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             'path': kIsWeb ? pickedImage.name : pickedImage.path,
             'isLocal': true,
             'url': resolvedUrl,
-            'id': response['data']?['id'] ?? '',
+            'id': response['data']?['id']?.toString() ?? 
+                  '${DateTime.now().millisecondsSinceEpoch}_${_uploadedFiles.length}',
             'serverPath': resolvedPath ?? response['data']?['path'],
             'bytes': imageBytes, // Use the already-read bytes for web
           });
@@ -382,7 +383,8 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             'isLocal': true,
             'isVideo': true,
             'url': resolvedUrl,
-            'id': response['data']?['id'] ?? '',
+            'id': response['data']?['id']?.toString() ?? 
+                  '${DateTime.now().millisecondsSinceEpoch}_${_uploadedFiles.length}',
             'serverPath': resolvedPath ?? response['data']?['path'],
             'bytes': videoBytes, // Use the already-read bytes for web
             'thumbnailUrl':
@@ -597,10 +599,18 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     // Track the file ID for deletion
     String fileId = fileMap['id'] ?? '';
 
+    print('\n===== DELETE MEDIA INITIATED =====');
+    print('File Map: $fileMap');
+    print('File ID: $fileId');
+
     // Check if we have an ID - needed for API calls
     if (fileId.isEmpty) {
+      print('ERROR: File ID is empty!');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot delete file: No ID found')),
+        const SnackBar(
+          content: Text('Cannot delete file: No ID found'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -636,29 +646,36 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         url.isNotEmpty) {
       // Try to get the server path from API first if we have a URL
       try {
+        print('Getting file path from URL: $url');
+        
         // First get file URL info from API to get proper path
         final urlResponse = await _attendanceService.getFileUrl(url);
-        print('URL response: $urlResponse');
+        print('Get File URL Response: $urlResponse');
 
-        if (urlResponse['success'] == true && urlResponse['data'] != null) {
+        if (urlResponse['success'] == true && 
+            urlResponse['data'] != null &&
+            urlResponse['data']['path'] != null) {
           // Use the path returned from the API
           serverPath = urlResponse['data']['path'];
           print('Using server path from API: $serverPath');
         } else {
-          // If API call fails, try to parse from URL
+          // If API call fails or returns error (404), try to parse from URL
           if (url.startsWith('http://') || url.startsWith('https://')) {
             try {
               final uri = Uri.parse(url);
-              // Extract path part
-              String parsedPath = uri.path;
-
-              // Remove leading slash if present
-              if (parsedPath.startsWith('/')) {
-                parsedPath = parsedPath.substring(1);
+              // Extract path after /storage/
+              if (uri.path.contains('/storage/')) {
+                serverPath = uri.path.split('/storage/').last;
+                print('Extracted path from URL (after /storage/): $serverPath');
+              } else {
+                // Remove leading slash if present
+                String parsedPath = uri.path;
+                if (parsedPath.startsWith('/')) {
+                  parsedPath = parsedPath.substring(1);
+                }
+                serverPath = parsedPath;
+                print('Using parsed path from URL: $serverPath');
               }
-
-              serverPath = parsedPath;
-              print('Using parsed path from URL: $serverPath');
             } catch (e) {
               print('Error parsing URL: $e');
               serverPath = url; // Use the original URL if parsing fails
@@ -673,8 +690,13 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       } catch (e) {
         print('Error getting file URL: $e');
         // Try to use the URL directly if API call fails
-        serverPath = url;
-        print('Error case - using URL as path: $serverPath');
+        if (url.contains('/storage/')) {
+          serverPath = url.split('/storage/').last;
+          print('Exception - extracted path from URL: $serverPath');
+        } else {
+          serverPath = url;
+          print('Exception - using URL as path: $serverPath');
+        }
       }
     } else if ((serverPath == null || serverPath.isEmpty) &&
         filePath != null &&
@@ -730,22 +752,34 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         throw Exception("Cannot determine file path for deletion");
       }
 
-      print('Attempting to delete file with path: $serverPath');
+      print('\n===== DELETING FILE =====');
       print('File ID: $fileId');
+      print('Server Path: $serverPath');
+      print('Calling DELETE api/v1/files/delete');
 
       // Call the delete API
       final response = await _attendanceService.deleteFile(serverPath);
 
+      print('Delete Response: $response');
+
       if (response['success'] == true) {
+        // Success response (200)
         // Remove from the list
         setState(() {
           _uploadedFiles.removeWhere((item) => item['id'] == fileId);
         });
 
+        print('File deleted successfully');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File deleted successfully')),
+          SnackBar(
+            content: Text(
+              response['message'] ?? 'File deleted successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
+        // Error response (404 or other errors)
         // Mark file as no longer being deleted
         for (var item in _uploadedFiles) {
           if (item['id'] == fileId) {
@@ -755,11 +789,22 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
         setState(() {});
 
+        // Get error message from response
+        String errorMessage = response['message'] ?? 'Failed to delete file';
+        
+        // Check for errors array
+        if (response['errors'] != null && response['errors'] is List) {
+          final errors = response['errors'] as List;
+          if (errors.isNotEmpty) {
+            errorMessage = errors.join(', ');
+          }
+        }
+
+        print('Delete failed: $errorMessage');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Failed to delete file: ${response["message"] ?? "Unknown error"}',
-            ),
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -3652,32 +3697,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(44),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () {},
-                          child: const Text(
-                            'Task Rejected',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(

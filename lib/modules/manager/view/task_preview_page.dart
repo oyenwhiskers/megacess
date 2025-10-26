@@ -116,6 +116,82 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
               ],
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Remove Worker',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Remove ${worker.fullName} from this task?',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: const BorderSide(color: Colors.grey),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _removeWorkerFromTask(worker.id, worker.fullName);
+                                },
+                                child: const Text('Remove'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -124,6 +200,105 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
+  }
+
+  Future<void> _removeWorkerFromTask(int workerId, String workerName) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final result = await _service.removeWorkersFromTask(
+        taskId: widget.taskId,
+        workerIds: [workerId],
+      );
+
+      // Pop the loading dialog
+      Navigator.pop(context);
+
+      // Handle different response status codes
+      switch (result['statusCode']) {
+        case 200:
+          if (result['data']['success'] == true) {
+            // Update the task with the new data
+            if (result['data']['data'] != null) {
+              setState(() {
+                _task = TaskPreviewModel.fromJson(result['data']['data']);
+              });
+            } else {
+              // Fetch updated task details
+              _fetchDetail();
+            }
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$workerName removed successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  result['data']['message'] ?? 'Failed to remove worker.',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          break;
+        case 401:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unauthorized. Please log in again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 404:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Task or worker not found.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+        case 422:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['data']['message'] ?? 'Validation error.',
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          break;
+        case 500:
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['data']['message'] ?? 'Failed to remove worker.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          break;
+      }
+    } catch (e) {
+      // Pop the loading dialog
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _showEditTaskDialog() async {
@@ -921,7 +1096,8 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: _task?.taskStatus.toLowerCase() == 'pending'
+                                    backgroundColor: (_task?.taskStatus.toLowerCase() == 'pending' ||
+                                            _task?.taskStatus.toLowerCase() == 'rejected')
                                         ? Colors.grey
                                         : const Color(0xFF7ED957),
                                     foregroundColor: Colors.black,
@@ -940,7 +1116,8 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  onPressed: _task?.taskStatus.toLowerCase() == 'pending'
+                                  onPressed: (_task?.taskStatus.toLowerCase() == 'pending' ||
+                                          _task?.taskStatus.toLowerCase() == 'rejected')
                                       ? null
                                       : () async {
                                     final result = await Navigator.push(
@@ -990,33 +1167,6 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed:
-                                          _task?.taskStatus.toLowerCase() ==
-                                              'in_progress'
-                                          ? () => _submitTaskToChecker()
-                                          : null,
-                                      child: const Text(
-                                        'Send to checker',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
                                         foregroundColor: Colors.red,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
@@ -1035,6 +1185,36 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                     ),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(height: 8),
+                              Center(
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width * 0.5,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          10,
+                                        ),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed:
+                                        _task?.taskStatus.toLowerCase() ==
+                                            'in_progress'
+                                        ? () => _submitTaskToChecker()
+                                        : null,
+                                    child: const Text(
+                                      'Send to checker',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

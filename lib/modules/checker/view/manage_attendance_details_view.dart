@@ -94,6 +94,7 @@ class _ManageAttendanceDetailsViewState
               ],
             ),
           ),
+          const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             child: Row(

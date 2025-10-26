@@ -21,6 +21,33 @@ class ManagerDashboardService {
     return null;
   }
 
+  Future<Map<String, dynamic>> removeWorkersFromTask({
+    required int taskId,
+    required List<int> workerIds,
+  }) async {
+    try {
+      final response = await _dioClient.post(
+        'v1/tasks/$taskId/remove-workers',
+        data: {'staff_ids': workerIds},
+      );
+      return {'statusCode': response.statusCode, 'data': response.data};
+    } on DioException catch (e) {
+      return {
+        'statusCode': e.response?.statusCode ?? 500,
+        'data': e.response?.data ?? {'success': false, 'message': e.message},
+      };
+    } catch (e) {
+      return {
+        'statusCode': 500,
+        'data': {
+          'success': false,
+          'message': 'Failed to remove workers.',
+          'error': e.toString(),
+        },
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> updateTask(
     int taskId, {
     String? taskName,

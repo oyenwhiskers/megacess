@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../view-model/login_view_model.dart';
 import '../../manager/view/manager_view.dart';
@@ -60,61 +61,92 @@ class _LoginViewState extends State<LoginView> {
     final Color cardColor = Colors.white;
     final Color accent = const Color(0xFF222B45); // dark blue/gray
     final Color border = const Color(0xFFE0E3EB);
-    final Color button = const Color(0xFF4F8CFF); // blue
+    final Color button = const Color(0xFF43C463); // green
     final Color errorColor = const Color(0xFFD7263D);
 
     return Scaffold(
-      backgroundColor: background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Minimalist Logo and App Name
-                Padding(
-                  padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: button,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: button.withOpacity(0.15),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background-palmaoil.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Semi-transparent overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.5),
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Minimalist Logo and App Name
+                    Padding(
+                      padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: button,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: button.withOpacity(0.15),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            'M',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
+                            child: Center(
+                              child: Text(
+                                'M',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Megacess',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
-                      Text(
-                        'Megacess',
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
                 // Minimalist Card for Form
                 Container(
                   margin: const EdgeInsets.symmetric(
@@ -260,10 +292,12 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                 ),
-              ],
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

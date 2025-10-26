@@ -83,28 +83,6 @@ class _ManagerViewState extends State<ManagerView> {
                               size: 28,
                             ),
                           ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'DEBUG',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -418,7 +396,7 @@ class _ManagerViewState extends State<ManagerView> {
                             ),
                             child: SizedBox(
                               width: double.infinity,
-                              height: 54,
+                              height: 46,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
@@ -442,13 +420,13 @@ class _ManagerViewState extends State<ManagerView> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.logout, size: 22),
-                                    const SizedBox(width: 10),
+                                    const Icon(Icons.logout, size: 20),
+                                    const SizedBox(width: 8),
                                     const Text(
                                       'LOG OUT',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 15,
                                       ),
                                     ),
                                   ],

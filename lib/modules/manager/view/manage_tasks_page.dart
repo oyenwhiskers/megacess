@@ -80,7 +80,7 @@ class _ManageTasksPageState extends State<ManageTasksPage> {
                     ),
                     const SizedBox(width: 8),
                     const Text(
-                      'Hello, manager_name',
+                      'Manage Tasks',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -94,28 +94,6 @@ class _ManageTasksPageState extends State<ManageTasksPage> {
                       child: Icon(Icons.person, color: Colors.grey, size: 28),
                     ),
                   ],
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'DEBUG',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ),
             ],
