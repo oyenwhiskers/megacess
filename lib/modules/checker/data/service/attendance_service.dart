@@ -217,11 +217,13 @@ class AttendanceService {
   }
 
   Future<AuditTaskLocationTasksResponse> fetchAuditLocationTasks(
-    int locationId,
-  ) async {
+    int locationId, {
+    int page = 1,
+  }) async {
     try {
       final response = await dioClient.get(
         'api/v1/locations/$locationId/tasks',
+        queryParameters: {'page': page},
       );
       if (response.data is Map && response.data['success'] == true) {
         return AuditTaskLocationTasksResponse.fromJson(response.data);
@@ -316,6 +318,7 @@ class AttendanceService {
           'per_page': perPage,
         },
       );
+      print('Staff Attendance Response: ${response.data}'); // Debug
       if (response.data is Map && response.data['success'] == true) {
         return StaffAttendanceListResponse.fromJson(response.data);
       } else {
@@ -324,12 +327,17 @@ class AttendanceService {
         );
       }
     } on DioError catch (e) {
+      print('DioError: ${e.message}'); // Debug
+      print('Response: ${e.response?.data}'); // Debug
       if (e.response != null && e.response?.data != null) {
         throw Exception(
-          e.response?.data['message'] ?? 'Failed to fetch staff attendance',
+          e.response?.data['message'] ?? 'Network error: ${e.message}',
         );
       }
-      throw Exception('Failed to fetch staff attendance');
+      throw Exception('Connection error: ${e.message}');
+    } catch (e) {
+      print('General Error: $e'); // Debug
+      throw Exception('Unexpected error: ${e.toString()}');
     }
   }
 

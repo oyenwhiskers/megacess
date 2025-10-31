@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../data/service/manager_dashboard_service.dart';
 import '../data/model/task_analytics.dart';
 
@@ -163,97 +162,66 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 
-  Widget _buildUsageLineChart({
+  Widget _buildUsageCard({
     required String title,
-    required List<double> monthlyData,
+    required double totalAmount,
     required String unit,
+    required int taskCount,
     required Color color,
+    required IconData icon,
   }) {
-    final months = ['Jan', 'Feb', 'Mar', 'April', 'May', 'June'];
     return Card(
       elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Row(
           children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 220,
-              child: LineChart(
-                LineChartData(
-                  minY: 0,
-                  maxY: (monthlyData.reduce((a, b) => a > b ? a : b) * 1.2)
-                      .ceilToDouble(),
-                  gridData: FlGridData(show: true, drawVerticalLine: false),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: Colors.black12),
-                  ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 32,
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          int idx = value.toInt();
-                          if (idx >= 0 && idx < months.length) {
-                            return Text(
-                              months[idx],
-                              style: const TextStyle(fontSize: 12),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                        reservedSize: 28,
-                        interval: 1,
-                      ),
-                    ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: [
-                        for (int i = 0; i < monthlyData.length; i++)
-                          FlSpot(i.toDouble(), monthlyData[i]),
-                      ],
-                      isCurved: true,
-                      color: color,
-                      barWidth: 3,
-                      dotData: FlDotData(show: true),
-                    ),
-                  ],
-                ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 32,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Month of the year',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Usage ($unit)',
-              textAlign: TextAlign.left,
-              style: const TextStyle(fontSize: 13),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Total: ${totalAmount.toStringAsFixed(1)} $unit',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Used in $taskCount task${taskCount != 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -263,11 +231,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy monthly data for chart (replace with real if available)
-    final fertilizerMonthly = [300.0, 200.0, 400.0, 220.0, 600.0, 500.0];
-    final herbicideMonthly = [250.0, 180.0, 350.0, 210.0, 550.0, 430.0];
-    final fuelMonthly = [320.0, 210.0, 410.0, 230.0, 620.0, 480.0];
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
@@ -292,24 +255,41 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 children: [
                   _buildTaskSummary(_analytics!.taskAnalytics),
                   const SizedBox(height: 16),
-                  _buildUsageLineChart(
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    child: Text(
+                      'Resource Usage Summary',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _buildUsageCard(
                     title: 'Fertilizer Usage',
-                    monthlyData: fertilizerMonthly,
+                    totalAmount: _analytics!.usageAnalytics.fertilizerUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.fertilizerUsage.unit,
+                    taskCount: _analytics!.usageAnalytics.fertilizerUsage.taskCount,
                     color: Colors.green,
+                    icon: Icons.grass,
                   ),
-                  _buildUsageLineChart(
+                  _buildUsageCard(
                     title: 'Herbicide Usage',
-                    monthlyData: herbicideMonthly,
+                    totalAmount: _analytics!.usageAnalytics.herbicideUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.herbicideUsage.unit,
+                    taskCount: _analytics!.usageAnalytics.herbicideUsage.taskCount,
                     color: Colors.blue,
+                    icon: Icons.water_drop,
                   ),
-                  _buildUsageLineChart(
+                  _buildUsageCard(
                     title: 'Fuel Usage',
-                    monthlyData: fuelMonthly,
+                    totalAmount: _analytics!.usageAnalytics.fuelUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.fuelUsage.unit,
+                    taskCount: _analytics!.usageAnalytics.fuelUsage.taskCount,
                     color: Colors.orange,
+                    icon: Icons.local_gas_station,
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

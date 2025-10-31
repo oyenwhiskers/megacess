@@ -156,8 +156,13 @@ class LocationDetailModel {
 class LocationTasksDetailResponse {
   final LocationDetailModel location;
   final List<TaskDetailModel> tasks;
+  final PaginationModel? pagination;
 
-  LocationTasksDetailResponse({required this.location, required this.tasks});
+  LocationTasksDetailResponse({
+    required this.location,
+    required this.tasks,
+    this.pagination,
+  });
 
   factory LocationTasksDetailResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
@@ -166,6 +171,32 @@ class LocationTasksDetailResponse {
       tasks: (data['tasks'] as List<dynamic>? ?? [])
           .map((e) => TaskDetailModel.fromJson(e))
           .toList(),
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
+    );
+  }
+}
+
+class PaginationModel {
+  final int currentPage;
+  final int lastPage;
+  final int perPage;
+  final int total;
+
+  PaginationModel({
+    required this.currentPage,
+    required this.lastPage,
+    required this.perPage,
+    required this.total,
+  });
+
+  factory PaginationModel.fromJson(Map<String, dynamic> json) {
+    return PaginationModel(
+      currentPage: json['current_page'] ?? 1,
+      lastPage: json['last_page'] ?? 1,
+      perPage: json['per_page'] ?? 15,
+      total: json['total'] ?? 0,
     );
   }
 }

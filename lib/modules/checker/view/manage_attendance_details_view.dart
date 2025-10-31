@@ -22,17 +22,139 @@ class ManageAttendanceDetailsView extends StatefulWidget {
 
 class _ManageAttendanceDetailsViewState
     extends State<ManageAttendanceDetailsView> {
-  late Future<StaffAttendanceListResponse> _staffAttendanceFuture;
   late Future<UserAttendanceListResponse> _attendanceFuture;
   final TextEditingController _searchController = TextEditingController();
   String _search = '';
   int _selectedTab = 0; // 0: Management, 1: Staff
 
+  // Pagination variables for staff
+  final ScrollController _staffScrollController = ScrollController();
+  List<StaffAttendanceItem> _staffList = [];
+  int _staffCurrentPage = 1;
+  int _staffLastPage = 1;
+  int _staffTotalFromServer = 0;
+  bool _isLoadingMoreStaff = false;
+  bool _hasMoreStaffData = true;
+  bool _isLoadingStaff = true;
+  String? _staffError;
+
   @override
   void initState() {
     super.initState();
     _fetchAttendance();
-    _fetchStaffAttendance();
+    _fetchStaffAttendanceWithPagination();
+    
+    // Add scroll listener for staff tab
+    _staffScrollController.addListener(_onStaffScroll);
+  }
+
+  @override
+  void dispose() {
+    _staffScrollController.removeListener(_onStaffScroll);
+    _staffScrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onStaffScroll() {
+    final pixels = _staffScrollController.position.pixels;
+    final maxScroll = _staffScrollController.position.maxScrollExtent;
+    print('Scroll position: $pixels / $maxScroll'); // Debug
+    print('Loading more: $_isLoadingMoreStaff, Has more: $_hasMoreStaffData'); // Debug
+    
+    if (pixels >= maxScroll - 200 &&
+        !_isLoadingMoreStaff &&
+        _hasMoreStaffData) {
+      print('Triggering load more staff...'); // Debug
+      _loadMoreStaff();
+    }
+  }
+
+  Future<void> _fetchStaffAttendanceWithPagination() async {
+    setState(() {
+      _isLoadingStaff = true;
+      _staffError = null;
+      _staffCurrentPage = 1;
+      _hasMoreStaffData = true;
+    });
+    
+    try {
+      final response = await AttendanceService(
+        SecureStorageService(),
+      ).fetchStaffAttendanceList(
+        dateAttendanceId: widget.dateAttendanceId,
+        page: 1,
+      );
+      
+      print('Initial fetch - Page: ${response.currentPage}/${response.lastPage}, Total: ${response.total}'); // Debug
+      
+      setState(() {
+        _staffList = response.data;
+        _staffCurrentPage = response.currentPage;
+        _staffLastPage = response.lastPage;
+        _staffTotalFromServer = response.total;
+        _hasMoreStaffData = _staffCurrentPage < _staffLastPage;
+        _isLoadingStaff = false;
+      });
+      
+      print('Staff loaded: ${_staffList.length}, Has more: $_hasMoreStaffData'); // Debug
+    } catch (e) {
+      print('Error loading staff attendance: $e'); // Debug print
+      setState(() {
+        _staffError = 'Failed to load staff attendance: ${e.toString()}';
+        _isLoadingStaff = false;
+      });
+    }
+  }
+
+  Future<void> _loadMoreStaff() async {
+    if (_isLoadingMoreStaff || !_hasMoreStaffData) {
+      print('Load more blocked - Loading: $_isLoadingMoreStaff, Has more: $_hasMoreStaffData'); // Debug
+      return;
+    }
+
+    print('Loading more staff - Current page: $_staffCurrentPage, Last page: $_staffLastPage'); // Debug
+
+    setState(() {
+      _isLoadingMoreStaff = true;
+    });
+
+    try {
+      final nextPage = _staffCurrentPage + 1;
+      print('Fetching page: $nextPage'); // Debug
+      
+      final response = await AttendanceService(
+        SecureStorageService(),
+      ).fetchStaffAttendanceList(
+        dateAttendanceId: widget.dateAttendanceId,
+        page: nextPage,
+      );
+      
+      print('Loaded ${response.data.length} more staff'); // Debug
+      
+      if (response.data.isNotEmpty) {
+        setState(() {
+          _staffList.addAll(response.data);
+          _staffCurrentPage = response.currentPage;
+          _staffLastPage = response.lastPage;
+          _staffTotalFromServer = response.total;
+          _hasMoreStaffData = _staffCurrentPage < _staffLastPage;
+          _isLoadingMoreStaff = false;
+        });
+        print('Total staff now: ${_staffList.length}'); // Debug
+      } else {
+        setState(() {
+          _hasMoreStaffData = false;
+          _isLoadingMoreStaff = false;
+        });
+        print('No more data to load'); // Debug
+      }
+    } catch (e) {
+      print('Error loading more staff: $e'); // Debug
+      setState(() {
+        _isLoadingMoreStaff = false;
+      });
+    }
   }
 
   void _fetchAttendance() {
@@ -40,14 +162,6 @@ class _ManageAttendanceDetailsViewState
       _attendanceFuture = AttendanceService(
         SecureStorageService(),
       ).fetchUserAttendanceList(dateAttendanceId: widget.dateAttendanceId);
-    });
-  }
-
-  void _fetchStaffAttendance() {
-    setState(() {
-      _staffAttendanceFuture = AttendanceService(
-        SecureStorageService(),
-      ).fetchStaffAttendanceList(dateAttendanceId: widget.dateAttendanceId);
     });
   }
 
@@ -173,6 +287,16 @@ class _ManageAttendanceDetailsViewState
                     fontSize: 16,
                   ),
                 ),
+                if (_selectedTab == 1 && _staffTotalFromServer > 0) ...[
+                  const Spacer(),
+                  Text(
+                    'Staff: ${_staffList.length}/$_staffTotalFromServer',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -287,115 +411,151 @@ class _ManageAttendanceDetailsViewState
                       );
                     },
                   )
-                : FutureBuilder<StaffAttendanceListResponse>(
-                    future: _staffAttendanceFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text('Failed to load staff attendance.'),
-                        );
-                      } else if (!snapshot.hasData ||
-                          snapshot.data!.data.isEmpty) {
-                        return const Center(
-                          child: Text('No staff attendance records found.'),
-                        );
-                      }
-                      final staffList = snapshot.data!;
-                      // Filter by search
-                      final filtered = _search.isEmpty
-                          ? staffList.data
-                          : staffList.data
-                                .where(
-                                  (item) => item.staffName
-                                      .toLowerCase()
-                                      .contains(_search.toLowerCase()),
-                                )
-                                .toList();
-                      if (filtered.isEmpty) {
-                        return const Center(
-                          child: Text('No staff attendance records found.'),
-                        );
-                      }
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 0,
-                          vertical: 8,
+                : _isLoadingStaff
+                    ? const Center(child: CircularProgressIndicator())
+                    : _staffError != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _staffError!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _fetchStaffAttendanceWithPagination,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
                         ),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final item = filtered[index];
-                          return Container(
-                            margin: const EdgeInsets.only(
-                              bottom: 12,
-                              left: 16,
-                              right: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 3,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: item.staffImg.isNotEmpty
-                                    ? NetworkImage(item.staffImg)
-                                    : const AssetImage(
-                                            'assets/images/default_avatar.png',
-                                          )
-                                          as ImageProvider,
-                                radius: 28,
+                      )
+                    : _staffList.isEmpty
+                    ? const Center(
+                        child: Text('No staff attendance records found.'),
+                      )
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _staffScrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                                vertical: 8,
                               ),
-                              title: Text(
-                                'Name: ${item.staffName}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Status: ${item.status}'),
-                                  Text(
-                                    'Checked by: ${item.checkedinBy ?? '-'}',
+                              itemCount: _staffList.length,
+                              itemBuilder: (context, index) {
+                                final item = _staffList[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                    bottom: 12,
+                                    left: 16,
+                                    right: 16,
                                   ),
-                                ],
-                              ),
-                              trailing: const Icon(Icons.chevron_right),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              onTap: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ManageAttendanceStaffDetailView(
-                                          staffId: item.staffId,
-                                          dateAttendanceId:
-                                              widget.dateAttendanceId,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 3,
+                                        offset: Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundImage: item.staffImg.isNotEmpty
+                                          ? NetworkImage(item.staffImg)
+                                          : const AssetImage(
+                                                  'assets/images/default_avatar.png',
+                                                )
+                                                as ImageProvider,
+                                      radius: 28,
+                                    ),
+                                    title: Text(
+                                      'Name: ${item.staffName}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Status: ${item.status}'),
+                                        Text(
+                                          'Checked by: ${item.checkedinBy ?? '-'}',
                                         ),
+                                      ],
+                                    ),
+                                    trailing: const Icon(Icons.chevron_right),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ManageAttendanceStaffDetailView(
+                                                staffId: item.staffId,
+                                                dateAttendanceId:
+                                                    widget.dateAttendanceId,
+                                              ),
+                                        ),
+                                      );
+                                      if (result == true) {
+                                        _fetchStaffAttendanceWithPagination();
+                                        setState(() {});
+                                      }
+                                    },
                                   ),
                                 );
-                                if (result == true) {
-                                  _fetchStaffAttendance();
-                                  setState(() {});
-                                }
                               },
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                          ),
+                          // Load More Button
+                          if (_hasMoreStaffData || _isLoadingMoreStaff)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              child: _isLoadingMoreStaff
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF43C463),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 32,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      onPressed: _loadMoreStaff,
+                                      child: Text(
+                                        'Load More (${_staffList.length}/$_staffTotalFromServer)',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                        ],
+                      ),
           ),
         ],
       ),

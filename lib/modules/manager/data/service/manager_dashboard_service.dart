@@ -175,9 +175,13 @@ class ManagerDashboardService {
   }
 
   Future<LocationTasksDetailResponse?> fetchLocationTasksDetail(
-    int locationId,
-  ) async {
-    final response = await _dioClient.get('v1/locations/$locationId/tasks');
+    int locationId, {
+    int page = 1,
+  }) async {
+    final response = await _dioClient.get(
+      'v1/locations/$locationId/tasks',
+      queryParameters: {'page': page},
+    );
     if (response.statusCode == 200 && response.data['success'] == true) {
       return LocationTasksDetailResponse.fromJson(response.data);
     }
