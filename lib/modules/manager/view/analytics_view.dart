@@ -3,8 +3,28 @@ import 'package:fl_chart/fl_chart.dart';
 import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
 
-class AnalyticsView extends StatelessWidget {
+class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);
+
+  @override
+  State<AnalyticsView> createState() => _AnalyticsViewState();
+}
+
+class _AnalyticsViewState extends State<AnalyticsView> {
+  late Future<ManagerAnalytics> _analyticsFuture;
+  final ManagerService _managerService = ManagerService();
+
+  @override
+  void initState() {
+    super.initState();
+    _analyticsFuture = _managerService.fetchManagerAnalytics();
+  }
+
+  void _refreshAnalytics() {
+    setState(() {
+      _analyticsFuture = _managerService.fetchManagerAnalytics();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +37,49 @@ class AnalyticsView extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: FutureBuilder<ManagerAnalytics>(
-        future: ManagerService().fetchManagerAnalytics(),
+        future: _analyticsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFF43C463)));
           } else if (snapshot.hasError) {
-            return Center(child: Text('Failed to load analytics: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load analytics',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _refreshAnalytics,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF43C463),
+                      foregroundColor: Colors.black,
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No analytics data found.'));
           }
@@ -40,8 +97,7 @@ class AnalyticsView extends StatelessWidget {
           
           return RefreshIndicator(
             onRefresh: () async {
-              // Trigger rebuild by creating new future
-              return;
+              _refreshAnalytics();
             },
             color: const Color(0xFF43C463),
             child: SingleChildScrollView(
