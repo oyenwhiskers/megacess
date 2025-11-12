@@ -25,6 +25,14 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
   List<AuditTaskModel> _tasks = [];
   List<AuditTaskModel> _filteredTasks = [];
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  // Pagination variables
+  int _currentPage = 1;
+  int _lastPage = 1;
+  int _totalTasksFromServer = 0;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
 
   // Filter variables
   bool _showFilterOptions = false;
@@ -46,13 +54,31 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
 
     // Add listener to search controller for real-time filtering
     _searchController.addListener(_filterTasks);
+    
+    // Add listener to scroll controller for pagination
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.removeListener(_filterTasks);
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    // Don't load more if filters are active (filters work on client-side data only)
+    bool hasActiveFilters = _selectedTaskType != null || _selectedStatus != null;
+    
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoadingMore &&
+        _hasMoreData &&
+        !hasActiveFilters) {
+      _loadMoreTasks();
+    }
   }
 
   void _filterTasks() {
@@ -98,15 +124,24 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
     setState(() {
       _isLoading = true;
       _error = null;
+      _currentPage = 1;
+      _hasMoreData = true;
     });
     try {
       final response = await AttendanceService(
         SecureStorageService(),
-      ).fetchAuditLocationTasks(widget.locationId);
+      ).fetchAuditLocationTasks(widget.locationId, page: 1);
       _location = response.location;
       _tasks = response.tasks;
-      _filteredTasks =
-          response.tasks; // Initialize filtered tasks with all tasks
+      _filteredTasks = response.tasks;
+
+      // Update pagination info
+      if (response.pagination != null) {
+        _currentPage = response.pagination!.currentPage;
+        _lastPage = response.pagination!.lastPage;
+        _totalTasksFromServer = response.pagination!.total;
+        _hasMoreData = _currentPage < _lastPage;
+      }
 
       setState(() {
         _isLoading = false;
@@ -119,19 +154,72 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
     }
   }
 
+  Future<void> _loadMoreTasks() async {
+    if (_isLoadingMore || !_hasMoreData) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      final response = await AttendanceService(
+        SecureStorageService(),
+      ).fetchAuditLocationTasks(widget.locationId, page: nextPage);
+      
+      if (response.tasks.isNotEmpty) {
+        setState(() {
+          _tasks.addAll(response.tasks);
+          
+          // Update pagination info
+          if (response.pagination != null) {
+            _currentPage = response.pagination!.currentPage;
+            _lastPage = response.pagination!.lastPage;
+            _totalTasksFromServer = response.pagination!.total;
+            _hasMoreData = _currentPage < _lastPage;
+          }
+          
+          // Re-apply filters to include new tasks
+          _filterTasks();
+          _isLoadingMore = false;
+        });
+      } else {
+        setState(() {
+          _hasMoreData = false;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
   Future<void> _refreshData() async {
-    // Show loading indicator during refresh
+    // Reset pagination and reload from page 1
     setState(() {
       _isRefreshing = true;
+      _currentPage = 1;
+      _hasMoreData = true;
     });
     
     try {
       final response = await AttendanceService(
         SecureStorageService(),
-      ).fetchAuditLocationTasks(widget.locationId);
+      ).fetchAuditLocationTasks(widget.locationId, page: 1);
       setState(() {
         _location = response.location;
         _tasks = response.tasks;
+        
+        // Update pagination info
+        if (response.pagination != null) {
+          _currentPage = response.pagination!.currentPage;
+          _lastPage = response.pagination!.lastPage;
+          _totalTasksFromServer = response.pagination!.total;
+          _hasMoreData = _currentPage < _lastPage;
+        }
+        
         // Re-apply current filters to the updated task list
         _filterTasks();
         _isRefreshing = false;
@@ -308,9 +396,11 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                             ),
                           ),
                           const Spacer(),
-                          Text('Total Tasks: ', style: TextStyle(fontSize: 14)),
+                          Text('Tasks: ', style: TextStyle(fontSize: 14)),
                           Text(
-                            '${_tasks.length}',
+                            _totalTasksFromServer > 0
+                                ? '${_tasks.length}/$_totalTasksFromServer'
+                                : '${_tasks.length}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -577,10 +667,21 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                             : RefreshIndicator(
                                 onRefresh: _refreshData,
                                 child: ListView.separated(
-                                  itemCount: _filteredTasks.length,
+                                  controller: _scrollController,
+                                  itemCount: _filteredTasks.length + (_isLoadingMore ? 1 : 0),
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(height: 12),
                                   itemBuilder: (context, idx) {
+                                    // Show loading indicator at the bottom
+                                    if (idx == _filteredTasks.length) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    }
+                                    
                                     final task = _filteredTasks[idx];
                                     return InkWell(
                                       onTap: () async {

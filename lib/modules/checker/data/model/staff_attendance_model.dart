@@ -21,10 +21,10 @@ class StaffAttendanceItem {
 
   factory StaffAttendanceItem.fromJson(Map<String, dynamic> json) {
     return StaffAttendanceItem(
-      staffId: json['staff_id'] ?? 0,
+      staffId: json['id'] ?? json['staff_id'] ?? 0,
       staffImg: json['staff_img'] ?? '',
-      staffName: json['staff_name'] ?? '',
-      status: json['status'] ?? '',
+      staffName: json['staff_fullname'] ?? json['staff_name'] ?? '',
+      status: json['status'] ?? 'unknown',
       checkIn: json['check_in'],
       checkOut: json['check_out'],
       checkedinBy: json['checkedin_by'],
@@ -53,15 +53,35 @@ class StaffAttendanceListResponse {
   });
 
   factory StaffAttendanceListResponse.fromJson(Map<String, dynamic> json) {
-    final dataList = (json['data']['data'] as List?) ?? [];
-    return StaffAttendanceListResponse(
-      data: dataList.map((e) => StaffAttendanceItem.fromJson(e)).toList(),
-      currentPage: json['data']['current_page'] ?? 1,
-      perPage: json['data']['per_page'] ?? 15,
-      total: json['data']['total'] ?? 0,
-      lastPage: json['data']['last_page'] ?? 1,
-      from: json['data']['from'] ?? 0,
-      to: json['data']['to'] ?? 0,
-    );
+    try {
+      // Check if data is nested or direct
+      List<dynamic> dataList;
+      Map<String, dynamic> meta;
+      
+      if (json['data'] is Map) {
+        // Nested structure: data.data and data.meta
+        final dataMap = json['data'] as Map<String, dynamic>;
+        dataList = (dataMap['data'] as List?) ?? [];
+        meta = dataMap['meta'] ?? json['meta'] ?? {};
+      } else {
+        // Direct structure: data as list, meta separate
+        dataList = (json['data'] as List?) ?? [];
+        meta = json['meta'] ?? {};
+      }
+      
+      return StaffAttendanceListResponse(
+        data: dataList.map((e) => StaffAttendanceItem.fromJson(e as Map<String, dynamic>)).toList(),
+        currentPage: meta['current_page'] ?? 1,
+        perPage: meta['per_page'] ?? 15,
+        total: meta['total'] ?? 0,
+        lastPage: meta['last_page'] ?? 1,
+        from: meta['from'] ?? 0,
+        to: meta['to'] ?? 0,
+      );
+    } catch (e) {
+      print('Error parsing StaffAttendanceListResponse: $e');
+      print('JSON: $json');
+      rethrow;
+    }
   }
 }

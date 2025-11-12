@@ -148,7 +148,14 @@ class AuditTaskLocationDetail {
 class AuditTaskLocationTasksResponse {
   final AuditTaskLocationDetail location;
   final List<AuditTaskModel> tasks;
-  AuditTaskLocationTasksResponse({required this.location, required this.tasks});
+  final PaginationModel? pagination;
+  
+  AuditTaskLocationTasksResponse({
+    required this.location,
+    required this.tasks,
+    this.pagination,
+  });
+  
   factory AuditTaskLocationTasksResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
     return AuditTaskLocationTasksResponse(
@@ -156,6 +163,32 @@ class AuditTaskLocationTasksResponse {
       tasks: (data['tasks'] as List<dynamic>? ?? [])
           .map((e) => AuditTaskModel.fromJson(e))
           .toList(),
+      pagination: json['pagination'] != null
+          ? PaginationModel.fromJson(json['pagination'])
+          : null,
+    );
+  }
+}
+
+class PaginationModel {
+  final int currentPage;
+  final int lastPage;
+  final int perPage;
+  final int total;
+
+  PaginationModel({
+    required this.currentPage,
+    required this.lastPage,
+    required this.perPage,
+    required this.total,
+  });
+
+  factory PaginationModel.fromJson(Map<String, dynamic> json) {
+    return PaginationModel(
+      currentPage: json['current_page'] ?? 1,
+      lastPage: json['last_page'] ?? 1,
+      perPage: json['per_page'] ?? 15,
+      total: json['total'] ?? 0,
     );
   }
 }
