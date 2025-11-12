@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../data/service/staff_service.dart';
 import '../data/model/staff_model.dart';
-import '../view/add_staff_popup.dart';
 import 'staff_detail_page.dart';
 
 class MyStaffPage extends StatefulWidget {
@@ -18,7 +17,6 @@ class _MyStaffPageState extends State<MyStaffPage> {
   final StaffService _staffService = StaffService();
   List<StaffModel> staffList = [];
   String searchQuery = '';
-  bool _isLoadingPopup = false;
   bool _isLoadingStaff = true;
 
   @override
@@ -197,60 +195,8 @@ class _MyStaffPageState extends State<MyStaffPage> {
                       },
                     ),
             ),
-            if (_isLoadingPopup)
-              const Center(child: CircularProgressIndicator()),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF219653),
-        child: const Icon(Icons.add, size: 32),
-        onPressed: () async {
-          setState(() {
-            _isLoadingPopup = true;
-          });
-          try {
-            final paginatedResult = await _staffService.fetchUnclaimedStaff();
-            setState(() {
-              _isLoadingPopup = false;
-            });
-            if (mounted) {
-              final result = await showDialog<bool>(
-                context: context,
-                builder: (context) => AddStaffPopup(
-                  staffList: paginatedResult.staff,
-                  onAdd: (selectedStaffList) async {
-                    bool allSuccess = true;
-                    for (var staff in selectedStaffList) {
-                      final success = await _staffService.claimStaff(staff.id);
-                      if (!success) allSuccess = false;
-                    }
-                    if (allSuccess) {
-                      _fetchClaimedStaff();
-                    }
-                    return allSuccess;
-                  },
-                ),
-              );
-              if (result == true) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Staff claimed successfully!')),
-                );
-              } else if (result == false) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Some staff failed to claim.')),
-                );
-              }
-            }
-          } catch (e) {
-            setState(() {
-              _isLoadingPopup = false;
-            });
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Failed to load staff: $e')));
-          }
-        },
       ),
     );
   }

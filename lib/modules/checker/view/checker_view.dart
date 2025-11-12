@@ -8,6 +8,7 @@ import '../../authorization/view/login_view.dart';
 import '../../utility/secure_storage_service.dart';
 import 'manage_attendance_view.dart';
 import 'audit_tasks_page.dart';
+import 'checker_profile_page.dart';
 
 class CheckerView extends StatefulWidget {
   final String checkerName;
@@ -107,12 +108,21 @@ class _CheckerViewState extends State<CheckerView> {
                                 color: Colors.black,
                               ),
                             ),
-                            const CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.grey,
-                                size: 28,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const CheckerProfilePage(),
+                                  ),
+                                );
+                              },
+                              child: const CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 28,
+                                ),
                               ),
                             ),
                           ],

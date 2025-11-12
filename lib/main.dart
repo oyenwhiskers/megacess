@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'modules/authorization/data/service/auth_service.dart';
 import 'modules/authorization/view/login_view.dart';
 import 'modules/manager/view/manager_view.dart';
+import 'modules/mandor/view/manager_view.dart' as MandorView;
 import 'modules/checker/view/checker_view.dart';
 
 void main() {
@@ -58,9 +59,11 @@ class _RootPageState extends State<RootPage> {
     }
     if (_loggedIn && _userRole != null) {
       if (_userRole == 'manager') {
-        return ManagerView();
+        return const ManagerView(managerName: 'Manager');
+      } else if (_userRole == 'mandor') {
+        return const MandorView.ManagerView(managerName: 'Mandor');
       } else if (_userRole == 'checker') {
-        return CheckerView();
+        return const CheckerView(checkerName: 'Checker');
       } else {
         return const MyHomePage(title: 'Flutter Demo Home Page');
       }

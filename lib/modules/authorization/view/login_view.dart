@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../view-model/login_view_model.dart';
 import '../../manager/view/manager_view.dart';
+import '../../mandor/view/manager_view.dart' as MandorView;
 import '../../checker/view/checker_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -15,7 +16,6 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  bool _agreed = false;
 
   void _login() async {
     setState(() {
@@ -38,6 +38,15 @@ class _LoginViewState extends State<LoginView> {
             builder: (_) => ManagerView(
               managerName:
                   _viewModel.lastLoginResponse?.user.userNickname ?? 'Manager',
+            ),
+          ),
+        );
+      } else if (userRole == 'mandor') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => MandorView.ManagerView(
+              managerName:
+                  _viewModel.lastLoginResponse?.user.userNickname ?? 'Mandor',
             ),
           ),
         );
