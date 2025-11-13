@@ -71,12 +71,6 @@ class _LocationViewState extends State<LocationView> {
                         color: Colors.black,
                       ),
                     ),
-                    const Spacer(),
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 22,
-                      child: Icon(Icons.person, color: Colors.grey, size: 28),
-                    ),
                   ],
                 ),
               ),

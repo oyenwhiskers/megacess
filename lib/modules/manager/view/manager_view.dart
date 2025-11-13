@@ -47,6 +47,26 @@ class _ManagerViewState extends State<ManagerView> {
     }
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data refreshed successfully'),
+            backgroundColor: Color(0xFF43C463),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      // Error is already handled in _loadData()
+    }
+  }
+
   Future<void> _logout() async {
     // Remove session/token from secure storage
     final storage = SecureStorageService();
@@ -64,15 +84,19 @@ class _ManagerViewState extends State<ManagerView> {
     return Scaffold(
       backgroundColor: const Color(0xFFD9D9D9),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: const Color(0xFF43C463),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+        child: Stack(
+          children: [
+            // Main content with RefreshIndicator
+            RefreshIndicator(
+              onRefresh: _refreshData,
+              color: const Color(0xFF43C463),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                   // Header section
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -124,23 +148,15 @@ class _ManagerViewState extends State<ManagerView> {
                     ),
                   ),
                   
-                  const SizedBox(height: 18),
-                  
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      children: [
-                        // Statistics Cards
-                        _isLoading
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(32.0),
-                                  child: CircularProgressIndicator(
-                                    color: Color(0xFF43C463),
-                                  ),
-                                ),
-                              )
-                            : Column(
+                      const SizedBox(height: 18),
+                      
+                      // Content area
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          children: [
+                          // Statistics Cards
+                          Column(
                                 children: [
                                   // Total In-Progress Card
                                   Card(
@@ -235,107 +251,122 @@ class _ManagerViewState extends State<ManagerView> {
                                   ),
                                 ],
                               ),
-                        
-                        const SizedBox(height: 14),
-                        
-                        // Modules Section
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Modules:',
+                          
+                          const SizedBox(height: 14),
+                          
+                          // Modules Section
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Modules:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 8),
+                          
+                          // Module Items
+                          Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.location_on,
+                                color: Colors.teal,
+                                size: 26,
+                              ),
+                              title: const Text(
+                                'View Tasks',
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const LocationView()),
+                                );
+                              },
+                            ),
+                          ),
+                          
+                          Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.analytics,
+                                color: Colors.teal,
+                                size: 26,
+                              ),
+                              title: const Text(
+                                'Analytics',
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const AnalyticsView()),
+                                );
+                              },
+                            ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Logout Button
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: const Icon(Icons.logout),
+                          label: const Text(
+                            'LOG OUT',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              fontSize: 16,
                             ),
                           ),
-                        ),
-                        
-                        const SizedBox(height: 8),
-                        
-                        // Module Items
-                        Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          color: Colors.white,
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.location_on,
-                              color: Colors.teal,
-                              size: 26,
-                            ),
-                            title: const Text(
-                              'View Tasks',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const LocationView()),
-                              );
-                            },
-                          ),
-                        ),
-                        
-                        Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          color: Colors.white,
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.analytics,
-                              color: Colors.teal,
-                              size: 26,
-                            ),
-                            title: const Text(
-                              'Analytics',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const AnalyticsView()),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Logout Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.logout),
-                      label: const Text(
-                        'LOG OUT',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          onPressed: _logout,
                         ),
                       ),
-                      onPressed: _logout,
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            
+            // Loading overlay in background layer
+            if (_isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.1),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF43C463),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

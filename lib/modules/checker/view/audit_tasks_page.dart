@@ -73,18 +73,6 @@ class _AuditTasksPageState extends State<AuditTasksPage> {
                   fontSize: 18,
                 ),
               ),
-              const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(6),
-                  child: Icon(Icons.person, color: Colors.black54, size: 26),
-                ),
-              ),
             ],
           ),
         ),
