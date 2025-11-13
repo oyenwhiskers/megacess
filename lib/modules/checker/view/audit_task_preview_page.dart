@@ -174,8 +174,14 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Take a photo'),
                 onTap: () {
+                  // Close the bottom sheet first, then schedule the picker.
+                  // Launching the native camera immediately while the sheet
+                  // is still dismissing can cause Flutter assertion/crash
+                  // on some Android devices ('_dependents.isEmpty').
                   Navigator.of(context).pop();
-                  _pickAndUploadImage(ImageSource.camera);
+                  Future.delayed(const Duration(milliseconds: 250), () {
+                    if (mounted) _pickAndUploadImage(ImageSource.camera);
+                  });
                 },
               ),
               ListTile(
@@ -183,7 +189,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 title: const Text('Choose from gallery'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _pickAndUploadImage(ImageSource.gallery);
+                  Future.delayed(const Duration(milliseconds: 250), () {
+                    if (mounted) _pickAndUploadImage(ImageSource.gallery);
+                  });
                 },
               ),
             ],
@@ -227,8 +235,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 title: const Text('Record video'),
                 subtitle: const Text('Maximum 30 seconds'),
                 onTap: () {
+                  // Same pattern as image picker: close sheet then open
+                  // native recorder after a short delay to avoid assertion
                   Navigator.of(context).pop();
-                  _pickAndUploadVideo(ImageSource.camera);
+                  Future.delayed(const Duration(milliseconds: 250), () {
+                    if (mounted) _pickAndUploadVideo(ImageSource.camera);
+                  });
                 },
               ),
               ListTile(
@@ -237,7 +249,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 subtitle: const Text('Maximum 30 seconds'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _pickAndUploadVideo(ImageSource.gallery);
+                  Future.delayed(const Duration(milliseconds: 250), () {
+                    if (mounted) _pickAndUploadVideo(ImageSource.gallery);
+                  });
                 },
               ),
             ],
@@ -2859,11 +2873,19 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             },
           );
 
-          // Auto-close dialog after 2 seconds and navigate back with refresh signal
-          Future.delayed(const Duration(seconds: 2), () {
+          // Auto-close dialog after 2 seconds, then navigate back safely
+          Future.delayed(const Duration(seconds: 2), () async {
             if (mounted) {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Return true to trigger refresh
+              // Close dialog first
+              Navigator.of(context).pop();
+              
+              // Wait a bit for dialog to fully close before navigating
+              await Future.delayed(const Duration(milliseconds: 100));
+              
+              // Navigate back with refresh signal only if still mounted
+              if (mounted) {
+                Navigator.of(context).pop(true);
+              }
             }
           });
         }
@@ -3214,11 +3236,19 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             },
           );
 
-          // Auto-close dialog after 2 seconds and navigate back with refresh signal
-          Future.delayed(const Duration(seconds: 2), () {
+          // Auto-close dialog after 2 seconds and navigate back safely
+          Future.delayed(const Duration(seconds: 2), () async {
             if (mounted) {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Return true to trigger refresh
+              // Close dialog first
+              Navigator.of(context).pop();
+              
+              // Wait a bit for dialog to fully close before navigating
+              await Future.delayed(const Duration(milliseconds: 100));
+              
+              // Navigate back with refresh signal only if still mounted
+              if (mounted) {
+                Navigator.of(context).pop(true);
+              }
             }
           });
         }

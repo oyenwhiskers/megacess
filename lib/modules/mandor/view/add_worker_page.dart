@@ -536,29 +536,6 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                         ),
                       ),
                     ],
-
-                    if (selectedSanitationType == 'slashing') ...[
-                      const Text(
-                        'Amount of fuel used:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Enter fuel amount..',
-                          ),
-                          onChanged: (val) => fuelAmount = val,
-                        ),
-                      ),
-                    ],
                   ],
                   const Spacer(),
                   SizedBox(
@@ -636,17 +613,6 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                                 return;
                               }
 
-                              if (_taskType == 'sanitation' &&
-                                  selectedSanitationType == 'slashing' &&
-                                  fuelAmount == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please enter fuel amount'),
-                                  ),
-                                );
-                                return;
-                              }
-
                               setState(() {
                                 _isSubmitting = true;
                                 _submitError = null;
@@ -686,7 +652,6 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                                       meta = {
                                         'sanitation_type':
                                             selectedSanitationType,
-                                        'fuel_amount': fuelAmount,
                                       };
                                     }
                                     break;
