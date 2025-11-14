@@ -31,6 +31,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   );
   VideoPlayerController? _videoController;
   bool _isVideoSelected = false;
+  
+  // Track if we have an active dialog to prevent disposal issues
+  bool _hasActiveDialog = false;
+  
+  // GlobalKey for safe context access
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // Method to pick and upload an image
   Future<void> _pickAndUploadImage(ImageSource source) async {
@@ -44,9 +50,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       if (pickedImage == null) return;
 
-      setState(() {
-        _isUploading = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = true;
+        });
+      }
 
       // Different handling for web vs native platforms
       Map<String, dynamic> response;
@@ -143,22 +151,28 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Upload failed: ${response['message'] ?? 'Unknown error'}',
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Upload failed: ${response['message'] ?? 'Unknown error'}',
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      }
     } finally {
-      setState(() {
-        _isUploading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -281,10 +295,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       if (pickedVideo == null) return;
 
-      setState(() {
-        _isUploading = true;
-        _isVideoSelected = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = true;
+          _isVideoSelected = true;
+        });
+      }
 
       // Skip duration check for faster upload - picker already limits to 30 seconds
       int? videoDuration;
@@ -434,10 +450,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         ).showSnackBar(SnackBar(content: Text('Error with video: $e')));
       }
     } finally {
-      setState(() {
-        _isUploading = false;
-        _isVideoSelected = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _isVideoSelected = false;
+        });
+      }
     }
   }
 
@@ -630,9 +648,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     }
 
     // Show deletion indicator immediately
-    setState(() {
-      fileMap['isDeleting'] = true;
-    });
+    if (mounted) {
+      setState(() {
+        fileMap['isDeleting'] = true;
+      });
+    }
 
     // Check if we have a file path or URL
     String? url = fileMap['url'];
@@ -643,14 +663,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     if ((url == null || url.isEmpty) &&
         (filePath == null || filePath.isEmpty) &&
         (serverPath == null || serverPath.isEmpty)) {
-      setState(() {
-        fileMap['isDeleting'] = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot delete file: No path information'),
-        ),
-      );
+      if (mounted) {
+        setState(() {
+          fileMap['isDeleting'] = false;
+        });
+        _showSnackBarSafely('Cannot delete file: No path information');
+      }
       return;
     }
 
@@ -756,9 +774,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     }
 
     // Show loading indicator
-    setState(() {
-      _isUploading = true; // Reuse the loading indicator
-    });
+    if (mounted) {
+      setState(() {
+        _isUploading = true; // Reuse the loading indicator
+      });
+    }
 
     try {
       // Ensure we have a non-null server path
@@ -801,7 +821,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           }
         }
 
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
 
         // Get error message from response
         String errorMessage = response['message'] ?? 'Failed to delete file';
@@ -830,15 +852,19 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
       }
 
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error deleting file: $e')));
     } finally {
-      setState(() {
-        _isUploading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -1107,155 +1133,92 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
   @override
   void dispose() {
+    print('dispose() called - cleaning up resources');
+    
+    // CRITICAL: Close any active dialogs before disposing
+    // This prevents "_dependents.isEmpty" error
+    if (_hasActiveDialog && mounted) {
+      try {
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        print('Closed active dialogs');
+      } catch (e) {
+        print('Error closing dialogs: $e');
+      }
+    }
+    
     // Dispose of video controller when widget is disposed
     _videoController?.dispose();
+    _videoController = null;
+    
+    // Clear uploaded files list to free memory
+    _uploadedFiles.clear();
+    
     super.dispose();
+  }
+
+  // Helper method to safely show snack bar only if widget is still mounted
+  void _showSnackBarSafely(String message, {Color? backgroundColor}) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor ?? Colors.red,
+      ),
+    );
   }
 
   // Method to show meta data input dialog based on task type
   Future<Map<String, String>?> _showMetaDataInputDialog() async {
-    if (_task == null) return null;
+    try {
+      print('_showMetaDataInputDialog called');
+      
+      if (_task == null) {
+        print('ERROR: _task is null in _showMetaDataInputDialog');
+        return null;
+      }
 
-    final taskType = _task!.taskType.toLowerCase();
+      final taskType = _task!.taskType.toLowerCase();
+      print('Task type: $taskType');
 
-    // For sanitation tasks, show worker-specific inputs
-    if (taskType == 'sanitation') {
-      return _showSanitationMetaDialog();
+      // For sanitation tasks, show worker-specific inputs
+      if (taskType == 'sanitation') {
+        print('Calling _showSanitationMetaDialog');
+        return await _showSanitationMetaDialog();
+      }
+
+      // For manuring tasks, show worker-specific inputs
+      if (taskType == 'manuring') {
+        print('Calling _showManuringMetaDialog');
+        return await _showManuringMetaDialog();
+      }
+
+      // For harvesting tasks, show worker-specific inputs
+      if (taskType == 'harvesting') {
+        print('Calling _showHarvestingMetaDialog');
+        return await _showHarvestingMetaDialog();
+      }
+
+      // For pruning tasks, show worker-specific inputs
+      if (taskType == 'pruning') {
+        print('Calling _showPruningMetaDialog');
+        return await _showPruningMetaDialog();
+      }
+
+      // For planting tasks, show worker-specific inputs
+      if (taskType == 'planting') {
+        print('Calling _showPlantingMetaDialog');
+        return await _showPlantingMetaDialog();
+      }
+
+      // For other task types, return empty map
+      print('Unknown task type: $taskType, returning empty map');
+      return <String, String>{};
+    } catch (e, stackTrace) {
+      print('ERROR in _showMetaDataInputDialog: $e');
+      print('StackTrace: $stackTrace');
+      rethrow; // Re-throw so the calling method can handle it
     }
-
-    // For manuring tasks, show worker-specific inputs
-    if (taskType == 'manuring') {
-      return _showManuringMetaDialog();
-    }
-
-    // For harvesting tasks, show worker-specific inputs
-    if (taskType == 'harvesting') {
-      return _showHarvestingMetaDialog();
-    }
-
-    // For pruning tasks, show worker-specific inputs
-    if (taskType == 'pruning') {
-      return _showPruningMetaDialog();
-    }
-
-    // For planting tasks, show worker-specific inputs
-    if (taskType == 'planting') {
-      return _showPlantingMetaDialog();
-    }
-
-    // For other task types, use the original simple form
-    Map<String, TextEditingController> controllers = {};
-
-    // Define meta keys based on task type
-    List<String> metaKeys = [];
-    String dialogTitle = '';
-
-    switch (taskType) {
-      default:
-        // For unknown task types, return empty map
-        return {};
-    }
-
-    // Create controllers for each meta key
-    for (var key in metaKeys) {
-      controllers[key] = TextEditingController();
-    }
-
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(dialogTitle),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Please enter the values for this task:',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 16),
-              ...metaKeys.map((key) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _formatMetaKey(key),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: controllers[key],
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: 'Enter ${_getMetaValueUnit(key, taskType)}',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Clean up controllers
-              controllers.forEach((_, controller) => controller.dispose());
-              Navigator.of(context).pop(null);
-            },
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Validate that at least one field has a value
-              Map<String, String> result = {};
-              bool hasValue = false;
-
-              controllers.forEach((key, controller) {
-                final value = controller.text.trim();
-                if (value.isNotEmpty) {
-                  result[key] = value;
-                  hasValue = true;
-                }
-              });
-
-              if (!hasValue) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter at least one value'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              // Clean up controllers
-              controllers.forEach((_, controller) => controller.dispose());
-              Navigator.of(context).pop(result);
-            },
-            child: const Text(
-              'SUBMIT',
-              style: TextStyle(color: Color(0xFF7ED957)),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return result;
   }
 
   // Special method for sanitation tasks - worker-specific input
@@ -1490,18 +1453,22 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
               });
 
               if (!hasValue) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter at least one value'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                _showSnackBarSafely('Please enter at least one value');
                 return;
               }
 
+              final dialogContext = context;
               // Clean up controllers
-              controllers.forEach((_, controller) => controller.dispose());
-              Navigator.of(context).pop(result);
+              controllers.forEach((_, controller) {
+                try {
+                  controller.dispose();
+                } catch (e) {
+                  print('Error disposing controller: $e');
+                }
+              });
+              if (Navigator.canPop(dialogContext)) {
+                Navigator.of(dialogContext).pop(result);
+              }
             },
             child: const Text(
               'SUBMIT',
@@ -1517,17 +1484,23 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
   // Special method for manuring tasks - worker-specific input
   Future<Map<String, String>?> _showManuringMetaDialog() async {
-    if (_task == null || _task!.workers.isEmpty) return null;
+    try {
+      print('_showManuringMetaDialog called');
+      
+      if (_task == null || _task!.workers.isEmpty) {
+        print('ERROR: Task is null or no workers found');
+        return null;
+      }
 
-    print('\n===== MANURING META DIALOG =====');
-    print('Total workers: ${_task!.workers.length}');
+      print('\n===== MANURING META DIALOG =====');
+      print('Total workers: ${_task!.workers.length}');
 
-    // Create a map to store controllers for each worker
-    // Key format: "worker_id:manuring" (e.g., "13:manuring")
-    Map<String, TextEditingController> controllers = {};
+      // Create a map to store controllers for each worker
+      // Key format: "worker_id:manuring" (e.g., "13:manuring")
+      Map<String, TextEditingController> controllers = {};
 
-    // Build list of workers with their details
-    List<Map<String, dynamic>> workerList = [];
+      // Build list of workers with their details
+      List<Map<String, dynamic>> workerList = [];
 
     for (var worker in _task!.workers) {
       print('\n--- Worker: ${worker.fullName} (ID: ${worker.id}) ---');
@@ -1668,20 +1641,37 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
               });
 
               if (!allFilled) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Please enter values for all workers: ${emptyWorkers.join(", ")}',
+                // Use the dialog's context, not the widget's context
+                final dialogContext = context;
+                if (mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Please enter values for all workers: ${emptyWorkers.join(", ")}',
+                      ),
+                      backgroundColor: Colors.red,
                     ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                  );
+                }
                 return;
               }
 
+              // Store dialog context before disposing
+              final dialogContext = context;
+              
               // Clean up controllers
-              controllers.forEach((_, controller) => controller.dispose());
-              Navigator.of(context).pop(result);
+              controllers.forEach((_, controller) {
+                try {
+                  controller.dispose();
+                } catch (e) {
+                  print('Error disposing controller: $e');
+                }
+              });
+              
+              // Use dialog context to pop
+              if (Navigator.canPop(dialogContext)) {
+                Navigator.of(dialogContext).pop(result);
+              }
             },
             child: const Text(
               'SUBMIT',
@@ -1692,7 +1682,35 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       ),
     );
 
+    // Mark dialog as closed
+    _hasActiveDialog = false;
+    
+    // Ensure all controllers are disposed even if dialog was cancelled
+    if (result == null) {
+      print('Dialog cancelled, cleaning up controllers');
+      controllers.forEach((_, controller) {
+        try {
+          controller.dispose();
+        } catch (e) {
+          print('Error disposing controller after cancel: $e');
+        }
+      });
+    }
+
     return result;
+    } catch (e, stackTrace) {
+      print('ERROR in _showManuringMetaDialog: $e');
+      print('StackTrace: $stackTrace');
+      
+      // Mark dialog as closed
+      _hasActiveDialog = false;
+      
+      // Show error to user
+      if (mounted) {
+        _showSnackBarSafely('Error loading manuring dialog: $e');
+      }
+      return null;
+    }
   }
 
   // Special method for harvesting tasks - worker-specific input
@@ -2346,45 +2364,89 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   }
 
   Future<void> _fetchDetail() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final response = await _attendanceService.fetchAuditTaskPreview(
         widget.taskId,
       );
-      if (response != null) {
+      if (response != null && mounted) {
         _task = response;
       }
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
   // Method to approve the task
   Future<void> _approveTask() async {
+    print('\n===== _approveTask STARTED =====');
+    
     // Validate that we have at least one image or video
     if (_uploadedFiles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please upload at least one image or video before approving',
+      print('No uploaded files found');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please upload at least one image or video before approving',
+            ),
           ),
-        ),
-      );
+        );
+      }
       return;
     }
+    print('Found ${_uploadedFiles.length} uploaded files');
+
+    // Validate task data exists
+    if (_task == null) {
+      print('ERROR: Task data is null');
+      if (mounted) {
+        _showSnackBarSafely('Task data not loaded. Please try again.');
+      }
+      return;
+    }
+    print('Task data validated: ${_task!.taskType}');
 
     // Show meta data input dialog first
     print('\n===== SHOWING META DATA INPUT DIALOG =====');
-    final metaData = await _showMetaDataInputDialog();
+    Map<String, String>? metaData;
+    
+    // Check if widget is still mounted before showing dialog
+    if (!mounted) {
+      print('ERROR: Widget unmounted before showing meta dialog');
+      return;
+    }
+    
+    try {
+      metaData = await _showMetaDataInputDialog();
+      
+      // CRITICAL: Check if widget is still mounted after async operation
+      if (!mounted) {
+        print('ERROR: Widget unmounted after showing meta dialog');
+        return;
+      }
+    } catch (e) {
+      print('ERROR in _showMetaDataInputDialog: $e');
+      if (mounted) {
+        _showSnackBarSafely('Error showing input dialog: $e');
+      }
+      return;
+    }
 
     // If user cancelled the dialog, return
     if (metaData == null) {
@@ -2393,6 +2455,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     }
 
     print('User provided meta data: $metaData');
+
+    // Check if widget is still mounted before showing confirmation dialog
+    if (!mounted) {
+      print('ERROR: Widget unmounted before showing confirmation dialog');
+      return;
+    }
 
     // Show confirmation dialog
     final bool confirm =
@@ -2418,12 +2486,20 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         ) ??
         false;
 
+    // CRITICAL: Check if widget is still mounted after confirmation dialog
+    if (!mounted) {
+      print('ERROR: Widget unmounted after confirmation dialog');
+      return;
+    }
+
     if (!confirm) return;
 
     // Set loading state
-    setState(() {
-      _isApproving = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isApproving = true;
+      });
+    }
 
     try {
       // Debug: Print all uploaded files
@@ -2551,10 +2627,10 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   backgroundColor: Colors.red,
                 ),
               );
+              setState(() {
+                _isApproving = false;
+              });
             }
-            setState(() {
-              _isApproving = false;
-            });
             return;
           }
           
@@ -2578,10 +2654,10 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   backgroundColor: Colors.red,
                 ),
               );
+              setState(() {
+                _isApproving = false;
+              });
             }
-            setState(() {
-              _isApproving = false;
-            });
             return;
           }
         } else {
@@ -2681,32 +2757,36 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       // Validate required fields based on API requirements
       if (taskVideo == null || taskVideo.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Task video is required. Please upload a video before approving.',
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Task video is required. Please upload a video before approving.',
+              ),
+              backgroundColor: Colors.red,
             ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isApproving = false;
-        });
+          );
+          setState(() {
+            _isApproving = false;
+          });
+        }
         return;
       }
 
       if (taskImages.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'At least one image is required. Please upload an image before approving.',
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'At least one image is required. Please upload an image before approving.',
+              ),
+              backgroundColor: Colors.red,
             ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isApproving = false;
-        });
+          );
+          setState(() {
+            _isApproving = false;
+          });
+        }
         return;
       }
 
@@ -2723,18 +2803,20 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             (payload['worker_audit_meta'] as List).isEmpty) {
           print('ERROR: Missing worker_audit_meta for sanitation task!');
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Worker audit meta is required for sanitation tasks. Please enter values for spraying or slashing.',
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Worker audit meta is required for sanitation tasks. Please enter values for spraying or slashing.',
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
               ),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
-          );
-          setState(() {
-            _isApproving = false;
-          });
+            );
+            setState(() {
+              _isApproving = false;
+            });
+          }
           return;
         }
 
@@ -2759,18 +2841,20 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             'ERROR: No valid NESTED meta entries found for sanitation task!',
           );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Please enter at least one value for spraying or slashing.',
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Please enter at least one value for spraying or slashing.',
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
               ),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
-          );
-          setState(() {
-            _isApproving = false;
-          });
+            );
+            setState(() {
+              _isApproving = false;
+            });
+          }
           return;
         }
 
@@ -2826,66 +2910,18 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       if (response['success'] == true) {
         print('API call succeeded');
-        // Show custom success dialog
+        // Show success message and navigate back
         if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Green checkmark circle
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 50,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Success message
-                      Text(
-                        response['message'] ?? 'Task approved successfully',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+          // First show success message with SnackBar
+          _showSnackBarSafely(
+            response['message'] ?? 'Task approved successfully',
+            backgroundColor: Colors.green,
           );
-
-          // Auto-close dialog after 2 seconds, then navigate back safely
-          Future.delayed(const Duration(seconds: 2), () async {
+          
+          // Navigate back after a short delay to ensure UI updates
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              // Close dialog first
-              Navigator.of(context).pop();
-              
-              // Wait a bit for dialog to fully close before navigating
-              await Future.delayed(const Duration(milliseconds: 100));
-              
-              // Navigate back with refresh signal only if still mounted
-              if (mounted) {
-                Navigator.of(context).pop(true);
-              }
+              Navigator.of(context).pop(true);
             }
           });
         }
@@ -3024,22 +3060,20 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           }
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        if (mounted) {
+          _showSnackBarSafely(errorMessage);
+        }
       }
     } catch (e) {
       print('Error approving task: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error approving task: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error approving task: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -3126,9 +3160,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   // Method to reject audit task
   Future<void> _rejectTask() async {
     try {
-      setState(() {
-        _isRejecting = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isRejecting = true;
+        });
+      }
 
       // Show remarks dialog first
       final remarks = await _showRemarksDialog();
@@ -3169,9 +3205,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       );
 
       if (confirmed != true) {
-        setState(() {
-          _isRejecting = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isRejecting = false;
+          });
+        }
         return;
       }
 
