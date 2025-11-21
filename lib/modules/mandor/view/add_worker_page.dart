@@ -284,239 +284,136 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                 ],
               ),
             )
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    _getTaskTitle(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Worker:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  GestureDetector(
-                    onTap: _selectWorkers,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 16,
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 18,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      _getTaskTitle(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.black12),
-                      ),
-                      child: _loadingWorkers
-                          ? Row(
-                              children: [
-                                const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                const Text(
-                                  'Loading workers...',
-                                  style: TextStyle(
-                                    color: Colors.black54,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : selectedWorkers.isEmpty
-                          ? Row(
-                              children: [
-                                const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.black26,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Tap to select a worker',
-                                  style: TextStyle(
-                                    color: Colors.black54,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                const Icon(
-                                  Icons.person,
-                                  color: Color(0xFF7ED957),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  selectedWorkers[0].staffFullname,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Metadata fields based on task type
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator()),
-
-                  // Manuring task fields
-                  if (!_isLoading && _taskType == 'manuring') ...[
+                    const SizedBox(height: 24),
                     const Text(
-                      'Type of fertilizer used:',
+                      'Worker:',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: selectedFertilizerType,
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        hint: const Text('Select one..'),
-                        items: fertilizerTypes
-                            .map(
-                              (f) => DropdownMenuItem(value: f, child: Text(f)),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedFertilizerType = val),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Amount of fertilizer used (kg):',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Enter amount..',
+                    GestureDetector(
+                      onTap: _selectWorkers,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
                         ),
-                        onChanged: (val) => fertilizerAmount = val,
-                      ),
-                    ),
-                  ],
-
-                  // Pruning task fields
-                  if (!_isLoading && _taskType == 'pruning') ...[
-                    const Text(
-                      'Type of pruning:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: selectedPruningType,
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        hint: const Text('Select pruning type..'),
-                        items: pruningTypes
-                            .map(
-                              (t) => DropdownMenuItem(value: t, child: Text(t)),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedPruningType = val),
-                      ),
-                    ),
-                  ],
-
-                  // Harvesting task fields
-                  if (!_isLoading && _taskType == 'harvesting') ...[
-                    const Text(
-                      'Type of harvesting:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: selectedHarvestingType,
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        hint: const Text('Select harvesting type..'),
-                        items: harvestingTypes
-                            .map(
-                              (t) => DropdownMenuItem(value: t, child: Text(t)),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedHarvestingType = val),
-                      ),
-                    ),
-                  ],
-
-                  // Sanitation task fields
-                  if (!_isLoading && _taskType == 'sanitation') ...[
-                    const Text(
-                      'Type of sanitation:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButton<String>(
-                        value: selectedSanitationType,
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        hint: const Text('Select sanitation type..'),
-                        items: sanitationTypes
-                            .map(
-                              (t) => DropdownMenuItem(value: t, child: Text(t)),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedSanitationType = val),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.black12),
+                        ),
+                        child: _loadingWorkers
+                            ? Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Loading workers...',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : selectedWorkers.isEmpty
+                            ? Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_outline,
+                                    color: Colors.black26,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Tap to select a worker',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person,
+                                    color: Color(0xFF7ED957),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      selectedWorkers[0].staffFullname,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                     const SizedBox(height: 18),
 
-                    // Additional fields based on sanitation type
-                    if (selectedSanitationType == 'spraying') ...[
+                    // Metadata fields based on task type
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator()),
+
+                    // Manuring task fields
+                    if (!_isLoading && _taskType == 'manuring') ...[
                       const Text(
-                        'Amount of herbicide used:',
+                        'Type of fertilizer used:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedFertilizerType,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select one..'),
+                          items: fertilizerTypes
+                              .map(
+                                (f) =>
+                                    DropdownMenuItem(value: f, child: Text(f)),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => selectedFertilizerType = val),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Amount of fertilizer used (kg):',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6),
@@ -530,246 +427,365 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'Enter herbicide amount..',
+                            hintText: 'Enter amount..',
                           ),
-                          onChanged: (val) => herbicideAmount = val,
+                          onChanged: (val) => fertilizerAmount = val,
                         ),
                       ),
                     ],
-                  ],
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
+
+                    // Pruning task fields
+                    if (!_isLoading && _taskType == 'pruning') ...[
+                      const Text(
+                        'Type of pruning:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      onPressed: _isSubmitting || selectedWorkers.isEmpty
-                          ? null
-                          : () async {
-                              // Validate fields based on task type
-                              if (_taskType == 'manuring' &&
-                                  (selectedFertilizerType == null ||
-                                      fertilizerAmount == null)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please fill in all fertilizer fields',
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedPruningType,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select pruning type..'),
+                          items: pruningTypes
+                              .map(
+                                (t) =>
+                                    DropdownMenuItem(value: t, child: Text(t)),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => selectedPruningType = val),
+                        ),
+                      ),
+                    ],
+
+                    // Harvesting task fields
+                    if (!_isLoading && _taskType == 'harvesting') ...[
+                      const Text(
+                        'Type of harvesting:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedHarvestingType,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select harvesting type..'),
+                          items: harvestingTypes
+                              .map(
+                                (t) =>
+                                    DropdownMenuItem(value: t, child: Text(t)),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => selectedHarvestingType = val),
+                        ),
+                      ),
+                    ],
+
+                    // Sanitation task fields
+                    if (!_isLoading && _taskType == 'sanitation') ...[
+                      const Text(
+                        'Type of sanitation:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedSanitationType,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          hint: const Text('Select sanitation type..'),
+                          items: sanitationTypes
+                              .map(
+                                (t) =>
+                                    DropdownMenuItem(value: t, child: Text(t)),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => selectedSanitationType = val),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Additional fields based on sanitation type
+                      if (selectedSanitationType == 'spraying') ...[
+                        const Text(
+                          'Amount of herbicide used:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: TextField(
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Enter herbicide amount..',
+                            ),
+                            onChanged: (val) => herbicideAmount = val,
+                          ),
+                        ),
+                      ],
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: _isSubmitting || selectedWorkers.isEmpty
+                            ? null
+                            : () async {
+                                // Validate fields based on task type
+                                if (_taskType == 'manuring' &&
+                                    (selectedFertilizerType == null ||
+                                        fertilizerAmount == null)) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please fill in all fertilizer fields',
+                                      ),
                                     ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (_taskType == 'pruning' &&
-                                  selectedPruningType == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please select pruning type'),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (_taskType == 'harvesting' &&
-                                  selectedHarvestingType == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please select harvesting type',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (_taskType == 'sanitation' &&
-                                  selectedSanitationType == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please select sanitation type',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (_taskType == 'sanitation' &&
-                                  selectedSanitationType == 'spraying' &&
-                                  herbicideAmount == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please enter herbicide amount',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              setState(() {
-                                _isSubmitting = true;
-                                _submitError = null;
-                              });
-                              try {
-                                // Prepare worker data with metadata
-                                final workerId = selectedWorkers[0].id;
-                                Map<String, dynamic> meta = {};
-
-                                // Set metadata based on task type
-                                switch (_taskType) {
-                                  case 'manuring':
-                                    meta = {
-                                      'fertilizer_type': selectedFertilizerType,
-                                      'fertilizer_amount': fertilizerAmount,
-                                    };
-                                    break;
-                                  case 'pruning':
-                                    meta = {
-                                      'pruning_type': selectedPruningType,
-                                    };
-                                    break;
-                                  case 'harvesting':
-                                    meta = {
-                                      'harvesting_type': selectedHarvestingType,
-                                    };
-                                    break;
-                                  case 'sanitation':
-                                    if (selectedSanitationType == 'spraying') {
-                                      meta = {
-                                        'sanitation_type':
-                                            selectedSanitationType,
-                                        'herbicide_amount': herbicideAmount,
-                                      };
-                                    } else if (selectedSanitationType ==
-                                        'slashing') {
-                                      meta = {
-                                        'sanitation_type':
-                                            selectedSanitationType,
-                                      };
-                                    }
-                                    break;
-                                  case 'planting':
-                                    // No meta required for planting
-                                    meta = {};
-                                    break;
+                                  );
+                                  return;
                                 }
 
-                                final workerData = [
-                                  {'staff_id': workerId, 'meta': meta},
-                                ];
+                                if (_taskType == 'pruning' &&
+                                    selectedPruningType == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please select pruning type',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                                final service = ManagerDashboardService();
-                                final response = await service
-                                    .assignWorkersToTask(
-                                      taskId: widget.taskId,
-                                      workers: workerData,
-                                    );
+                                if (_taskType == 'harvesting' &&
+                                    selectedHarvestingType == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please select harvesting type',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                                if (response != null &&
-                                    response['success'] == true) {
-                                  if (mounted) {
-                                    // Show success dialog
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) => Dialog(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            15,
-                                          ),
-                                        ),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
+                                if (_taskType == 'sanitation' &&
+                                    selectedSanitationType == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please select sanitation type',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                if (_taskType == 'sanitation' &&
+                                    selectedSanitationType == 'spraying' &&
+                                    herbicideAmount == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please enter herbicide amount',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setState(() {
+                                  _isSubmitting = true;
+                                  _submitError = null;
+                                });
+                                try {
+                                  // Prepare worker data with metadata
+                                  final workerId = selectedWorkers[0].id;
+                                  Map<String, dynamic> meta = {};
+
+                                  // Set metadata based on task type
+                                  switch (_taskType) {
+                                    case 'manuring':
+                                      meta = {
+                                        'fertilizer_type':
+                                            selectedFertilizerType,
+                                        'fertilizer_amount': fertilizerAmount,
+                                      };
+                                      break;
+                                    case 'pruning':
+                                      meta = {
+                                        'pruning_type': selectedPruningType,
+                                      };
+                                      break;
+                                    case 'harvesting':
+                                      meta = {
+                                        'harvesting_type':
+                                            selectedHarvestingType,
+                                      };
+                                      break;
+                                    case 'sanitation':
+                                      if (selectedSanitationType ==
+                                          'spraying') {
+                                        meta = {
+                                          'sanitation_type':
+                                              selectedSanitationType,
+                                          'herbicide_amount': herbicideAmount,
+                                        };
+                                      } else if (selectedSanitationType ==
+                                          'slashing') {
+                                        meta = {
+                                          'sanitation_type':
+                                              selectedSanitationType,
+                                        };
+                                      }
+                                      break;
+                                    case 'planting':
+                                      // No meta required for planting
+                                      meta = {};
+                                      break;
+                                  }
+
+                                  final workerData = [
+                                    {'staff_id': workerId, 'meta': meta},
+                                  ];
+
+                                  final service = ManagerDashboardService();
+                                  final response = await service
+                                      .assignWorkersToTask(
+                                        taskId: widget.taskId,
+                                        workers: workerData,
+                                      );
+
+                                  if (response != null &&
+                                      response['success'] == true) {
+                                    if (mounted) {
+                                      // Show success dialog
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) => Dialog(
+                                          shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(
                                               15,
                                             ),
                                           ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const CircleAvatar(
-                                                backgroundColor: Color(
-                                                  0xFF7ED957,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(20),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const CircleAvatar(
+                                                  backgroundColor: Color(
+                                                    0xFF7ED957,
+                                                  ),
+                                                  radius: 30,
+                                                  child: Icon(
+                                                    Icons.check,
+                                                    color: Colors.white,
+                                                    size: 40,
+                                                  ),
                                                 ),
-                                                radius: 30,
-                                                child: Icon(
-                                                  Icons.check,
-                                                  color: Colors.white,
-                                                  size: 40,
+                                                const SizedBox(height: 15),
+                                                const Text(
+                                                  'Worker successfully added!',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(height: 15),
-                                              const Text(
-                                                'Worker successfully added!',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
+                                      );
 
-                                    // Automatically close the dialog and navigate back after 1.5 seconds
-                                    Future.delayed(
-                                      const Duration(milliseconds: 1500),
-                                      () {
-                                        Navigator.pop(
-                                          context,
-                                        ); // Close the success dialog
-                                        Navigator.pop(
-                                          context,
-                                          true,
-                                        ); // Return to task_preview_page with refresh trigger
-                                      },
-                                    );
+                                      // Automatically close the dialog and navigate back after 1.5 seconds
+                                      Future.delayed(
+                                        const Duration(milliseconds: 1500),
+                                        () {
+                                          Navigator.pop(
+                                            context,
+                                          ); // Close the success dialog
+                                          Navigator.pop(
+                                            context,
+                                            true,
+                                          ); // Return to task_preview_page with refresh trigger
+                                        },
+                                      );
+                                    }
+                                  } else {
+                                    setState(() {
+                                      _submitError =
+                                          response?['message'] ??
+                                          'Failed to assign workers.';
+                                    });
                                   }
-                                } else {
+                                } catch (e) {
                                   setState(() {
-                                    _submitError =
-                                        response?['message'] ??
-                                        'Failed to assign workers.';
+                                    _submitError = e.toString();
+                                  });
+                                } finally {
+                                  setState(() {
+                                    _isSubmitting = false;
                                   });
                                 }
-                              } catch (e) {
-                                setState(() {
-                                  _submitError = e.toString();
-                                });
-                              } finally {
-                                setState(() {
-                                  _isSubmitting = false;
-                                });
-                              }
-                            },
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 18,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                              },
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 18,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
+                              )
+                            : const Text(
+                                'Confirm',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            )
-                          : const Text(
-                              'Confirm',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
     );
