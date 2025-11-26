@@ -5,7 +5,7 @@ import '../data/model/manager_models.dart';
 class ManageTasksView extends StatefulWidget {
   final int locationId;
   final String locationName;
-  
+
   const ManageTasksView({
     Key? key,
     required this.locationId,
@@ -42,7 +42,7 @@ class _ManageTasksViewState extends State<ManageTasksView> {
   void initState() {
     super.initState();
     _fetchDetail();
-    
+
     // Add listener to search controller for real-time filtering
     _searchController.addListener(_filterTasks);
   }
@@ -102,7 +102,8 @@ class _ManageTasksViewState extends State<ManageTasksView> {
       final response = await _service.fetchLocationTasks(widget.locationId);
       _location = response.location;
       _tasks = response.tasks;
-      _filteredTasks = response.tasks; // Initialize filtered tasks with all tasks
+      _filteredTasks =
+          response.tasks; // Initialize filtered tasks with all tasks
       setState(() {
         _isLoading = false;
       });
@@ -363,7 +364,9 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                         duration: const Duration(milliseconds: 300),
                         height: _showFilterOptions ? 280 : 0,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB5EDA4), // Light green background
+                          color: const Color(
+                            0xFFB5EDA4,
+                          ), // Light green background
                           borderRadius: BorderRadius.circular(15),
                         ),
                         margin: const EdgeInsets.only(bottom: 10),
@@ -411,7 +414,9 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                   return InkWell(
                                     onTap: () {
                                       setState(() {
-                                        _selectedTaskType = isSelected ? null : type;
+                                        _selectedTaskType = isSelected
+                                            ? null
+                                            : type;
                                       });
                                     },
                                     child: Container(
@@ -465,7 +470,9 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                   return InkWell(
                                     onTap: () {
                                       setState(() {
-                                        _selectedStatus = isSelected ? null : status;
+                                        _selectedStatus = isSelected
+                                            ? null
+                                            : status;
                                       });
                                     },
                                     child: Container(
@@ -556,8 +563,14 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                     return InkWell(
                                       onTap: () async {
                                         // TODO: Navigate to task detail page
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('View task: ${task.taskName}')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'View task: ${task.taskName}',
+                                            ),
+                                          ),
                                         );
                                       },
                                       borderRadius: BorderRadius.circular(16),
@@ -565,23 +578,32 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.08),
+                                              color: Colors.black.withOpacity(
+                                                0.08,
+                                              ),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
                                         ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
-                                                _buildTaskTypeBadge(task.taskType),
+                                                _buildTaskTypeBadge(
+                                                  task.taskType,
+                                                ),
                                                 const Spacer(),
-                                                _buildStatusBadge(task.taskStatus),
+                                                _buildStatusBadge(
+                                                  task.taskStatus,
+                                                ),
                                               ],
                                             ),
                                             const SizedBox(height: 8),

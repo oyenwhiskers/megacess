@@ -178,7 +178,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                 ),
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  _removeWorkerFromTask(worker.id, worker.fullName);
+                                  _removeWorkerFromTask(
+                                    worker.id,
+                                    worker.fullName,
+                                  );
                                 },
                                 child: const Text('Remove'),
                               ),
@@ -270,9 +273,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
         case 422:
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                result['data']['message'] ?? 'Validation error.',
-              ),
+              content: Text(result['data']['message'] ?? 'Validation error.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -1096,8 +1097,11 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: (_task?.taskStatus.toLowerCase() == 'pending' ||
-                                            _task?.taskStatus.toLowerCase() == 'rejected')
+                                    backgroundColor:
+                                        (_task?.taskStatus.toLowerCase() ==
+                                                'pending' ||
+                                            _task?.taskStatus.toLowerCase() ==
+                                                'rejected')
                                         ? Colors.grey
                                         : const Color(0xFF7ED957),
                                     foregroundColor: Colors.black,
@@ -1116,22 +1120,26 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  onPressed: (_task?.taskStatus.toLowerCase() == 'pending' ||
-                                          _task?.taskStatus.toLowerCase() == 'rejected')
+                                  onPressed:
+                                      (_task?.taskStatus.toLowerCase() ==
+                                              'pending' ||
+                                          _task?.taskStatus.toLowerCase() ==
+                                              'rejected')
                                       ? null
                                       : () async {
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AddWorkerPage(
-                                          taskId: widget.taskId,
-                                        ),
-                                      ),
-                                    );
-                                    if (result == true) {
-                                      _fetchDetail(); // Refresh the task details
-                                    }
-                                  },
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  AddWorkerPage(
+                                                    taskId: widget.taskId,
+                                                  ),
+                                            ),
+                                          );
+                                          if (result == true) {
+                                            _fetchDetail(); // Refresh the task details
+                                          }
+                                        },
                                 ),
                               ),
                               const SizedBox(height: 18),
@@ -1189,15 +1197,14 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                               const SizedBox(height: 8),
                               Center(
                                 child: SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.5,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
                                       foregroundColor: Colors.black,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          10,
-                                        ),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       elevation: 0,
                                     ),

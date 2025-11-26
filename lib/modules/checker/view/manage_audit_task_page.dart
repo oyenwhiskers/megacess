@@ -54,7 +54,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
 
     // Add listener to search controller for real-time filtering
     _searchController.addListener(_filterTasks);
-    
+
     // Add listener to scroll controller for pagination
     _scrollController.addListener(_onScroll);
   }
@@ -70,8 +70,9 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
 
   void _onScroll() {
     // Don't load more if filters are active (filters work on client-side data only)
-    bool hasActiveFilters = _selectedTaskType != null || _selectedStatus != null;
-    
+    bool hasActiveFilters =
+        _selectedTaskType != null || _selectedStatus != null;
+
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isLoadingMore &&
@@ -166,11 +167,11 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
       final response = await AttendanceService(
         SecureStorageService(),
       ).fetchAuditLocationTasks(widget.locationId, page: nextPage);
-      
+
       if (response.tasks.isNotEmpty) {
         setState(() {
           _tasks.addAll(response.tasks);
-          
+
           // Update pagination info
           if (response.pagination != null) {
             _currentPage = response.pagination!.currentPage;
@@ -178,7 +179,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
             _totalTasksFromServer = response.pagination!.total;
             _hasMoreData = _currentPage < _lastPage;
           }
-          
+
           // Re-apply filters to include new tasks
           _filterTasks();
           _isLoadingMore = false;
@@ -203,7 +204,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
       _currentPage = 1;
       _hasMoreData = true;
     });
-    
+
     try {
       final response = await AttendanceService(
         SecureStorageService(),
@@ -211,7 +212,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
       setState(() {
         _location = response.location;
         _tasks = response.tasks;
-        
+
         // Update pagination info
         if (response.pagination != null) {
           _currentPage = response.pagination!.currentPage;
@@ -219,7 +220,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
           _totalTasksFromServer = response.pagination!.total;
           _hasMoreData = _currentPage < _lastPage;
         }
-        
+
         // Re-apply current filters to the updated task list
         _filterTasks();
         _isRefreshing = false;
@@ -354,422 +355,435 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
               Navigator.of(context).pop(true);
             },
           ),
-        actions: [
-          if (_selectedTaskType != null || _selectedStatus != null)
-            IconButton(
-              icon: const Icon(Icons.filter_alt),
-              color: Colors.white,
-              onPressed: _resetFilters,
-              tooltip: 'Reset Filters',
-            ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Location: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            _location?.name ?? widget.locationName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                          const Spacer(),
-                          Text('Tasks: ', style: TextStyle(fontSize: 14)),
-                          Text(
-                            _totalTasksFromServer > 0
-                                ? '${_tasks.length}/$_totalTasksFromServer'
-                                : '${_tasks.length}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
+          actions: [
+            if (_selectedTaskType != null || _selectedStatus != null)
+              IconButton(
+                icon: const Icon(Icons.filter_alt),
+                color: Colors.white,
+                onPressed: _resetFilters,
+                tooltip: 'Reset Filters',
+              ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Center(child: Text('Error: $_error'))
+                : Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                decoration: InputDecoration(
-                                  hintText: 'Enter task name..',
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: Colors.grey[700],
-                                  ),
-                                  suffixIcon: _searchController.text.isNotEmpty
-                                      ? IconButton(
-                                          icon: const Icon(
-                                            Icons.clear,
-                                            size: 20,
-                                          ),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                          },
-                                        )
-                                      : null,
-                                ),
-                                style: const TextStyle(fontSize: 14),
+                            Text(
+                              'Location: ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _showFilterOptions = !_showFilterOptions;
-                                });
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size(60, 30),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            Text(
+                              _location?.name ?? widget.locationName,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.green[700],
                               ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Filter',
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  Icon(
-                                    Icons.filter_list,
-                                    color: Colors.black87,
-                                  ),
-                                ],
+                            ),
+                            const Spacer(),
+                            Text('Tasks: ', style: TextStyle(fontSize: 14)),
+                            Text(
+                              _totalTasksFromServer > 0
+                                  ? '${_tasks.length}/$_totalTasksFromServer'
+                                  : '${_tasks.length}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Filter options panel
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        height: _showFilterOptions ? 280 : 0,
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFFB5EDA4,
-                          ), // Light green background
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: _showFilterOptions ? 16 : 0,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
                             children: [
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_back),
-                                    onPressed: () {
-                                      setState(() {
-                                        _showFilterOptions = false;
-                                      });
-                                    },
-                                  ),
-                                  const Text(
-                                    'Filter Options',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter task name..',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: Colors.grey[700],
                                     ),
+                                    suffixIcon:
+                                        _searchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(
+                                              Icons.clear,
+                                              size: 20,
+                                            ),
+                                            onPressed: () {
+                                              _searchController.clear();
+                                            },
+                                          )
+                                        : null,
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Select task type:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  style: const TextStyle(fontSize: 14),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: _taskTypes.map((type) {
-                                  bool isSelected = _selectedTaskType == type;
-                                  return InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedTaskType = isSelected
-                                            ? null
-                                            : type;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Colors.green
-                                              : Colors.grey.shade300,
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          if (isSelected)
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 4,
-                                              offset: Offset(0, 2),
-                                            ),
-                                        ],
-                                      ),
-                                      child: Text(type),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16),
-                              const Divider(),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Select status',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 8),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _showFilterOptions = !_showFilterOptions;
+                                  });
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(60, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: _statusOptions.map((status) {
-                                  bool isSelected = _selectedStatus == status;
-                                  return InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedStatus = isSelected
-                                            ? null
-                                            : status;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Colors.green
-                                              : Colors.grey.shade300,
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          if (isSelected)
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 4,
-                                              offset: Offset(0, 2),
-                                            ),
-                                        ],
-                                      ),
-                                      child: Text(status),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Filter',
+                                      style: TextStyle(color: Colors.black87),
                                     ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                    Icon(
+                                      Icons.filter_list,
+                                      color: Colors.black87,
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  onPressed: _applyFilters,
-                                  child: const Text(
-                                    'Confirm',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'List of existing tasks',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: _filteredTasks.isEmpty
-                            ? Center(
-                                child: Text(
-                                  _searchController.text.isEmpty
-                                      ? 'No tasks found.'
-                                      : 'No matching tasks found for "${_searchController.text}"',
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: _refreshData,
-                                child: ListView.separated(
-                                  controller: _scrollController,
-                                  itemCount: _filteredTasks.length + (_isLoadingMore ? 1 : 0),
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: 12),
-                                  itemBuilder: (context, idx) {
-                                    // Show loading indicator at the bottom
-                                    if (idx == _filteredTasks.length) {
-                                      return const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 16),
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      );
-                                    }
-                                    
-                                    final task = _filteredTasks[idx];
-                                    return InkWell(
-                                      onTap: () async {
-                                        final result = await Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                AuditTaskPreviewPage(
-                                                  taskId: task.id,
-                                                ),
-                                          ),
-                                        );
-                                        // If task was approved successfully, refresh the list
-                                        if (result == true) {
-                                          _refreshData();
-                                        }
+                        const SizedBox(height: 8),
+                        // Filter options panel
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: _showFilterOptions ? 280 : 0,
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFB5EDA4,
+                            ), // Light green background
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: _showFilterOptions ? 16 : 0,
+                          ),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_back),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showFilterOptions = false;
+                                        });
                                       },
-                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    const Text(
+                                      'Filter Options',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Select task type:',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: _taskTypes.map((type) {
+                                    bool isSelected = _selectedTaskType == type;
+                                    return InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedTaskType = isSelected
+                                              ? null
+                                              : type;
+                                        });
+                                      },
                                       child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius: BorderRadius.circular(
-                                            16,
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.green
+                                                : Colors.grey.shade300,
+                                            width: 2,
                                           ),
                                           boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black12,
-                                              blurRadius: 3,
-                                            ),
+                                            if (isSelected)
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
+                                                blurRadius: 4,
+                                                offset: Offset(0, 2),
+                                              ),
                                           ],
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 12,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                _buildTaskTypeBadge(
-                                                  task.taskType,
-                                                ),
-                                                const Spacer(),
-                                                _buildStatusBadge(
-                                                  task.taskStatus,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              task.taskName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              'Created at: ${task.createdAt.split(' ').first}  Created by: ${task.createdBy.name}',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        child: Text(type),
                                       ),
                                     );
-                                  },
+                                  }).toList(),
                                 ),
-                              ),
-                      ),
-                    ],
+                                const SizedBox(height: 16),
+                                const Divider(),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Select status',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  children: _statusOptions.map((status) {
+                                    bool isSelected = _selectedStatus == status;
+                                    return InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedStatus = isSelected
+                                              ? null
+                                              : status;
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.green
+                                                : Colors.grey.shade300,
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            if (isSelected)
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
+                                                blurRadius: 4,
+                                                offset: Offset(0, 2),
+                                              ),
+                                          ],
+                                        ),
+                                        child: Text(status),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    onPressed: _applyFilters,
+                                    child: const Text(
+                                      'Confirm',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'List of existing tasks',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: _filteredTasks.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    _searchController.text.isEmpty
+                                        ? 'No tasks found.'
+                                        : 'No matching tasks found for "${_searchController.text}"',
+                                  ),
+                                )
+                              : RefreshIndicator(
+                                  onRefresh: _refreshData,
+                                  child: ListView.separated(
+                                    controller: _scrollController,
+                                    itemCount:
+                                        _filteredTasks.length +
+                                        (_isLoadingMore ? 1 : 0),
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(height: 12),
+                                    itemBuilder: (context, idx) {
+                                      // Show loading indicator at the bottom
+                                      if (idx == _filteredTasks.length) {
+                                        return const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      }
+
+                                      final task = _filteredTasks[idx];
+                                      return InkWell(
+                                        onTap: () async {
+                                          final result =
+                                              await Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      AuditTaskPreviewPage(
+                                                        taskId: task.id,
+                                                      ),
+                                                ),
+                                              );
+                                          // If task was approved successfully, refresh the list
+                                          if (result == true) {
+                                            _refreshData();
+                                          }
+                                        },
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black12,
+                                                blurRadius: 3,
+                                              ),
+                                            ],
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 12,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  _buildTaskTypeBadge(
+                                                    task.taskType,
+                                                  ),
+                                                  const Spacer(),
+                                                  _buildStatusBadge(
+                                                    task.taskStatus,
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                task.taskName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Created at: ${task.createdAt.split(' ').first}  Created by: ${task.createdBy.name}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+            // Loading overlay when refreshing
+            if (_isRefreshing)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF7ED957),
+                    ),
                   ),
                 ),
-          // Loading overlay when refreshing
-          if (_isRefreshing)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7ED957)),
-                ),
               ),
-            ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

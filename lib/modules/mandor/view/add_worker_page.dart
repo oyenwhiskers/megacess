@@ -770,10 +770,12 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                               },
                         child: _isSubmitting
                             ? const SizedBox(
-                                height: 18,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.black,
                                   ),
                                 ),
                               )

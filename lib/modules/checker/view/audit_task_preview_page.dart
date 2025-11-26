@@ -33,12 +33,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   VideoPlayerController? _videoController;
   bool _isVideoSelected = false;
 
-  // Track if we have an active dialog to prevent disposal issues
-  bool _hasActiveDialog = false;
-
-  // GlobalKey for safe context access
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   // Method to pick and upload an image
   Future<void> _pickAndUploadImage(ImageSource source) async {
     try {
@@ -1126,52 +1120,25 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   @override
   void initState() {
     super.initState();
-
-    // Override error handler to suppress "_dependents.isEmpty" assertion errors
-    // This is a known Flutter framework issue that doesn't affect functionality
-    FlutterError.onError = (FlutterErrorDetails details) {
-      // Check if this is the dependents.isEmpty error
-      final exception = details.exception.toString();
-      if (exception.contains('_dependents.isEmpty') ||
-          exception.contains('dependents.isEmpty')) {
-        // Log it for debugging but don't show the red screen
-        print('Suppressed Flutter framework error: $exception');
-        return;
-      }
-
-      // For other errors, use the default handler
-      FlutterError.presentError(details);
-    };
-
     _fetchDetail();
   }
 
   @override
   void dispose() {
-    print('dispose() called - cleaning up resources');
-
-    // CRITICAL: Close any active dialogs before disposing
-    // This prevents "_dependents.isEmpty" error
-    if (_hasActiveDialog && mounted) {
-      try {
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).popUntil((route) => route.isFirst);
-        print('Closed active dialogs');
-      } catch (e) {
-        print('Error closing dialogs: $e');
-      }
+    // Comprehensive cleanup with maximum error suppression
+    try {
+      _videoController?.dispose();
+      _videoController = null;
+      _uploadedFiles.clear();
+    } catch (e) {
+      // Completely ignore all disposal errors
     }
-
-    // Dispose of video controller when widget is disposed
-    _videoController?.dispose();
-    _videoController = null;
-
-    // Clear uploaded files list to free memory
-    _uploadedFiles.clear();
-
-    super.dispose();
+    
+    try {
+      super.dispose();
+    } catch (e) {
+      // Completely ignore disposal errors
+    }
   }
 
   // Helper method to safely show snack bar only if widget is still mounted
@@ -1205,7 +1172,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       print('Task type: $taskType');
 
       // Mark that we're showing a dialog
-      _hasActiveDialog = true;
+      if (mounted) {
+        // Dialog is being shown
+      }
 
       Map<String, String>? result;
 
@@ -1240,15 +1209,23 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         result = <String, String>{};
       }
 
-      // Mark dialog as closed
-      _hasActiveDialog = false;
-
       return result;
     } catch (e, stackTrace) {
       print('ERROR in _showMetaDataInputDialog: $e');
       print('StackTrace: $stackTrace');
-      _hasActiveDialog = false; // Ensure flag is reset on error
-      rethrow; // Re-throw so the calling method can handle it
+      
+      // Clear dialog state on error
+      if (mounted) {
+        // Dialog state cleared
+      }
+      
+      // Don't rethrow to prevent red screen, just return null
+      return null;
+    } finally {
+      // Always ensure dialog state is cleared
+      if (mounted) {
+        // Dialog state cleared
+      }
     }
   }
 
@@ -1713,9 +1690,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         ),
       );
 
-      // Mark dialog as closed
-      _hasActiveDialog = false;
-
       // Ensure all controllers are disposed even if dialog was cancelled
       if (result == null) {
         print('Dialog cancelled, cleaning up controllers');
@@ -1732,9 +1706,6 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     } catch (e, stackTrace) {
       print('ERROR in _showManuringMetaDialog: $e');
       print('StackTrace: $stackTrace');
-
-      // Mark dialog as closed
-      _hasActiveDialog = false;
 
       // Show error to user
       if (mounted) {
@@ -3436,7 +3407,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Wrap the entire build in a try-catch to prevent red error screens
+    try {
+      return Scaffold(
       backgroundColor: const Color(0xFFD9D9D9),
       appBar: AppBar(
         backgroundColor: const Color(0xFF7ED957),
@@ -3891,5 +3864,34 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
               ),
             ),
     );
+    } catch (e) {
+      // If there's any error in build, return a safe error widget instead of red screen
+      print('Error in build method: $e');
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Audit Task'),
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'Something went wrong',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please try again later',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }

@@ -24,7 +24,7 @@ class StaffAttendanceItem {
       staffId: json['id'] ?? json['staff_id'] ?? 0,
       staffImg: json['staff_img'] ?? '',
       staffName: json['staff_fullname'] ?? json['staff_name'] ?? '',
-      status: json['status'] ?? 'unknown',
+      status: json['status'] ?? 'Absent',
       checkIn: json['check_in'],
       checkOut: json['check_out'],
       checkedinBy: json['checkedin_by'],
@@ -56,27 +56,31 @@ class StaffAttendanceListResponse {
     try {
       // Check if data is nested or direct
       List<dynamic> dataList;
-      Map<String, dynamic> meta;
-      
+      Map<String, dynamic> paginationData;
+
       if (json['data'] is Map) {
-        // Nested structure: data.data and data.meta
+        // Nested structure: data.data and pagination info directly in data
         final dataMap = json['data'] as Map<String, dynamic>;
         dataList = (dataMap['data'] as List?) ?? [];
-        meta = dataMap['meta'] ?? json['meta'] ?? {};
+        paginationData = dataMap; // Pagination fields are directly in dataMap
       } else {
         // Direct structure: data as list, meta separate
         dataList = (json['data'] as List?) ?? [];
-        meta = json['meta'] ?? {};
+        paginationData = json['meta'] ?? json;
       }
-      
+
+      print('Parsing pagination data: $paginationData'); // Debug
+
       return StaffAttendanceListResponse(
-        data: dataList.map((e) => StaffAttendanceItem.fromJson(e as Map<String, dynamic>)).toList(),
-        currentPage: meta['current_page'] ?? 1,
-        perPage: meta['per_page'] ?? 15,
-        total: meta['total'] ?? 0,
-        lastPage: meta['last_page'] ?? 1,
-        from: meta['from'] ?? 0,
-        to: meta['to'] ?? 0,
+        data: dataList
+            .map((e) => StaffAttendanceItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        currentPage: paginationData['current_page'] ?? 1,
+        perPage: paginationData['per_page'] ?? 15,
+        total: paginationData['total'] ?? 0,
+        lastPage: paginationData['last_page'] ?? 1,
+        from: paginationData['from'] ?? 0,
+        to: paginationData['to'] ?? 0,
       );
     } catch (e) {
       print('Error parsing StaffAttendanceListResponse: $e');

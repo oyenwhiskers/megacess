@@ -2,13 +2,13 @@ class ManagerStats {
   final int totalInProgress;
   final int totalCompleted;
   final int totalPending;
-  
+
   ManagerStats({
     required this.totalInProgress,
     required this.totalCompleted,
     required this.totalPending,
   });
-  
+
   factory ManagerStats.fromJson(Map<String, dynamic> json) {
     return ManagerStats(
       totalInProgress: json['total_in_progress'] ?? 0,
@@ -16,7 +16,7 @@ class ManagerStats {
       totalPending: json['total_pending'] ?? 0,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'total_in_progress': totalInProgress,
@@ -33,7 +33,7 @@ class TaskItem {
   final String status; // 'in_progress', 'completed', 'pending'
   final DateTime createdAt;
   final DateTime? completedAt;
-  
+
   TaskItem({
     required this.id,
     required this.title,
@@ -42,7 +42,7 @@ class TaskItem {
     required this.createdAt,
     this.completedAt,
   });
-  
+
   factory TaskItem.fromJson(Map<String, dynamic> json) {
     return TaskItem(
       id: json['id'],
@@ -50,12 +50,12 @@ class TaskItem {
       description: json['description'] ?? '',
       status: json['status'] ?? 'pending',
       createdAt: DateTime.parse(json['created_at']),
-      completedAt: json['completed_at'] != null 
-          ? DateTime.parse(json['completed_at']) 
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'])
           : null,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -88,8 +88,12 @@ class LocationItem {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       taskCount: json['taskCount'] ?? json['task_count'] ?? 0,
-      createdAt: DateTime.tryParse(json['createdAt'] ?? json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] ?? json['updated_at'] ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] ?? json['created_at'] ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] ?? json['updated_at'] ?? '') ??
+          DateTime.now(),
     );
   }
 
@@ -109,16 +113,10 @@ class TaskLocation {
   final int id;
   final String name;
 
-  TaskLocation({
-    required this.id,
-    required this.name,
-  });
+  TaskLocation({required this.id, required this.name});
 
   factory TaskLocation.fromJson(Map<String, dynamic> json) {
-    return TaskLocation(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-    );
+    return TaskLocation(id: json['id'] ?? 0, name: json['name'] ?? '');
   }
 }
 
@@ -126,16 +124,10 @@ class TaskCreator {
   final int id;
   final String name;
 
-  TaskCreator({
-    required this.id,
-    required this.name,
-  });
+  TaskCreator({required this.id, required this.name});
 
   factory TaskCreator.fromJson(Map<String, dynamic> json) {
-    return TaskCreator(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-    );
+    return TaskCreator(id: json['id'] ?? 0, name: json['name'] ?? '');
   }
 }
 
@@ -144,11 +136,7 @@ class TaskWorker {
   final String fullName;
   final String phone;
 
-  TaskWorker({
-    required this.id,
-    required this.fullName,
-    required this.phone,
-  });
+  TaskWorker({required this.id, required this.fullName, required this.phone});
 
   factory TaskWorker.fromJson(Map<String, dynamic> json) {
     return TaskWorker(
@@ -164,11 +152,7 @@ class TaskStaff {
   final String staffName;
   final int staffId;
 
-  TaskStaff({
-    required this.id,
-    required this.staffName,
-    required this.staffId,
-  });
+  TaskStaff({required this.id, required this.staffName, required this.staffId});
 
   factory TaskStaff.fromJson(Map<String, dynamic> json) {
     return TaskStaff(
@@ -245,7 +229,9 @@ class TaskDetail {
       taskType: json['taskType'] ?? json['task_type'] ?? '',
       taskDate: json['taskDate'] ?? json['task_date'] ?? '',
       taskStatus: json['taskStatus'] ?? json['task_status'] ?? '',
-      createdBy: TaskCreator.fromJson(json['createdBy'] ?? json['created_by'] ?? {}),
+      createdBy: TaskCreator.fromJson(
+        json['createdBy'] ?? json['created_by'] ?? {},
+      ),
       submittedAt: json['submittedAt'] ?? json['submitted_at'],
       workers: (json['workers'] as List<dynamic>? ?? [])
           .map((w) => TaskWorker.fromJson(w))
@@ -253,8 +239,12 @@ class TaskDetail {
       taskMeta: (json['task_meta'] as List<dynamic>? ?? [])
           .map((tm) => TaskMeta.fromJson(tm))
           .toList(),
-      createdAt: DateTime.tryParse(json['createdAt'] ?? json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] ?? json['updated_at'] ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] ?? json['created_at'] ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] ?? json['updated_at'] ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -263,10 +253,7 @@ class LocationTasksResponse {
   final LocationItem location;
   final List<TaskDetail> tasks;
 
-  LocationTasksResponse({
-    required this.location,
-    required this.tasks,
-  });
+  LocationTasksResponse({required this.location, required this.tasks});
 
   factory LocationTasksResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
@@ -350,10 +337,7 @@ class ManagerAnalytics {
   final UsageAnalytics usageAnalytics;
   final TaskAnalytics taskAnalytics;
 
-  ManagerAnalytics({
-    required this.usageAnalytics,
-    required this.taskAnalytics,
-  });
+  ManagerAnalytics({required this.usageAnalytics, required this.taskAnalytics});
 
   factory ManagerAnalytics.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
@@ -391,10 +375,7 @@ class AbsentWorkersResponse {
   final String period;
   final List<AbsentWorker> records;
 
-  AbsentWorkersResponse({
-    required this.period,
-    required this.records,
-  });
+  AbsentWorkersResponse({required this.period, required this.records});
 
   factory AbsentWorkersResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};

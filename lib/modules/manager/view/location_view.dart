@@ -85,14 +85,20 @@ class _LocationViewState extends State<LocationView> {
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF43C463)));
+              return const Center(
+                child: CircularProgressIndicator(color: Color(0xFF43C463)),
+              );
             }
             if (snapshot.hasError) {
               return ListView(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Center(child: Text('Failed to load locations: ${snapshot.error}')),
+                    child: Center(
+                      child: Text(
+                        'Failed to load locations: ${snapshot.error}',
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -123,7 +129,9 @@ class _LocationViewState extends State<LocationView> {
                       mainAxisSpacing: 18,
                       crossAxisSpacing: 18,
                       childAspectRatio: 1.3,
-                      children: locations.map((loc) => _buildLocationCard(loc)).toList(),
+                      children: locations
+                          .map((loc) => _buildLocationCard(loc))
+                          .toList(),
                     ),
                   ),
                 ],
@@ -141,10 +149,8 @@ class _LocationViewState extends State<LocationView> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ManageTasksView(
-              locationId: loc.id,
-              locationName: loc.name,
-            ),
+            builder: (context) =>
+                ManageTasksView(locationId: loc.id, locationName: loc.name),
           ),
         );
       },
@@ -156,9 +162,7 @@ class _LocationViewState extends State<LocationView> {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(color: Colors.black12, blurRadius: 4),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
         ),
         child: Center(
           child: Column(

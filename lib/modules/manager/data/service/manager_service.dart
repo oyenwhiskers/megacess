@@ -8,7 +8,7 @@ class ManagerService {
   static final ManagerService _instance = ManagerService._internal();
   factory ManagerService() => _instance;
   ManagerService._internal();
-  
+
   // Demo data - in real app this would come from API
   List<TaskItem> _tasks = [
     TaskItem(
@@ -34,47 +34,49 @@ class ManagerService {
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
     ),
   ];
-  
+
   // Get manager statistics
   Future<ManagerStats> getManagerStats() async {
     // Simulate API call delay
     await Future.delayed(const Duration(milliseconds: 500));
-    
-    final inProgress = _tasks.where((task) => task.status == 'in_progress').length;
+
+    final inProgress = _tasks
+        .where((task) => task.status == 'in_progress')
+        .length;
     final completed = _tasks.where((task) => task.status == 'completed').length;
     final pending = _tasks.where((task) => task.status == 'pending').length;
-    
+
     return ManagerStats(
       totalInProgress: inProgress,
       totalCompleted: completed,
       totalPending: pending,
     );
   }
-  
+
   // Get all tasks
   Future<List<TaskItem>> getAllTasks() async {
     // Simulate API call delay
     await Future.delayed(const Duration(milliseconds: 300));
     return List.from(_tasks);
   }
-  
+
   // Get tasks by status
   Future<List<TaskItem>> getTasksByStatus(String status) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return _tasks.where((task) => task.status == status).toList();
   }
-  
+
   // Add new task (demo)
   Future<bool> addTask(TaskItem task) async {
     await Future.delayed(const Duration(milliseconds: 500));
     _tasks.add(task);
     return true;
   }
-  
+
   // Update task status (demo)
   Future<bool> updateTaskStatus(int taskId, String newStatus) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     final taskIndex = _tasks.indexWhere((task) => task.id == taskId);
     if (taskIndex != -1) {
       final task = _tasks[taskIndex];
@@ -91,7 +93,7 @@ class ManagerService {
     }
     return false;
   }
-  
+
   // Delete task (demo)
   Future<bool> deleteTask(int taskId) async {
     await Future.delayed(const Duration(milliseconds: 500));
@@ -128,12 +130,48 @@ class ManagerService {
     // Fallback/demo data if network fails
     await Future.delayed(const Duration(milliseconds: 300));
     return [
-      LocationItem(id: 1, name: 'A01', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-      LocationItem(id: 2, name: 'A02', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-      LocationItem(id: 3, name: 'B01', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-      LocationItem(id: 4, name: 'B02', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-      LocationItem(id: 5, name: 'C01', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-      LocationItem(id: 6, name: 'C02', taskCount: 4, createdAt: DateTime.now(), updatedAt: DateTime.now()),
+      LocationItem(
+        id: 1,
+        name: 'A01',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      LocationItem(
+        id: 2,
+        name: 'A02',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      LocationItem(
+        id: 3,
+        name: 'B01',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      LocationItem(
+        id: 4,
+        name: 'B02',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      LocationItem(
+        id: 5,
+        name: 'C01',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      LocationItem(
+        id: 6,
+        name: 'C02',
+        taskCount: 4,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
     ];
   }
 
@@ -154,20 +192,20 @@ class ManagerService {
 
     // Fallback/demo data if network fails
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // Find the location name for demo
     final locations = await fetchLocations();
     final location = locations.firstWhere(
       (loc) => loc.id == locationId,
       orElse: () => LocationItem(
-        id: locationId, 
-        name: 'A01', 
-        taskCount: 5, 
-        createdAt: DateTime.now(), 
-        updatedAt: DateTime.now()
+        id: locationId,
+        name: 'A01',
+        taskCount: 5,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
     );
-    
+
     // Demo tasks data
     final demoTasks = [
       TaskDetail(
@@ -251,11 +289,8 @@ class ManagerService {
         updatedAt: DateTime.parse('2025-01-05 00:00:00'),
       ),
     ];
-    
-    return LocationTasksResponse(
-      location: location,
-      tasks: demoTasks,
-    );
+
+    return LocationTasksResponse(location: location, tasks: demoTasks);
   }
 
   /// GET v1/analytics/manager
@@ -264,8 +299,10 @@ class ManagerService {
       final response = await _dioClient.get('v1/analytics/manager');
       print('DEBUG: Manager Analytics API Response: ${response.statusCode}');
       print('DEBUG: Manager Analytics API Data: ${response.data}');
-      
-      if (response.statusCode == 200 && response.data is Map && response.data['success'] == true) {
+
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true) {
         print('DEBUG: Successfully parsed Manager Analytics from real API');
         return ManagerAnalytics.fromJson(response.data);
       } else {
@@ -274,7 +311,9 @@ class ManagerService {
         return _getDemoManagerAnalytics();
       }
     } on DioException catch (e) {
-      print('DEBUG: Manager Analytics API failed with DioException: ${e.message}');
+      print(
+        'DEBUG: Manager Analytics API failed with DioException: ${e.message}',
+      );
       print('DEBUG: Falling back to demo data');
       // Fallback to demo data instead of throwing exception
       return _getDemoManagerAnalytics();
@@ -290,7 +329,7 @@ class ManagerService {
   Future<ManagerAnalytics> _getDemoManagerAnalytics() async {
     // Simulate API call delay
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     final demoData = {
       'success': true,
       'data': {
@@ -298,29 +337,25 @@ class ManagerService {
           'fertilizer_usage': {
             'total_amount': 150.5,
             'unit': 'kg',
-            'task_count': 5
+            'task_count': 5,
           },
           'herbicide_usage': {
             'total_amount': 75.0,
             'unit': 'L',
-            'task_count': 3
+            'task_count': 3,
           },
-          'fuel_usage': {
-            'total_amount': 45.0,
-            'unit': 'L',
-            'task_count': 2
-          }
+          'fuel_usage': {'total_amount': 45.0, 'unit': 'L', 'task_count': 2},
         },
         'task_analytics': {
           'total_tasks': 25,
           'in_progress': 8,
           'pending': 5,
           'rejected': 2,
-          'completed': 10
-        }
-      }
+          'completed': 10,
+        },
+      },
     };
-    
+
     print('DEBUG: Using demo analytics data');
     return ManagerAnalytics.fromJson(demoData);
   }
@@ -342,30 +377,23 @@ class ManagerService {
 
     // Fallback/demo data if network fails
     await Future.delayed(const Duration(milliseconds: 300));
-    
+
     final demoData = {
       'success': true,
       'data': {
         'period': 'November 2025',
-        'filter': {
-          'type': 'month',
-          'year': 2025,
-          'month': 11
-        },
+        'filter': {'type': 'month', 'year': 2025, 'month': 11},
         'records': [
           {
             'staff_id': 1,
             'staff_name': 'Ali bin Abu',
-            'absent_dates': [
-              '2025-11-05',
-              '2025-11-12'
-            ],
-            'total_absent_days': 2
-          }
-        ]
-      }
+            'absent_dates': ['2025-11-05', '2025-11-12'],
+            'total_absent_days': 2,
+          },
+        ],
+      },
     };
-    
+
     return AbsentWorkersResponse.fromJson(demoData);
   }
 

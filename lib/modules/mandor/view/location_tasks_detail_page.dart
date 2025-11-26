@@ -71,8 +71,9 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
 
   void _onScroll() {
     // Don't load more if filters are active (filters work on client-side data only)
-    bool hasActiveFilters = _selectedTaskType != null || _selectedStatus != null;
-    
+    bool hasActiveFilters =
+        _selectedTaskType != null || _selectedStatus != null;
+
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isLoadingMore &&
@@ -137,7 +138,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
         _location = response.location;
         _tasks = response.tasks;
         _filteredTasks = response.tasks;
-        
+
         // Update pagination info
         if (response.pagination != null) {
           _currentPage = response.pagination!.currentPage;
@@ -170,11 +171,11 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
         widget.locationId,
         page: nextPage,
       );
-      
+
       if (response != null && response.tasks.isNotEmpty) {
         setState(() {
           _tasks.addAll(response.tasks);
-          
+
           // Update pagination info
           if (response.pagination != null) {
             _currentPage = response.pagination!.currentPage;
@@ -182,7 +183,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
             _totalTasksFromServer = response.pagination!.total;
             _hasMoreData = _currentPage < _lastPage;
           }
-          
+
           // Re-apply filters to include new tasks
           _filterTasks();
           _isLoadingMore = false;
@@ -206,7 +207,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
       _currentPage = 1;
       _hasMoreData = true;
     });
-    
+
     try {
       final response = await _service.fetchLocationTasksDetail(
         widget.locationId,
@@ -216,7 +217,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
         setState(() {
           _location = response.location;
           _tasks = response.tasks;
-          
+
           // Update pagination info
           if (response.pagination != null) {
             _currentPage = response.pagination!.currentPage;
@@ -224,7 +225,7 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
             _totalTasksFromServer = response.pagination!.total;
             _hasMoreData = _currentPage < _lastPage;
           }
-          
+
           // Re-apply current filters to the updated task list
           _filterTasks();
         });
@@ -661,20 +662,24 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                                 onRefresh: _refreshData,
                                 child: ListView.separated(
                                   controller: _scrollController,
-                                  itemCount: _filteredTasks.length + (_isLoadingMore ? 1 : 0),
+                                  itemCount:
+                                      _filteredTasks.length +
+                                      (_isLoadingMore ? 1 : 0),
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(height: 12),
                                   itemBuilder: (context, idx) {
                                     // Show loading indicator at the bottom
                                     if (idx == _filteredTasks.length) {
                                       return const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
                                         child: Center(
                                           child: CircularProgressIndicator(),
                                         ),
                                       );
                                     }
-                                    
+
                                     final task = _filteredTasks[idx];
                                     return InkWell(
                                       onTap: () async {

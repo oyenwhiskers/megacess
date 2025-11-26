@@ -149,13 +149,13 @@ class AuditTaskLocationTasksResponse {
   final AuditTaskLocationDetail location;
   final List<AuditTaskModel> tasks;
   final PaginationModel? pagination;
-  
+
   AuditTaskLocationTasksResponse({
     required this.location,
     required this.tasks,
     this.pagination,
   });
-  
+
   factory AuditTaskLocationTasksResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? {};
     return AuditTaskLocationTasksResponse(

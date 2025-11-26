@@ -40,17 +40,15 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         future: _analyticsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF43C463)));
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF43C463)),
+            );
           } else if (snapshot.hasError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red[400],
-                  ),
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
                   const SizedBox(height: 16),
                   Text(
                     'Failed to load analytics',
@@ -64,9 +62,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   Text(
                     '${snapshot.error}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -83,18 +79,18 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No analytics data found.'));
           }
-          
+
           final data = snapshot.data!;
           final taskAnalytics = data.taskAnalytics;
           final pending = taskAnalytics.pending;
           final completed = taskAnalytics.completed;
           final totalTasks = pending + completed;
-          
+
           print('DEBUG: Manager Analytics loaded successfully!');
           print('DEBUG: Total Tasks: ${taskAnalytics.totalTasks}');
           print('DEBUG: Pending Tasks: $pending');
           print('DEBUG: Completed Tasks: $completed');
-          
+
           return RefreshIndicator(
             onRefresh: () async {
               _refreshAnalytics();
@@ -136,7 +132,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     icon: Icons.check_circle,
                     color: Colors.green,
                   ),
-                  
+
                   const SizedBox(height: 20),
 
                   // Pending Tasks vs Completed Tasks Ratio
@@ -171,21 +167,24 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          
+
                           SizedBox(
                             height: 260,
                             width: 260,
                             child: PieChart(
                               PieChartData(
-                                sections: _buildPieChartSections(pending, completed),
+                                sections: _buildPieChartSections(
+                                  pending,
+                                  completed,
+                                ),
                                 sectionsSpace: 0,
                                 centerSpaceRadius: 0,
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Legend
                           Wrap(
                             alignment: WrapAlignment.center,
@@ -239,7 +238,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
                   ],
 
@@ -270,7 +269,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Fertilizer Usage
                         _buildUsageItem(
                           'Fertilizer',
@@ -278,9 +277,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           '${data.usageAnalytics.fertilizerUsage.taskCount} tasks',
                           Colors.green,
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Herbicide Usage
                         _buildUsageItem(
                           'Herbicide',
@@ -288,9 +287,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           '${data.usageAnalytics.herbicideUsage.taskCount} tasks',
                           Colors.orange,
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Fuel Usage
                         _buildUsageItem(
                           'Fuel',
@@ -344,11 +343,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(
-                icon,
-                size: 16,
-                color: color,
-              ),
+              Icon(icon, size: 16, color: color),
             ],
           ),
           const SizedBox(height: 6),
@@ -367,20 +362,24 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   List<PieChartSectionData> _buildPieChartSections(int pending, int completed) {
     final total = pending + completed;
-    
+
     // Debug output for pie chart data
     print('DEBUG: PIE CHART - Pending Tasks: $pending');
     print('DEBUG: PIE CHART - Completed Tasks: $completed');
     print('DEBUG: PIE CHART - Total Tasks: $total');
-    
+
     if (total == 0) return [];
-    
+
     final pendingRatio = (pending / total * 100);
     final completedRatio = (completed / total * 100);
-    
-    print('DEBUG: PIE CHART - Pending Percentage: ${pendingRatio.toStringAsFixed(2)}%');
-    print('DEBUG: PIE CHART - Completed Percentage: ${completedRatio.toStringAsFixed(2)}%');
-    
+
+    print(
+      'DEBUG: PIE CHART - Pending Percentage: ${pendingRatio.toStringAsFixed(2)}%',
+    );
+    print(
+      'DEBUG: PIE CHART - Completed Percentage: ${completedRatio.toStringAsFixed(2)}%',
+    );
+
     return [
       PieChartSectionData(
         value: pendingRatio,
@@ -396,7 +395,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
       PieChartSectionData(
         value: completedRatio,
         color: const Color(0xFF43C463),
-        title: completedRatio > 0 ? '${completedRatio.toStringAsFixed(2)}%' : '',
+        title: completedRatio > 0
+            ? '${completedRatio.toStringAsFixed(2)}%'
+            : '',
         titleStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 22,
@@ -407,7 +408,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     ];
   }
 
-  Widget _buildUsageItem(String title, String amount, String tasks, Color color) {
+  Widget _buildUsageItem(
+    String title,
+    String amount,
+    String tasks,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -424,9 +430,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(
-              title == 'Fertilizer' ? Icons.eco :
-              title == 'Herbicide' ? Icons.local_florist :
-              Icons.local_gas_station,
+              title == 'Fertilizer'
+                  ? Icons.eco
+                  : title == 'Herbicide'
+                  ? Icons.local_florist
+                  : Icons.local_gas_station,
               color: Colors.white,
               size: 20,
             ),
@@ -454,10 +462,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 ),
                 Text(
                   tasks,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),

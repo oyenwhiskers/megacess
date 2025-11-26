@@ -185,11 +185,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 32,
-              ),
+              child: Icon(icon, color: color, size: 32),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -215,10 +211,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   const SizedBox(height: 2),
                   Text(
                     'Used in $taskCount task${taskCount != 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -267,23 +260,28 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   ),
                   _buildUsageCard(
                     title: 'Fertilizer Usage',
-                    totalAmount: _analytics!.usageAnalytics.fertilizerUsage.totalAmount,
+                    totalAmount:
+                        _analytics!.usageAnalytics.fertilizerUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.fertilizerUsage.unit,
-                    taskCount: _analytics!.usageAnalytics.fertilizerUsage.taskCount,
+                    taskCount:
+                        _analytics!.usageAnalytics.fertilizerUsage.taskCount,
                     color: Colors.green,
                     icon: Icons.grass,
                   ),
                   _buildUsageCard(
                     title: 'Herbicide Usage',
-                    totalAmount: _analytics!.usageAnalytics.herbicideUsage.totalAmount,
+                    totalAmount:
+                        _analytics!.usageAnalytics.herbicideUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.herbicideUsage.unit,
-                    taskCount: _analytics!.usageAnalytics.herbicideUsage.taskCount,
+                    taskCount:
+                        _analytics!.usageAnalytics.herbicideUsage.taskCount,
                     color: Colors.blue,
                     icon: Icons.water_drop,
                   ),
                   _buildUsageCard(
                     title: 'Fuel Usage',
-                    totalAmount: _analytics!.usageAnalytics.fuelUsage.totalAmount,
+                    totalAmount:
+                        _analytics!.usageAnalytics.fuelUsage.totalAmount,
                     unit: _analytics!.usageAnalytics.fuelUsage.unit,
                     taskCount: _analytics!.usageAnalytics.fuelUsage.taskCount,
                     color: Colors.orange,

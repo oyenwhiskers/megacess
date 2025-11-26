@@ -54,6 +54,23 @@ class _CheckerViewState extends State<CheckerView> {
     }
   }
 
+  Future<void> _refreshAnalytics() async {
+    try {
+      setState(() {
+        _error = null;
+      });
+      final service = CheckerAnalyticsService();
+      final newData = await service.fetchCheckerAnalytics();
+      setState(() {
+        _analyticsFuture = Future.value(newData);
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,10 +90,16 @@ class _CheckerViewState extends State<CheckerView> {
               );
             } else if (snapshot.hasData) {
               final data = snapshot.data!;
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Column(
+              return RefreshIndicator(
+                onRefresh: _refreshAnalytics,
+                color: const Color(0xFF7ED957),
+                backgroundColor: Colors.white,
+                strokeWidth: 3.0,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
@@ -437,6 +460,7 @@ class _CheckerViewState extends State<CheckerView> {
                       ),
                     ],
                   ),
+                ),
                 ),
               );
               // (Removed duplicate/invalid _logout at the end of the file)

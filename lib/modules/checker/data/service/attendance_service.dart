@@ -318,12 +318,81 @@ class AttendanceService {
           'per_page': perPage,
         },
       );
-      print('Staff Attendance Response: ${response.data}'); // Debug
+      print('=== STAFF ATTENDANCE API RESPONSE ===');
+      print('URL: api/v1/staff-attendance');
+      print(
+        'Query: date_attendance_id=$dateAttendanceId, page=$page, per_page=$perPage',
+      );
+      print('Response: ${response.data}');
+      print('=====================================');
       if (response.data is Map && response.data['success'] == true) {
         return StaffAttendanceListResponse.fromJson(response.data);
       } else {
         throw Exception(
           response.data['message'] ?? 'Failed to fetch staff attendance',
+        );
+      }
+    } on DioError catch (e) {
+      print('DioError: ${e.message}'); // Debug
+      print('Response: ${e.response?.data}'); // Debug
+      if (e.response != null && e.response?.data != null) {
+        throw Exception(
+          e.response?.data['message'] ?? 'Network error: ${e.message}',
+        );
+      }
+      throw Exception('Connection error: ${e.message}');
+    } catch (e) {
+      print('General Error: $e'); // Debug
+      throw Exception('Unexpected error: ${e.toString()}');
+    }
+  }
+
+  /// Fetch all staff with their attendance status for a specific date
+  /// This combines staff list with attendance data to show all staff regardless of attendance
+  Future<StaffAttendanceListResponse> fetchAllStaffWithAttendanceStatus({
+    required int dateAttendanceId,
+    int page = 1,
+    int perPage = 15,
+    String? search,
+    String? gender,
+    bool? claimed,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'per_page': perPage,
+        'with_attendance': true, // Request attendance data to be included
+        'date_attendance_id': dateAttendanceId, // Include attendance context
+      };
+
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+
+      if (gender != null && gender.isNotEmpty) {
+        queryParams['gender'] = gender;
+      }
+
+      if (claimed != null) {
+        queryParams['claimed'] = claimed;
+      }
+
+      print(
+        'All Staff with Attendance Request Parameters: $queryParams',
+      ); // Debug
+
+      final response = await dioClient.get(
+        'api/v1/staff',
+        queryParameters: queryParams,
+      );
+
+      print('All Staff with Attendance Response: ${response.data}'); // Debug
+
+      if (response.data is Map && response.data['success'] == true) {
+        return StaffAttendanceListResponse.fromJson(response.data);
+      } else {
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch staff with attendance',
         );
       }
     } on DioError catch (e) {
@@ -644,7 +713,7 @@ class AttendanceService {
           // Handle both NESTED format (with 'meta' object) and FLAT format (with 'meta_key'/'meta_value')
           // NESTED format: {"staff_id": 13, "meta": {"spraying": "100"}}
           // FLAT format: {"staff_id": 13, "meta_key": "spraying", "meta_value": "100"}
-          
+
           // For FLAT format - ensure meta_key and meta_value are strings
           if (meta.containsKey('meta_key') && meta['meta_key'] is! String) {
             meta['meta_key'] = meta['meta_key'].toString();
@@ -653,7 +722,7 @@ class AttendanceService {
           if (meta.containsKey('meta_value') && meta['meta_value'] is! String) {
             meta['meta_value'] = meta['meta_value'].toString();
           }
-          
+
           // For NESTED format - no conversion needed, just pass as-is
           // The backend will handle the nested 'meta' object
         }
@@ -699,7 +768,7 @@ class AttendanceService {
             print(
               '  staff_id: ${entry['staff_id']} (${entry['staff_id'].runtimeType})',
             );
-            
+
             // Check format type and log accordingly
             if (entry.containsKey('meta_key')) {
               // FLAT format
@@ -711,11 +780,11 @@ class AttendanceService {
               );
             } else if (entry.containsKey('meta')) {
               // NESTED format
-              print(
-                '  meta: ${entry['meta']} (${entry['meta'].runtimeType})',
-              );
+              print('  meta: ${entry['meta']} (${entry['meta'].runtimeType})');
             } else {
-              print('  WARNING: Entry has neither meta_key/meta_value nor meta object!');
+              print(
+                '  WARNING: Entry has neither meta_key/meta_value nor meta object!',
+              );
             }
           }
         }
@@ -754,9 +823,7 @@ class AttendanceService {
   }) async {
     try {
       // Prepare request body
-      Map<String, dynamic> requestBody = {
-        'remarks': remarks,
-      };
+      Map<String, dynamic> requestBody = {'remarks': remarks};
 
       print('=== REJECT TASK API REQUEST ===');
       print('Task ID: $taskId');

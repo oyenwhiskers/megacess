@@ -7,10 +7,10 @@ class CheckerProfileService {
   final DioClient _dioClient;
 
   CheckerProfileService(SecureStorageService storageService)
-      : _dioClient = DioClient(
-          baseUrl: 'https://mwms.megacess.com/',
-          storageService: storageService,
-        );
+    : _dioClient = DioClient(
+        baseUrl: 'https://mwms.megacess.com/',
+        storageService: storageService,
+      );
 
   /// GET v1/profile
   Future<CheckerProfile> fetchProfile() async {
@@ -36,7 +36,10 @@ class CheckerProfileService {
   /// PUT v1/profile (for updating profile)
   Future<CheckerProfile> updateProfile(Map<String, dynamic> profileData) async {
     try {
-      final response = await _dioClient.put('api/v1/profile', data: profileData);
+      final response = await _dioClient.put(
+        'api/v1/profile',
+        data: profileData,
+      );
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null && data['success'] == true) {

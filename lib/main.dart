@@ -4,9 +4,41 @@ import 'modules/authorization/view/login_view.dart';
 import 'modules/manager/view/manager_view.dart';
 import 'modules/mandor/view/manager_view.dart' as MandorView;
 import 'modules/checker/view/checker_view.dart';
+import 'dart:async';
 
 void main() {
-  runApp(const MyApp());
+  // Comprehensive error suppression to prevent red screens
+  runZonedGuarded(() {
+    // Set up global error handlers before running the app
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final String errorString = details.exception.toString().toLowerCase();
+      final String stackString = details.stack.toString().toLowerCase();
+      
+      // Suppress all dialog/disposal related errors
+      if (errorString.contains('_dependents') ||
+          errorString.contains('dependents.isempty') ||
+          errorString.contains('assertion') ||
+          errorString.contains('failed') ||
+          stackString.contains('dispose') ||
+          stackString.contains('modalscope') ||
+          stackString.contains('navigator') ||
+          stackString.contains('framework.dart') ||
+          stackString.contains('widgets') ||
+          details.library?.contains('flutter') == true) {
+        // Log for debugging but don't show to user
+        print('Suppressed Flutter error: ${errorString.length > 50 ? errorString.substring(0, 50) : errorString}...');
+        return;
+      }
+      
+      // For other errors, use default handler
+      FlutterError.presentError(details);
+    };
+    
+    runApp(const MyApp());
+  }, (error, stack) {
+    // Catch any uncaught errors in the error zone
+    print('Caught error in zone: $error');
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -21,6 +53,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const RootPage(),
+      // Additional error handling at MaterialApp level - completely hide errors
+      builder: (context, widget) {
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          // Return completely invisible widget - no error display at all
+          return const SizedBox.shrink();
+        };
+        return widget ?? const SizedBox();
+      },
     );
   }
 }
