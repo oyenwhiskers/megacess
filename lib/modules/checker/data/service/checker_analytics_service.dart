@@ -25,4 +25,16 @@ class CheckerAnalyticsService {
       throw Exception(response.data['message'] ?? 'Failed to load analytics');
     }
   }
+
+  Future<Map<String, dynamic>?> fetchProfile() async {
+    try {
+      final response = await _dioClient.get('v1/profile');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'];
+      }
+    } catch (e) {
+      print('Error fetching profile: $e');
+    }
+    return null;
+  }
 }

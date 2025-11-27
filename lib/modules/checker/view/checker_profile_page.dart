@@ -38,6 +38,20 @@ class _CheckerProfilePageState extends State<CheckerProfilePage> {
     super.dispose();
   }
 
+  String? _getFullImageUrl(String? userImg) {
+    if (userImg == null || userImg.isEmpty) {
+      return null;
+    }
+    
+    // Check if the URL already starts with http:// or https://
+    if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
+      return userImg;
+    }
+    
+    // If not, prepend the base URL
+    return 'https://mwms.megacess.com/$userImg';
+  }
+
   Future<void> _fetchProfile() async {
     setState(() => isLoading = true);
     try {
@@ -200,10 +214,10 @@ class _CheckerProfilePageState extends State<CheckerProfilePage> {
                           child: CircleAvatar(
                             radius: 60,
                             backgroundColor: Colors.grey[300],
-                            backgroundImage: profile!.userImg != null
-                                ? NetworkImage(profile!.userImg!)
+                            backgroundImage: _getFullImageUrl(profile!.userImg) != null
+                                ? NetworkImage(_getFullImageUrl(profile!.userImg)!)
                                 : null,
-                            child: profile!.userImg == null
+                            child: _getFullImageUrl(profile!.userImg) == null
                                 ? const Icon(
                                     Icons.account_circle,
                                     size: 100,

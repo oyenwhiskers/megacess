@@ -53,11 +53,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const RootPage(),
-      // Additional error handling at MaterialApp level - completely hide errors
+      // Additional error handling at MaterialApp level - white background, no error display
       builder: (context, widget) {
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-          // Return completely invisible widget - no error display at all
-          return const SizedBox.shrink();
+          // Return white container instead of error - completely clean look
+          return Container(
+            color: Colors.white,
+            child: const SizedBox.expand(),
+          );
         };
         return widget ?? const SizedBox();
       },

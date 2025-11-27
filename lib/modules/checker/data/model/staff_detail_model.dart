@@ -60,6 +60,14 @@ class StaffDetailData {
                 : 0);
       } catch (_) {}
     }
+    
+    String? imageUrl = json['staff_img'];
+    // Add base URL if the image path is relative (starts with /storage/)
+    if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
+      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      print('Converted relative staff detail image path to: $imageUrl');
+    }
+    
     return StaffDetailData(
       id: json['id'],
       staffId: json['staff_id'] ?? json['id'],
@@ -67,7 +75,7 @@ class StaffDetailData {
       staffFullname: json['staff_fullname'] ?? '',
       staffPhone: json['staff_phone'],
       staffDob: json['staff_dob'],
-      staffImg: json['staff_img'],
+      staffImg: imageUrl,
       staffGender: json['staff_gender'],
       attendanceCountMonth: json['attendance_count_month'],
       age: calculatedAge,

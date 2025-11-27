@@ -11,18 +11,21 @@ class AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
-  late Future<ManagerAnalytics> _analyticsFuture;
+  late Future<Map<String, dynamic>> _analyticsFuture;
+  late Future<Map<String, dynamic>> _usageBreakdownFuture;
   final ManagerService _managerService = ManagerService();
 
   @override
   void initState() {
     super.initState();
     _analyticsFuture = _managerService.fetchManagerAnalytics();
+    _usageBreakdownFuture = _managerService.fetchUsageBreakdown();
   }
 
   void _refreshAnalytics() {
     setState(() {
       _analyticsFuture = _managerService.fetchManagerAnalytics();
+      _usageBreakdownFuture = _managerService.fetchUsageBreakdown();
     });
   }
 
@@ -36,7 +39,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         title: const Text('Analytics', style: TextStyle(color: Colors.black)),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: FutureBuilder<ManagerAnalytics>(
+      body: FutureBuilder<Map<String, dynamic>>(
         future: _analyticsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,8 +83,20 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             return const Center(child: Text('No analytics data found.'));
           }
 
-          final data = snapshot.data!;
-          final taskAnalytics = data.taskAnalytics;
+          final rawData = snapshot.data!;
+          // Extract data from the API response structure
+          final dataSection = rawData['data'] ?? {};
+          final taskAnalyticsData = dataSection['task_analytics'] ?? {};
+          
+          // Convert the raw data to expected structure
+          final taskAnalytics = TaskAnalytics(
+            totalTasks: taskAnalyticsData['total_tasks'] ?? 0,
+            pending: taskAnalyticsData['pending'] ?? 0,
+            inProgress: taskAnalyticsData['in_progress'] ?? 0,
+            completed: taskAnalyticsData['completed'] ?? 0,
+            rejected: taskAnalyticsData['rejected'] ?? 0,
+          );
+          
           final pending = taskAnalytics.pending;
           final completed = taskAnalytics.completed;
           final totalTasks = pending + completed;
@@ -242,7 +257,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     const SizedBox(height: 20),
                   ],
 
-                  // Usage Analytics Section
+                  // Simple completion rate card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -261,7 +276,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Resource Usage',
+                          'Task Completion Rate',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -269,36 +284,101 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // Fertilizer Usage
-                        _buildUsageItem(
-                          'Fertilizer',
-                          '${data.usageAnalytics.fertilizerUsage.totalAmount} ${data.usageAnalytics.fertilizerUsage.unit}',
-                          '${data.usageAnalytics.fertilizerUsage.taskCount} tasks',
-                          Colors.green,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Herbicide Usage
-                        _buildUsageItem(
-                          'Herbicide',
-                          '${data.usageAnalytics.herbicideUsage.totalAmount} ${data.usageAnalytics.herbicideUsage.unit}',
-                          '${data.usageAnalytics.herbicideUsage.taskCount} tasks',
-                          Colors.orange,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Fuel Usage
-                        _buildUsageItem(
-                          'Fuel',
-                          '${data.usageAnalytics.fuelUsage.totalAmount} ${data.usageAnalytics.fuelUsage.unit}',
-                          '${data.usageAnalytics.fuelUsage.taskCount} tasks',
-                          Colors.red,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  '$pending',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                const Text('Pending'),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  '$completed',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                                const Text('Completed'),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Usage Breakdown Analytics
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: _usageBreakdownFuture,
+                    builder: (context, usageSnapshot) {
+                      if (usageSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: Color(0xFF43C463)),
+                        );
+                      } else if (usageSnapshot.hasError) {
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.red[300]!),
+                          ),
+                          child: Text(
+                            'Failed to load usage breakdown: ${usageSnapshot.error}',
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        );
+                      } else if (!usageSnapshot.hasData) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final usageData = usageSnapshot.data!['data'] ?? {};
+                      final fertilizerBreakdown = usageData['fertilizer_breakdown'] as List<dynamic>? ?? [];
+                      final herbicideBreakdown = usageData['herbicide_breakdown'] as List<dynamic>? ?? [];
+
+                      return Column(
+                        children: [
+                          // Fertilizer Breakdown
+                          if (fertilizerBreakdown.isNotEmpty) ...[
+                            _buildUsageBreakdownCard(
+                              title: 'Fertilizer Usage by Location',
+                              data: fertilizerBreakdown,
+                              unit: 'kg',
+                              color: Colors.green,
+                              icon: Icons.eco,
+                              showTypeBreakdown: true,
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+
+                          // Herbicide Breakdown
+                          if (herbicideBreakdown.isNotEmpty) ...[
+                            _buildUsageBreakdownCard(
+                              title: 'Herbicide Usage by Location',
+                              data: herbicideBreakdown,
+                              unit: 'L',
+                              color: Colors.orange,
+                              icon: Icons.local_florist,
+                              showTypeBreakdown: false,
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -408,67 +488,144 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     ];
   }
 
-  Widget _buildUsageItem(
-    String title,
-    String amount,
-    String tasks,
-    Color color,
-  ) {
+  Widget _buildUsageBreakdownCard({
+    required String title,
+    required List<dynamic> data,
+    required String unit,
+    required Color color,
+    required IconData icon,
+    required bool showTypeBreakdown,
+  }) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...data.map((item) => _buildLocationUsageItem(
+            locationName: item['location_name'] ?? 'Unknown',
+            totalAmount: item['total_amount'] ?? 0,
+            taskCount: item['task_count'] ?? 0,
+            unit: unit,
+            color: color,
+            typeBreakdown: showTypeBreakdown ? item['by_type'] : null,
+          )).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationUsageItem({
+    required String locationName,
+    required num totalAmount,
+    required int taskCount,
+    required String unit,
+    required Color color,
+    Map<String, dynamic>? typeBreakdown,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(
-              title == 'Fertilizer'
-                  ? Icons.eco
-                  : title == 'Herbicide'
-                  ? Icons.local_florist
-                  : Icons.local_gas_station,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                locationName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$totalAmount $unit',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                Text(
-                  amount,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                  Text(
+                    '$taskCount task${taskCount != 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-                Text(
-                  tasks,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
+          if (typeBreakdown != null) ...[
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: typeBreakdown.entries
+                  .where((entry) => entry.value['amount'] > 0)
+                  .map((entry) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${entry.key}: ${entry.value['amount']} $unit',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: color,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
         ],
       ),
     );
   }
+
 }

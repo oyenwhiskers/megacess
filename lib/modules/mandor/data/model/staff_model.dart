@@ -20,12 +20,20 @@ class StaffModel {
   });
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
+    String imageUrl = json['staff_img'] ?? '';
+    
+    // Add base URL if the image path is relative (starts with /storage/)
+    if (imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
+      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      print('Converted relative staff image path to: $imageUrl');
+    }
+    
     return StaffModel(
       id: json['id'],
       staffFullname: json['staff_fullname'] ?? '',
       staffPhone: json['staff_phone'] ?? '',
       staffDob: json['staff_dob'] ?? '',
-      staffImg: json['staff_img'] ?? '',
+      staffImg: imageUrl,
       staffGender: json['staff_gender'] ?? '',
       isClaimed:
           json['claimed_staff'] != null &&

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+// import 'package:image_picker/image_picker.dart'; // Commented out - image editing disabled
 import '../data/model/mandor_profile_model.dart';
 import '../data/service/mandor_profile_service.dart';
 
@@ -16,12 +16,12 @@ class _MandorProfilePageState extends State<MandorProfilePage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final ImagePicker _imagePicker = ImagePicker();
+  // final ImagePicker _imagePicker = ImagePicker(); // Commented out
 
   MandorProfile? profile;
   bool isLoading = true;
   bool isUpdating = false;
-  bool isUploadingImage = false;
+  // bool isUploadingImage = false; // Commented out
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -61,85 +61,86 @@ class _MandorProfilePageState extends State<MandorProfilePage> {
     }
   }
 
-  Future<void> _pickAndUploadImage() async {
-    try {
-      // Show dialog to choose between camera or gallery
-      final ImageSource? source = await showDialog<ImageSource>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: const Text('Choose Image Source'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF7ED957)),
-                title: const Text('Camera'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library,
-                  color: Color(0xFF7ED957),
-                ),
-                title: const Text('Gallery'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-            ],
-          ),
-        ),
-      );
+  // Image upload functionality commented out
+  // Future<void> _pickAndUploadImage() async {
+  //   try {
+  //     // Show dialog to choose between camera or gallery
+  //     final ImageSource? source = await showDialog<ImageSource>(
+  //       context: context,
+  //       builder: (context) => AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(12),
+  //         ),
+  //         title: const Text('Choose Image Source'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             ListTile(
+  //               leading: const Icon(Icons.camera_alt, color: Color(0xFF7ED957)),
+  //               title: const Text('Camera'),
+  //               onTap: () => Navigator.pop(context, ImageSource.camera),
+  //             ),
+  //             ListTile(
+  //               leading: const Icon(
+  //                 Icons.photo_library,
+  //                 color: Color(0xFF7ED957),
+  //               ),
+  //               title: const Text('Gallery'),
+  //               onTap: () => Navigator.pop(context, ImageSource.gallery),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
 
-      if (source == null) return;
+  //     if (source == null) return;
 
-      final XFile? pickedFile = await _imagePicker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
+  //     final XFile? pickedFile = await _imagePicker.pickImage(
+  //       source: source,
+  //       maxWidth: 1024,
+  //       maxHeight: 1024,
+  //       imageQuality: 85,
+  //     );
 
-      if (pickedFile == null) return;
+  //     if (pickedFile == null) return;
 
-      setState(() => isUploadingImage = true);
+  //     setState(() => isUploadingImage = true);
 
-      print('Uploading image from: ${pickedFile.path}');
+  //     print('Uploading image from: ${pickedFile.path}');
 
-      final updatedProfile = await _mandorProfileService.uploadProfileImage(
-        pickedFile.path,
-      );
+  //     final updatedProfile = await _mandorProfileService.uploadProfileImage(
+  //       pickedFile.path,
+  //     );
 
-      print('Upload successful, new image: ${updatedProfile.userImg}');
+  //     print('Upload successful, new image: ${updatedProfile.userImg}');
 
-      setState(() {
-        profile = updatedProfile;
-        isUploadingImage = false;
-      });
+  //     setState(() {
+  //       profile = updatedProfile;
+  //       isUploadingImage = false;
+  //     });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile image updated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() => isUploadingImage = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to upload image: ${e.toString().replaceFirst('Exception: ', '')}',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Profile image updated successfully'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     setState(() => isUploadingImage = false);
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             'Failed to upload image: ${e.toString().replaceFirst('Exception: ', '')}',
+  //           ),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
 
   Future<void> _saveProfile() async {
     // Validate phone number
@@ -302,42 +303,44 @@ class _MandorProfilePageState extends State<MandorProfilePage> {
                                       )
                                     : null,
                               ),
-                              if (isUploadingImage)
-                                Positioned.fill(
-                                  child: CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: Colors.black54,
-                                    child: const CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
-                                  ),
-                                ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: GestureDetector(
-                                  onTap: isUploadingImage
-                                      ? null
-                                      : _pickAndUploadImage,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF7ED957),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 3,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.edit,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              // Loading overlay commented out since image editing is disabled
+                              // if (isUploadingImage)
+                              //   Positioned.fill(
+                              //     child: CircleAvatar(
+                              //       radius: 60,
+                              //       backgroundColor: Colors.black54,
+                              //       child: const CircularProgressIndicator(
+                              //         color: Colors.white,
+                              //         strokeWidth: 3,
+                              //       ),
+                              //     ),
+                              //   ),
+                              // Edit button commented out
+                              // Positioned(
+                              //   bottom: 0,
+                              //   right: 0,
+                              //   child: GestureDetector(
+                              //     onTap: isUploadingImage
+                              //         ? null
+                              //         : _pickAndUploadImage,
+                              //     child: Container(
+                              //       padding: const EdgeInsets.all(8),
+                              //       decoration: BoxDecoration(
+                              //         color: const Color(0xFF7ED957),
+                              //         shape: BoxShape.circle,
+                              //         border: Border.all(
+                              //           color: Colors.white,
+                              //           width: 3,
+                              //         ),
+                              //       ),
+                              //       child: const Icon(
+                              //         Icons.edit,
+                              //         color: Colors.white,
+                              //         size: 20,
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),

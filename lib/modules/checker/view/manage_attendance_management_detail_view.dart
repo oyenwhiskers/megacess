@@ -291,12 +291,62 @@ class ManageAttendanceManagementDetailView extends StatelessWidget {
           SecureStorageService(),
         ).fetchUserAttendanceDetail(userId: userId),
         builder: (context, snapshot) {
+          print('FutureBuilder state: ${snapshot.connectionState}');
+          print('Has error: ${snapshot.hasError}');
+          print('Has data: ${snapshot.hasData}');
+          if (snapshot.hasError) {
+            print('Error: ${snapshot.error}');
+          }
+          if (snapshot.hasData) {
+            print('Data: ${snapshot.data}');
+            print('Data.data: ${snapshot.data?.data}');
+          }
+          
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError ||
-              !snapshot.hasData ||
-              snapshot.data!.data == null) {
-            return const Center(child: Text('Failed to load user details.'));
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data?.data == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.info, color: Colors.orange, size: 48),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No user data found.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
+            );
           }
           final user = snapshot.data!.data!;
           return SafeArea(
@@ -386,6 +436,10 @@ class ManageAttendanceManagementDetailView extends StatelessWidget {
                         ),
                       ),
                       Text(
+                        'Nickname: ${user.userNickname ?? '-'}',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      Text(
                         'Gender: ${user.userGender ?? '-'}',
                         style: const TextStyle(fontSize: 15),
                       ),
@@ -395,6 +449,14 @@ class ManageAttendanceManagementDetailView extends StatelessWidget {
                       ),
                       Text(
                         'Phone Number: ${user.userPhone ?? '-'}',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      Text(
+                        'IC Number: ${user.userIc ?? '-'}',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      Text(
+                        'Staff Count: ${user.staffCount ?? '-'}',
                         style: const TextStyle(fontSize: 15),
                       ),
                       Text(

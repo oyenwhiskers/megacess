@@ -100,10 +100,31 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     });
     try {
       final response = await _service.fetchLocationTasks(widget.locationId);
-      _location = response.location;
-      _tasks = response.tasks;
-      _filteredTasks =
-          response.tasks; // Initialize filtered tasks with all tasks
+      // Since response is List<Map<String, dynamic>>, we'll treat it as tasks
+      _tasks = response.map((taskData) => TaskDetail(
+        id: taskData['id'] ?? 0,
+        location: TaskLocation(
+          id: taskData['location_id'] ?? widget.locationId,
+          name: taskData['location_name'] ?? widget.locationName,
+        ),
+        taskName: taskData['task_name'] ?? taskData['name'] ?? 'Unknown Task',
+        taskType: taskData['task_type'] ?? taskData['type'] ?? 'General',
+        taskDate: taskData['task_date'] ?? taskData['date'] ?? '',
+        taskStatus: taskData['task_status'] ?? taskData['status'] ?? 'pending',
+        createdBy: TaskCreator(
+          id: taskData['created_by_id'] ?? 0,
+          name: taskData['created_by_name'] ?? taskData['created_by'] ?? 'Unknown',
+        ),
+        workers: [], // Initialize with empty workers list
+        taskMeta: [], // Initialize with empty taskMeta list
+        createdAt: taskData['created_at'] != null 
+            ? DateTime.tryParse(taskData['created_at']) ?? DateTime.now()
+            : DateTime.now(),
+        updatedAt: taskData['updated_at'] != null 
+            ? DateTime.tryParse(taskData['updated_at']) ?? DateTime.now()
+            : DateTime.now(),
+      )).toList();
+      _filteredTasks = _tasks; // Initialize filtered tasks with all tasks
       setState(() {
         _isLoading = false;
       });
@@ -120,8 +141,30 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     try {
       final response = await _service.fetchLocationTasks(widget.locationId);
       setState(() {
-        _location = response.location;
-        _tasks = response.tasks;
+        // Since response is List<Map<String, dynamic>>, we'll treat it as tasks
+        _tasks = response.map((taskData) => TaskDetail(
+          id: taskData['id'] ?? 0,
+          location: TaskLocation(
+            id: taskData['location_id'] ?? widget.locationId,
+            name: taskData['location_name'] ?? widget.locationName,
+          ),
+          taskName: taskData['task_name'] ?? taskData['name'] ?? 'Unknown Task',
+          taskType: taskData['task_type'] ?? taskData['type'] ?? 'General',
+          taskDate: taskData['task_date'] ?? taskData['date'] ?? '',
+          taskStatus: taskData['task_status'] ?? taskData['status'] ?? 'pending',
+          createdBy: TaskCreator(
+            id: taskData['created_by_id'] ?? 0,
+            name: taskData['created_by_name'] ?? taskData['created_by'] ?? 'Unknown',
+          ),
+          workers: [], // Initialize with empty workers list
+          taskMeta: [], // Initialize with empty taskMeta list
+          createdAt: taskData['created_at'] != null 
+              ? DateTime.tryParse(taskData['created_at']) ?? DateTime.now()
+              : DateTime.now(),
+          updatedAt: taskData['updated_at'] != null 
+              ? DateTime.tryParse(taskData['updated_at']) ?? DateTime.now()
+              : DateTime.now(),
+        )).toList();
         // Re-apply current filters to the updated task list
         _filterTasks();
       });

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../data/service/manager_service.dart';
-import '../data/model/manager_models.dart';
 import '../../authorization/view/login_view.dart';
 import '../../utility/secure_storage_service.dart';
 import 'location_view.dart';
@@ -18,8 +17,28 @@ class ManagerView extends StatefulWidget {
 
 class _ManagerViewState extends State<ManagerView> {
   final ManagerService _managerService = ManagerService();
-  ManagerStats? _stats;
+  int _totalInProgress = 0;
+  int _totalCompleted = 0;
   bool _isLoading = true;
+  Map<String, dynamic>? _profile;
+
+  String? _getFullImageUrl(String? userImg) {
+    if (userImg == null || userImg.isEmpty) {
+      return null;
+    }
+    
+    // Check if the URL already starts with http:// or https://
+    if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
+      return userImg;
+    }
+    
+    // If not, prepend the base URL
+    return 'https://mwms.megacess.com/$userImg';
+  }
+
+  String? get _profileImageUrl {
+    return _getFullImageUrl(_profile?['user_img']);
+  }
 
   @override
   void initState() {
@@ -29,9 +48,20 @@ class _ManagerViewState extends State<ManagerView> {
 
   Future<void> _loadData() async {
     try {
-      final stats = await _managerService.getManagerStats();
+      final analyticsData = await _managerService.fetchManagerAnalytics();
+      final taskAnalytics = analyticsData['data']?['task_analytics'] ?? {};
+      
+      // Fetch profile data
+      final profile = await _managerService.fetchProfile();
+      
       setState(() {
-        _stats = stats;
+        _totalInProgress = taskAnalytics['in_progress'] ?? 0;
+        _totalCompleted = taskAnalytics['completed'] ?? 0;
+        _profile = {
+          'user_img': profile.userImg,
+          'user_nickname': profile.userNickname,
+          'user_fullname': profile.userFullname,
+        };
         _isLoading = false;
       });
     } catch (e) {
@@ -90,15 +120,18 @@ class _ManagerViewState extends State<ManagerView> {
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Header section
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 20,
+                          horizontal: 18,
+                          vertical: 16,
                         ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
@@ -117,7 +150,7 @@ class _ManagerViewState extends State<ManagerView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Hello, ${widget.managerName}',
+                              'Hello, ${_profile?['user_nickname'] ?? widget.managerName}',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -132,13 +165,18 @@ class _ManagerViewState extends State<ManagerView> {
                                   ),
                                 );
                               },
-                              child: const CircleAvatar(
+                              child: CircleAvatar(
                                 backgroundColor: Colors.white,
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.grey,
-                                  size: 28,
-                                ),
+                                backgroundImage: _profileImageUrl != null
+                                    ? NetworkImage(_profileImageUrl!)
+                                    : null,
+                                child: _profileImageUrl == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.grey,
+                                        size: 28,
+                                      )
+                                    : null,
                               ),
                             ),
                           ],
@@ -148,10 +186,8 @@ class _ManagerViewState extends State<ManagerView> {
                       const SizedBox(height: 18),
 
                       // Content area
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          children: [
+                      Column(
+                        children: [
                             // Statistics Cards
                             Column(
                               children: [
@@ -190,7 +226,7 @@ class _ManagerViewState extends State<ManagerView> {
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          '${_stats?.totalInProgress ?? 27}',
+                                          '$_totalInProgress',
                                           style: const TextStyle(
                                             fontSize: 28,
                                             fontWeight: FontWeight.bold,
@@ -237,7 +273,7 @@ class _ManagerViewState extends State<ManagerView> {
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          '${_stats?.totalCompleted ?? 67}',
+                                          '$_totalCompleted',
                                           style: const TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
@@ -323,14 +359,11 @@ class _ManagerViewState extends State<ManagerView> {
                             ),
                           ],
                         ),
-                      ),
 
                       const SizedBox(height: 24),
 
                       // Logout Button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: ElevatedButton.icon(
+                      ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,
@@ -350,7 +383,6 @@ class _ManagerViewState extends State<ManagerView> {
                           ),
                           onPressed: _logout,
                         ),
-                      ),
                     ],
                   ),
                 ),

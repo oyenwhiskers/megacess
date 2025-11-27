@@ -89,15 +89,21 @@ class AttendanceService {
     required int userId,
   }) async {
     try {
-      final response = await dioClient.get('api/v1/user-attendance/$userId');
+      print('Fetching user detail for userId: $userId');
+      final response = await dioClient.get('api/v1/users/$userId');
+      print('User detail API response: ${response.data}');
+      
       if (response.data is Map && response.data['success'] == true) {
         return UserAttendanceDetailResponse.fromJson(response.data);
       } else {
+        print('API returned unsuccessful response: ${response.data}');
         throw Exception(
           response.data['message'] ?? 'Failed to fetch user attendance detail',
         );
       }
     } on DioError catch (e) {
+      print('DioError in fetchUserAttendanceDetail: ${e.message}');
+      print('DioError response: ${e.response?.data}');
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ??

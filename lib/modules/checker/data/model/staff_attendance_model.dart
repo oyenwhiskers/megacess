@@ -20,9 +20,17 @@ class StaffAttendanceItem {
   });
 
   factory StaffAttendanceItem.fromJson(Map<String, dynamic> json) {
+    String imageUrl = json['staff_img'] ?? '';
+    
+    // Add base URL if the image path is relative (starts with /storage/)
+    if (imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
+      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      print('Converted relative image path to: $imageUrl');
+    }
+    
     return StaffAttendanceItem(
       staffId: json['id'] ?? json['staff_id'] ?? 0,
-      staffImg: json['staff_img'] ?? '',
+      staffImg: imageUrl,
       staffName: json['staff_fullname'] ?? json['staff_name'] ?? '',
       status: json['status'] ?? 'Absent',
       checkIn: json['check_in'],

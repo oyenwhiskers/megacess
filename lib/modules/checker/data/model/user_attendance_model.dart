@@ -20,9 +20,17 @@ class UserAttendanceItem {
   });
 
   factory UserAttendanceItem.fromJson(Map<String, dynamic> json) {
+    String imageUrl = json['user_img'] ?? '';
+    
+    // Add base URL if the image path is relative (starts with /storage/)
+    if (imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
+      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      print('Converted relative user image path to: $imageUrl');
+    }
+    
     return UserAttendanceItem(
       userId: json['user_id'] ?? 0,
-      userImg: json['user_img'] ?? '',
+      userImg: imageUrl,
       userName: json['user_name'] ?? '',
       status: json['status'] ?? '',
       checkIn: json['check_in'],

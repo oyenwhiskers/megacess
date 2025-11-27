@@ -71,7 +71,7 @@ class _ManagerViewState extends State<ManagerView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Hello, ${widget.managerName}',
+                          'Hello, ${_viewModel.profile?['user_nickname'] ?? widget.managerName}',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -91,11 +91,16 @@ class _ManagerViewState extends State<ManagerView> {
                               child: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 radius: 22,
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.grey[700],
-                                  size: 28,
-                                ),
+                                backgroundImage: _viewModel.profileImageUrl != null
+                                    ? NetworkImage(_viewModel.profileImageUrl!)
+                                    : null,
+                                child: _viewModel.profileImageUrl == null
+                                    ? Icon(
+                                        Icons.person,
+                                        color: Colors.grey[700],
+                                        size: 28,
+                                      )
+                                    : null,
                               ),
                             ),
                           ],

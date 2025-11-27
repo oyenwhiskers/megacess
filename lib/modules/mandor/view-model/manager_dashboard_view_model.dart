@@ -13,6 +13,7 @@ class ManagerDashboardViewModel {
 
   final ManagerDashboardService _service = ManagerDashboardService();
   TaskAnalytics? analytics;
+  Map<String, dynamic>? profile;
   bool isLoading = false;
   String? errorMessage;
 
@@ -21,6 +22,7 @@ class ManagerDashboardViewModel {
     errorMessage = null;
     try {
       analytics = await _service.fetchTaskAnalytics();
+      profile = await _service.fetchProfile();
       if (analytics == null) {
         errorMessage = 'Failed to load analytics.';
       }
@@ -28,5 +30,23 @@ class ManagerDashboardViewModel {
       errorMessage = 'Error: $e';
     }
     isLoading = false;
+  }
+
+  String? _getFullImageUrl(String? userImg) {
+    if (userImg == null || userImg.isEmpty) {
+      return null;
+    }
+    
+    // Check if the URL already starts with http:// or https://
+    if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
+      return userImg;
+    }
+    
+    // If not, prepend the base URL
+    return 'https://mwms.megacess.com/$userImg';
+  }
+
+  String? get profileImageUrl {
+    return _getFullImageUrl(profile?['user_img']);
   }
 }

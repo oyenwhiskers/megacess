@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Megacess App Icon Generator</title>
+</head>
+<body>
+    <canvas id="iconCanvas" width="1024" height="1024"></canvas>
+    <script>
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Fill background with white
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 1024, 1024);
+        
+        // Draw green circle background
+        ctx.beginPath();
+        ctx.arc(512, 512, 480, 0, 2 * Math.PI);
+        ctx.fillStyle = '#43C463'; // Green color
+        ctx.fill();
+        
+        // Draw letter "M" in white
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 600px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('M', 512, 512);
+        
+        // Create download link
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'app_icon.png';
+            a.textContent = 'Download App Icon';
+            a.style.position = 'absolute';
+            a.style.top = '1050px';
+            a.style.left = '50%';
+            a.style.transform = 'translateX(-50%)';
+            a.style.padding = '10px 20px';
+            a.style.backgroundColor = '#43C463';
+            a.style.color = 'white';
+            a.style.textDecoration = 'none';
+            a.style.borderRadius = '5px';
+            document.body.appendChild(a);
+        });
+    </script>
+</body>
+</html>
