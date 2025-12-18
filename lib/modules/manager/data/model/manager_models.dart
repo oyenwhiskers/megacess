@@ -483,3 +483,84 @@ class ManagerProfile {
     };
   }
 }
+
+// Worker Tasks Breakdown Models
+class WorkerTask {
+  final int id;
+  final String taskName;
+  final String taskType;
+  final String taskDate;
+  final String taskStatus;
+  final TaskLocation location;
+  final Map<String, dynamic> meta;
+
+  WorkerTask({
+    required this.id,
+    required this.taskName,
+    required this.taskType,
+    required this.taskDate,
+    required this.taskStatus,
+    required this.location,
+    required this.meta,
+  });
+
+  factory WorkerTask.fromJson(Map<String, dynamic> json) {
+    return WorkerTask(
+      id: json['id'] ?? 0,
+      taskName: json['task_name'] ?? '',
+      taskType: json['task_type'] ?? '',
+      taskDate: json['task_date'] ?? '',
+      taskStatus: json['task_status'] ?? '',
+      location: TaskLocation.fromJson(json['location'] ?? {}),
+      meta: json['meta'] ?? {},
+    );
+  }
+}
+
+class WorkerWithTasks {
+  final int workerId;
+  final String workerName;
+  final String workerPhone;
+  final List<WorkerTask> tasks;
+  final int totalTasks;
+
+  WorkerWithTasks({
+    required this.workerId,
+    required this.workerName,
+    required this.workerPhone,
+    required this.tasks,
+    required this.totalTasks,
+  });
+
+  factory WorkerWithTasks.fromJson(Map<String, dynamic> json) {
+    return WorkerWithTasks(
+      workerId: json['worker_id'] ?? 0,
+      workerName: json['worker_name'] ?? '',
+      workerPhone: json['worker_phone'] ?? '',
+      tasks: (json['tasks'] as List<dynamic>? ?? [])
+          .map((t) => WorkerTask.fromJson(t))
+          .toList(),
+      totalTasks: json['total_tasks'] ?? 0,
+    );
+  }
+}
+
+class LocationTasksBreakdownResponse {
+  final LocationItem location;
+  final List<WorkerWithTasks> workers;
+
+  LocationTasksBreakdownResponse({
+    required this.location,
+    required this.workers,
+  });
+
+  factory LocationTasksBreakdownResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? {};
+    return LocationTasksBreakdownResponse(
+      location: LocationItem.fromJson(data['location'] ?? {}),
+      workers: (data['workers'] as List<dynamic>? ?? [])
+          .map((w) => WorkerWithTasks.fromJson(w))
+          .toList(),
+    );
+  }
+}

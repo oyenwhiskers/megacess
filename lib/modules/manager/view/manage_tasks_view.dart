@@ -21,8 +21,8 @@ class _ManageTasksViewState extends State<ManageTasksView> {
   bool _isLoading = true;
   String? _error;
   LocationItem? _location;
-  List<TaskDetail> _tasks = [];
-  List<TaskDetail> _filteredTasks = [];
+  List<WorkerWithTasks> _workers = [];
+  List<WorkerWithTasks> _filteredWorkers = [];
   final TextEditingController _searchController = TextEditingController();
 
   // Filter variables
@@ -44,34 +44,41 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     _fetchDetail();
 
     // Add listener to search controller for real-time filtering
-    _searchController.addListener(_filterTasks);
+    _searchController.addListener(_filterWorkers);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterTasks);
+    _searchController.removeListener(_filterWorkers);
     _searchController.dispose();
     super.dispose();
   }
 
-  void _filterTasks() {
+  void _filterWorkers() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredTasks = _tasks.where((task) {
-        // Filter by search query
+      _filteredWorkers = _workers.where((worker) {
+        // Filter by search query (worker name)
         bool matchesSearch =
-            query.isEmpty || task.taskName.toLowerCase().contains(query);
+            query.isEmpty || worker.workerName.toLowerCase().contains(query);
 
-        // Filter by task type
+        // Filter by task type (check if worker has any task matching the type)
         bool matchesTaskType =
             _selectedTaskType == null ||
-            task.taskType.toLowerCase() == _selectedTaskType!.toLowerCase();
+            worker.tasks.any(
+              (task) =>
+                  task.taskType.toLowerCase() ==
+                  _selectedTaskType!.toLowerCase(),
+            );
 
-        // Filter by status
+        // Filter by status (check if worker has any task matching the status)
         bool matchesStatus =
             _selectedStatus == null ||
-            task.taskStatus.toLowerCase() ==
-                _selectedStatus!.toLowerCase().replaceAll('-', '_');
+            worker.tasks.any(
+              (task) =>
+                  task.taskStatus.toLowerCase() ==
+                  _selectedStatus!.toLowerCase().replaceAll('-', '_'),
+            );
 
         return matchesSearch && matchesTaskType && matchesStatus;
       }).toList();
@@ -79,7 +86,7 @@ class _ManageTasksViewState extends State<ManageTasksView> {
   }
 
   void _applyFilters() {
-    _filterTasks();
+    _filterWorkers();
     setState(() {
       _showFilterOptions = false;
     });
@@ -90,7 +97,151 @@ class _ManageTasksViewState extends State<ManageTasksView> {
       _selectedTaskType = null;
       _selectedStatus = null;
     });
-    _filterTasks();
+    _filterWorkers();
+  }
+
+  void _showWorkerTasksDialog(WorkerWithTasks worker) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF43C463),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(18),
+                    topRight: Radius.circular(18),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            worker.workerName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            worker.workerPhone,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: worker.tasks.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final task = worker.tasks[index];
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildTaskTypeBadge(task.taskType),
+                              const Spacer(),
+                              _buildStatusBadge(task.taskStatus),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            task.taskName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                task.taskDate,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (task.meta.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            const Divider(height: 1),
+                            const SizedBox(height: 8),
+                            ...task.meta.entries.map((entry) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${entry.key.replaceAll('_', ' ')}: ',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      entry.value.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _fetchDetail() async {
@@ -99,32 +250,13 @@ class _ManageTasksViewState extends State<ManageTasksView> {
       _error = null;
     });
     try {
-      final response = await _service.fetchLocationTasks(widget.locationId);
-      // Since response is List<Map<String, dynamic>>, we'll treat it as tasks
-      _tasks = response.map((taskData) => TaskDetail(
-        id: taskData['id'] ?? 0,
-        location: TaskLocation(
-          id: taskData['location_id'] ?? widget.locationId,
-          name: taskData['location_name'] ?? widget.locationName,
-        ),
-        taskName: taskData['task_name'] ?? taskData['name'] ?? 'Unknown Task',
-        taskType: taskData['task_type'] ?? taskData['type'] ?? 'General',
-        taskDate: taskData['task_date'] ?? taskData['date'] ?? '',
-        taskStatus: taskData['task_status'] ?? taskData['status'] ?? 'pending',
-        createdBy: TaskCreator(
-          id: taskData['created_by_id'] ?? 0,
-          name: taskData['created_by_name'] ?? taskData['created_by'] ?? 'Unknown',
-        ),
-        workers: [], // Initialize with empty workers list
-        taskMeta: [], // Initialize with empty taskMeta list
-        createdAt: taskData['created_at'] != null 
-            ? DateTime.tryParse(taskData['created_at']) ?? DateTime.now()
-            : DateTime.now(),
-        updatedAt: taskData['updated_at'] != null 
-            ? DateTime.tryParse(taskData['updated_at']) ?? DateTime.now()
-            : DateTime.now(),
-      )).toList();
-      _filteredTasks = _tasks; // Initialize filtered tasks with all tasks
+      final response = await _service.fetchLocationTasksBreakdown(
+        widget.locationId,
+      );
+      _location = response.location;
+      _workers = response.workers;
+      _filteredWorkers =
+          _workers; // Initialize filtered workers with all workers
       setState(() {
         _isLoading = false;
       });
@@ -139,34 +271,14 @@ class _ManageTasksViewState extends State<ManageTasksView> {
   Future<void> _refreshData() async {
     // Don't show the loading indicator during refresh
     try {
-      final response = await _service.fetchLocationTasks(widget.locationId);
+      final response = await _service.fetchLocationTasksBreakdown(
+        widget.locationId,
+      );
       setState(() {
-        // Since response is List<Map<String, dynamic>>, we'll treat it as tasks
-        _tasks = response.map((taskData) => TaskDetail(
-          id: taskData['id'] ?? 0,
-          location: TaskLocation(
-            id: taskData['location_id'] ?? widget.locationId,
-            name: taskData['location_name'] ?? widget.locationName,
-          ),
-          taskName: taskData['task_name'] ?? taskData['name'] ?? 'Unknown Task',
-          taskType: taskData['task_type'] ?? taskData['type'] ?? 'General',
-          taskDate: taskData['task_date'] ?? taskData['date'] ?? '',
-          taskStatus: taskData['task_status'] ?? taskData['status'] ?? 'pending',
-          createdBy: TaskCreator(
-            id: taskData['created_by_id'] ?? 0,
-            name: taskData['created_by_name'] ?? taskData['created_by'] ?? 'Unknown',
-          ),
-          workers: [], // Initialize with empty workers list
-          taskMeta: [], // Initialize with empty taskMeta list
-          createdAt: taskData['created_at'] != null 
-              ? DateTime.tryParse(taskData['created_at']) ?? DateTime.now()
-              : DateTime.now(),
-          updatedAt: taskData['updated_at'] != null 
-              ? DateTime.tryParse(taskData['updated_at']) ?? DateTime.now()
-              : DateTime.now(),
-        )).toList();
-        // Re-apply current filters to the updated task list
-        _filterTasks();
+        _location = response.location;
+        _workers = response.workers;
+        // Re-apply current filters to the updated workers list
+        _filterWorkers();
       });
       return;
     } catch (e) {
@@ -328,9 +440,12 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                             ),
                           ),
                           const Spacer(),
-                          Text('Total Tasks: ', style: TextStyle(fontSize: 14)),
                           Text(
-                            '${_tasks.length}',
+                            'Total Workers: ',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            '${_workers.length}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -354,7 +469,7 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                               child: TextField(
                                 controller: _searchController,
                                 decoration: InputDecoration(
-                                  hintText: 'Enter task name..',
+                                  hintText: 'Enter worker name..',
                                   border: InputBorder.none,
                                   isDense: true,
                                   prefixIcon: Icon(
@@ -579,7 +694,7 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        'List of existing tasks',
+                        'List of workers',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -587,38 +702,30 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: _filteredTasks.isEmpty
+                        child: _filteredWorkers.isEmpty
                             ? Center(
                                 child: Text(
                                   _searchController.text.isEmpty
-                                      ? 'No tasks found.'
-                                      : 'No matching tasks found for "${_searchController.text}"',
+                                      ? 'No workers found.'
+                                      : 'No matching workers found for "${_searchController.text}"',
                                 ),
                               )
                             : RefreshIndicator(
                                 onRefresh: _refreshData,
                                 child: ListView.separated(
-                                  itemCount: _filteredTasks.length,
+                                  itemCount: _filteredWorkers.length,
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(height: 12),
                                   itemBuilder: (context, idx) {
-                                    final task = _filteredTasks[idx];
+                                    final worker = _filteredWorkers[idx];
                                     return InkWell(
                                       onTap: () async {
-                                        // TODO: Navigate to task detail page
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'View task: ${task.taskName}',
-                                            ),
-                                          ),
-                                        );
+                                        // Show worker tasks detail
+                                        _showWorkerTasksDialog(worker);
                                       },
                                       borderRadius: BorderRadius.circular(16),
                                       child: Container(
-                                        padding: const EdgeInsets.all(12),
+                                        padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius: BorderRadius.circular(
@@ -640,31 +747,96 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                           children: [
                                             Row(
                                               children: [
-                                                _buildTaskTypeBadge(
-                                                  task.taskType,
+                                                Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF43C463,
+                                                    ),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${idx + 1}',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ),
-                                                const Spacer(),
-                                                _buildStatusBadge(
-                                                  task.taskStatus,
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        worker.workerName,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        worker.workerPhone,
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF43C463,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    '${worker.totalTasks} tasks',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              task.taskName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
+                                            if (worker.tasks.isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              const Divider(height: 1),
+                                              const SizedBox(height: 8),
+                                              Wrap(
+                                                spacing: 6,
+                                                runSpacing: 6,
+                                                children: worker.tasks.map((
+                                                  task,
+                                                ) {
+                                                  return _buildTaskTypeBadge(
+                                                    task.taskType,
+                                                  );
+                                                }).toList(),
                                               ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              'Created at: ${task.createdAt.day.toString().padLeft(2, '0')}/${task.createdAt.month.toString().padLeft(2, '0')}/${task.createdAt.year}, Created by: ${task.createdBy.name}',
-                                              style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 12,
-                                              ),
-                                            ),
+                                            ],
                                           ],
                                         ),
                                       ),

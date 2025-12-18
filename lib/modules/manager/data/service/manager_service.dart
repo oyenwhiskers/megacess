@@ -7,11 +7,12 @@ class ManagerService {
   final DioClient _dioClient;
 
   ManagerService({DioClient? dioClient})
-      : _dioClient = dioClient ??
-            DioClient(
-              baseUrl: 'https://mwms.megacess.com/api/',
-              storageService: SecureStorageService(),
-            );
+    : _dioClient =
+          dioClient ??
+          DioClient(
+            baseUrl: 'https://mwms.megacess.com/api/',
+            storageService: SecureStorageService(),
+          );
 
   // Get manager statistics from real API
   Future<ManagerStats> getManagerStats() async {
@@ -23,7 +24,9 @@ class ManagerService {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return ManagerStats.fromJson(response.data['data']);
       } else {
-        throw Exception('Failed to fetch manager analytics: ${response.data['message'] ?? 'Unknown error'}');
+        throw Exception(
+          'Failed to fetch manager analytics: ${response.data['message'] ?? 'Unknown error'}',
+        );
       }
     } on DioException catch (e) {
       print('DioException in getManagerStats: ${e.message}');
@@ -111,20 +114,27 @@ class ManagerService {
   }
 
   // Task management methods
-  Future<List<Map<String, dynamic>>> fetchLocationTasks(int locationId) async {
+  Future<LocationTasksBreakdownResponse> fetchLocationTasksBreakdown(
+    int locationId,
+  ) async {
     try {
-      final response = await _dioClient.get('v1/locations/$locationId/tasks');
+      final response = await _dioClient.get(
+        'v1/tasks/location/$locationId/breakdown-by-location',
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
-        return List<Map<String, dynamic>>.from(response.data['data'] ?? []);
+        return LocationTasksBreakdownResponse.fromJson(response.data);
       }
-      throw Exception('Failed to fetch location tasks');
+      throw Exception('Failed to fetch location tasks breakdown');
     } on DioException catch (e) {
       if (e.response != null) {
         throw Exception(
-          e.response?.data['message'] ?? 'Failed to fetch location tasks',
+          e.response?.data['message'] ??
+              'Failed to fetch location tasks breakdown',
         );
       }
-      throw Exception('Network error: Failed to fetch location tasks');
+      throw Exception(
+        'Network error: Failed to fetch location tasks breakdown',
+      );
     }
   }
 
@@ -149,10 +159,10 @@ class ManagerService {
 
   Future<LocationItem> createLocation(String name, String description) async {
     try {
-      final response = await _dioClient.post('v1/locations', data: {
-        'name': name,
-        'description': description,
-      });
+      final response = await _dioClient.post(
+        'v1/locations',
+        data: {'name': name, 'description': description},
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return LocationItem.fromJson(response.data['data']);
       }
@@ -187,10 +197,10 @@ class ManagerService {
     String description,
   ) async {
     try {
-      final response = await _dioClient.put('v1/locations/$locationId', data: {
-        'name': name,
-        'description': description,
-      });
+      final response = await _dioClient.put(
+        'v1/locations/$locationId',
+        data: {'name': name, 'description': description},
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return LocationItem.fromJson(response.data['data']);
       }
