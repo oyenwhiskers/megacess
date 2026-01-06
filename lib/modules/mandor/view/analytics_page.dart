@@ -278,15 +278,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     color: Colors.blue,
                     icon: Icons.water_drop,
                   ),
-                  _buildUsageCard(
-                    title: 'Fuel Usage',
-                    totalAmount:
-                        _analytics!.usageAnalytics.fuelUsage.totalAmount,
-                    unit: _analytics!.usageAnalytics.fuelUsage.unit,
-                    taskCount: _analytics!.usageAnalytics.fuelUsage.taskCount,
-                    color: Colors.orange,
-                    icon: Icons.local_gas_station,
-                  ),
                   const SizedBox(height: 16),
                 ],
               ),
