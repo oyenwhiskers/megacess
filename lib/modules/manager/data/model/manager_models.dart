@@ -505,6 +505,17 @@ class WorkerTask {
   });
 
   factory WorkerTask.fromJson(Map<String, dynamic> json) {
+    // Handle meta field - can be Map or List from API
+    Map<String, dynamic> metaData = {};
+    if (json['meta'] != null) {
+      if (json['meta'] is Map<String, dynamic>) {
+        metaData = json['meta'];
+      } else if (json['meta'] is List) {
+        // If meta is a list, convert it to a map with index as key
+        metaData = {'items': json['meta']};
+      }
+    }
+    
     return WorkerTask(
       id: json['id'] ?? 0,
       taskName: json['task_name'] ?? '',
@@ -512,7 +523,7 @@ class WorkerTask {
       taskDate: json['task_date'] ?? '',
       taskStatus: json['task_status'] ?? '',
       location: TaskLocation.fromJson(json['location'] ?? {}),
-      meta: json['meta'] ?? {},
+      meta: metaData,
     );
   }
 }
