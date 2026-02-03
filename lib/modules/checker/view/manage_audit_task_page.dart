@@ -8,10 +8,10 @@ class ManageAuditTaskPage extends StatefulWidget {
   final int locationId;
   final String locationName;
   const ManageAuditTaskPage({
-    Key? key,
+    super.key,
     required this.locationId,
     required this.locationName,
-  }) : super(key: key);
+  });
 
   @override
   State<ManageAuditTaskPage> createState() => _ManageAuditTaskPageState();

@@ -4,7 +4,7 @@ import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
 
 class AnalyticsView extends StatefulWidget {
-  const AnalyticsView({Key? key}) : super(key: key);
+  const AnalyticsView({super.key});
 
   @override
   State<AnalyticsView> createState() => _AnalyticsViewState();
@@ -87,7 +87,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           // Extract data from the API response structure
           final dataSection = rawData['data'] ?? {};
           final taskAnalyticsData = dataSection['task_analytics'] ?? {};
-          
+
           // Convert the raw data to expected structure
           final taskAnalytics = TaskAnalytics(
             totalTasks: taskAnalyticsData['total_tasks'] ?? 0,
@@ -96,7 +96,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             completed: taskAnalyticsData['completed'] ?? 0,
             rejected: taskAnalyticsData['rejected'] ?? 0,
           );
-          
+
           final pending = taskAnalytics.pending;
           final completed = taskAnalytics.completed;
           final totalTasks = pending + completed;
@@ -325,9 +325,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   FutureBuilder<Map<String, dynamic>>(
                     future: _usageBreakdownFuture,
                     builder: (context, usageSnapshot) {
-                      if (usageSnapshot.connectionState == ConnectionState.waiting) {
+                      if (usageSnapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return const Center(
-                          child: CircularProgressIndicator(color: Color(0xFF43C463)),
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF43C463),
+                          ),
                         );
                       } else if (usageSnapshot.hasError) {
                         return Container(
@@ -347,8 +350,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       }
 
                       final usageData = usageSnapshot.data!['data'] ?? {};
-                      final fertilizerBreakdown = usageData['fertilizer_breakdown'] as List<dynamic>? ?? [];
-                      final herbicideBreakdown = usageData['herbicide_breakdown'] as List<dynamic>? ?? [];
+                      final fertilizerBreakdown =
+                          usageData['fertilizer_breakdown'] as List<dynamic>? ??
+                          [];
+                      final herbicideBreakdown =
+                          usageData['herbicide_breakdown'] as List<dynamic>? ??
+                          [];
 
                       return Column(
                         children: [
@@ -528,14 +535,16 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             ],
           ),
           const SizedBox(height: 16),
-          ...data.map((item) => _buildLocationUsageItem(
-            locationName: item['location_name'] ?? 'Unknown',
-            totalAmount: item['total_amount'] ?? 0,
-            taskCount: item['task_count'] ?? 0,
-            unit: unit,
-            color: color,
-            typeBreakdown: showTypeBreakdown ? item['by_type'] : null,
-          )).toList(),
+          ...data.map(
+            (item) => _buildLocationUsageItem(
+              locationName: item['location_name'] ?? 'Unknown',
+              totalAmount: item['total_amount'] ?? 0,
+              taskCount: item['task_count'] ?? 0,
+              unit: unit,
+              color: color,
+              typeBreakdown: showTypeBreakdown ? item['by_type'] : null,
+            ),
+          ),
         ],
       ),
     );
@@ -584,10 +593,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   ),
                   Text(
                     '$taskCount task${taskCount != 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -602,24 +608,26 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               runSpacing: 4,
               children: typeBreakdown.entries
                   .where((entry) => entry.value['amount'] > 0)
-                  .map((entry) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                  .map(
+                    (entry) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${entry.key}: ${entry.value['amount']} $unit',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: color,
                         ),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '${entry.key}: ${entry.value['amount']} $unit',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: color,
-                          ),
-                        ),
-                      ))
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -627,5 +635,4 @@ class _AnalyticsViewState extends State<AnalyticsView> {
       ),
     );
   }
-
 }

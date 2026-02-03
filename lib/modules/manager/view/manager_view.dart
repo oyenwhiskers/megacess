@@ -9,7 +9,7 @@ import 'manager_profile_page.dart';
 class ManagerView extends StatefulWidget {
   final String managerName;
 
-  const ManagerView({Key? key, required this.managerName}) : super(key: key);
+  const ManagerView({super.key, required this.managerName});
 
   @override
   State<ManagerView> createState() => _ManagerViewState();
@@ -26,12 +26,12 @@ class _ManagerViewState extends State<ManagerView> {
     if (userImg == null || userImg.isEmpty) {
       return null;
     }
-    
+
     // Check if the URL already starts with http:// or https://
     if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
       return userImg;
     }
-    
+
     // If not, prepend the base URL
     return 'https://mwms.megacess.com/$userImg';
   }
@@ -50,10 +50,10 @@ class _ManagerViewState extends State<ManagerView> {
     try {
       final analyticsData = await _managerService.fetchManagerAnalytics();
       final taskAnalytics = analyticsData['data']?['task_analytics'] ?? {};
-      
+
       // Fetch profile data
       final profile = await _managerService.fetchProfile();
-      
+
       setState(() {
         _totalInProgress = taskAnalytics['in_progress'] ?? 0;
         _totalCompleted = taskAnalytics['completed'] ?? 0;
@@ -188,201 +188,201 @@ class _ManagerViewState extends State<ManagerView> {
                       // Content area
                       Column(
                         children: [
-                            // Statistics Cards
-                            Column(
-                              children: [
-                                // Total In-Progress Card
-                                Card(
-                                  elevation: 0,
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 18.0,
-                                      horizontal: 8.0,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text(
-                                              'Total In-Progress',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            const Icon(
-                                              Icons.arrow_forward,
-                                              size: 18,
-                                              color: Color(0xFF43C463),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          '$_totalInProgress',
-                                          style: const TextStyle(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                          // Statistics Cards
+                          Column(
+                            children: [
+                              // Total In-Progress Card
+                              Card(
+                                elevation: 0,
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-
-                                const SizedBox(height: 10),
-
-                                // Total Completed Card
-                                Card(
-                                  elevation: 0,
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 18.0,
+                                    horizontal: 8.0,
                                   ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14.0,
-                                      horizontal: 8.0,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Color(0xFF43C463),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'Total In-Progress',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
                                             ),
-                                            const SizedBox(width: 6),
-                                            const Text(
-                                              'Total Completed',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          '$_totalCompleted',
-                                          style: const TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          const Icon(
+                                            Icons.arrow_forward,
+                                            size: 18,
                                             color: Color(0xFF43C463),
                                           ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '$_totalInProgress',
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
 
-                            const SizedBox(height: 14),
+                              const SizedBox(height: 10),
 
-                            // Modules Section
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Modules:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                              // Total Completed Card
+                              Card(
+                                elevation: 0,
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14.0,
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Color(0xFF43C463),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          const Text(
+                                            'Total Completed',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '$_totalCompleted',
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF43C463),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Modules Section
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Modules:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
                             ),
+                          ),
 
-                            const SizedBox(height: 8),
+                          const SizedBox(height: 8),
 
-                            // Module Items
-                            Card(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              color: Colors.white,
-                              child: ListTile(
-                                leading: const Icon(
-                                  Icons.location_on,
-                                  color: Colors.teal,
-                                  size: 26,
-                                ),
-                                title: const Text(
-                                  'View Tasks',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const LocationView(),
-                                    ),
-                                  );
-                                },
-                              ),
+                          // Module Items
+                          Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-
-                            Card(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.location_on,
+                                color: Colors.teal,
+                                size: 26,
                               ),
-                              color: Colors.white,
-                              child: ListTile(
-                                leading: const Icon(
-                                  Icons.analytics,
-                                  color: Colors.teal,
-                                  size: 26,
-                                ),
-                                title: const Text(
-                                  'Analytics',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const AnalyticsView(),
-                                    ),
-                                  );
-                                },
+                              title: const Text(
+                                'View Tasks',
+                                style: TextStyle(fontSize: 15),
                               ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LocationView(),
+                                  ),
+                                );
+                              },
                             ),
-                          ],
-                        ),
+                          ),
+
+                          Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            color: Colors.white,
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.analytics,
+                                color: Colors.teal,
+                                size: 26,
+                              ),
+                              title: const Text(
+                                'Analytics',
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const AnalyticsView(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
 
                       const SizedBox(height: 24),
 
                       // Logout Button
                       ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          icon: const Icon(Icons.logout),
-                          label: const Text(
-                            'LOG OUT',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          onPressed: _logout,
+                          elevation: 0,
                         ),
+                        icon: const Icon(Icons.logout),
+                        label: const Text(
+                          'LOG OUT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        onPressed: _logout,
+                      ),
                     ],
                   ),
                 ),

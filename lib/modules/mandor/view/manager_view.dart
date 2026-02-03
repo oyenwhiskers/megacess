@@ -8,8 +8,7 @@ import '../../authorization/view/login_view.dart';
 
 class ManagerView extends StatefulWidget {
   final String managerName;
-  const ManagerView({Key? key, this.managerName = 'manager_name'})
-    : super(key: key);
+  const ManagerView({super.key, this.managerName = 'manager_name'});
 
   @override
   State<ManagerView> createState() => _ManagerViewState();
@@ -91,7 +90,8 @@ class _ManagerViewState extends State<ManagerView> {
                               child: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 radius: 22,
-                                backgroundImage: _viewModel.profileImageUrl != null
+                                backgroundImage:
+                                    _viewModel.profileImageUrl != null
                                     ? NetworkImage(_viewModel.profileImageUrl!)
                                     : null,
                                 child: _viewModel.profileImageUrl == null

@@ -13,8 +13,7 @@ import 'checker_profile_page.dart';
 class CheckerView extends StatefulWidget {
   final String checkerName;
 
-  const CheckerView({Key? key, this.checkerName = 'checker_name'})
-    : super(key: key);
+  const CheckerView({super.key, this.checkerName = 'checker_name'});
 
   @override
   State<CheckerView> createState() => _CheckerViewState();
@@ -29,12 +28,12 @@ class _CheckerViewState extends State<CheckerView> {
     if (userImg == null || userImg.isEmpty) {
       return null;
     }
-    
+
     // Check if the URL already starts with http:// or https://
     if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
       return userImg;
     }
-    
+
     // If not, prepend the base URL
     return 'https://mwms.megacess.com/$userImg';
   }
@@ -129,140 +128,370 @@ class _CheckerViewState extends State<CheckerView> {
                       vertical: 8.0,
                     ),
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(24),
-                            bottomRight: Radius.circular(24),
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Hello, ${_profile?['user_nickname'] ?? widget.checkerName}',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Stack(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const CheckerProfilePage(),
-                                      ),
-                                    );
-                                  },
-                                  child: CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    radius: 22,
-                                    backgroundImage: _profileImageUrl != null
-                                        ? NetworkImage(_profileImageUrl!)
-                                        : null,
-                                    child: _profileImageUrl == null
-                                        ? Icon(
-                                            Icons.person,
-                                            color: Colors.grey[700],
-                                            size: 28,
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Days before payroll
-                      Card(
-                        elevation: 2,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Padding(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 18.0,
-                            horizontal: 8.0,
+                            horizontal: 18,
+                            vertical: 16,
                           ),
-                          child: Column(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
+                              bottomRight: Radius.circular(24),
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                              Text(
+                                'Hello, ${_profile?['user_nickname'] ?? widget.checkerName}',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Stack(
                                 children: [
-                                  const Text(
-                                    'Days before payroll',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const CheckerProfilePage(),
+                                        ),
+                                      );
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.white,
+                                      radius: 22,
+                                      backgroundImage: _profileImageUrl != null
+                                          ? NetworkImage(_profileImageUrl!)
+                                          : null,
+                                      child: _profileImageUrl == null
+                                          ? Icon(
+                                              Icons.person,
+                                              color: Colors.grey[700],
+                                              size: 28,
+                                            )
+                                          : null,
                                     ),
                                   ),
-                                  SizedBox(width: 6),
-                                  const Icon(
-                                    Icons.payments,
-                                    size: 18,
-                                    color: Colors.purple,
-                                  ),
                                 ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${data.timeUntilPayroll}',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      
-                      // Pending Approval
-                      Card(
-                        elevation: 1,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12.0,
+                        const SizedBox(height: 16),
+
+                        // Days before payroll
+                        Card(
+                          elevation: 2,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
                           ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.pause_circle_filled,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 18.0,
+                              horizontal: 8.0,
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Days before payroll',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    const Icon(
+                                      Icons.payments,
+                                      size: 18,
+                                      color: Colors.purple,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${data.timeUntilPayroll}',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Pending Approval
+                        Card(
+                          elevation: 1,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.pause_circle_filled,
+                                      color: Colors.amber,
+                                    ),
+                                    SizedBox(width: 6),
+                                    const Text(
+                                      'Pending Approval',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${data.pendingTaskCount}',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
                                     color: Colors.amber,
                                   ),
-                                  SizedBox(width: 6),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+
+                        // Absent & Completed
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Card(
+                                elevation: 1,
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.remove_circle,
+                                            color: Colors.red,
+                                          ),
+                                          SizedBox(width: 4),
+                                          const Text(
+                                            'Absent',
+                                            style: TextStyle(fontSize: 13),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${data.absentPeopleCount}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Card(
+                                elevation: 1,
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                          ),
+                                          SizedBox(width: 4),
+                                          const Text(
+                                            'Completed',
+                                            style: TextStyle(fontSize: 13),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${data.completeTaskCount}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Modules Section
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Modules:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Module Cards
+                        Card(
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          color: Colors.white,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.verified_user,
+                              color: Colors.teal,
+                              size: 26,
+                            ),
+                            title: const Text(
+                              'Check Attendance',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ManageAttendanceView(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Card(
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          color: Colors.white,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.assignment,
+                              color: Colors.teal,
+                              size: 26,
+                            ),
+                            title: const Text(
+                              'Audit Tasks',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AuditTasksPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Card(
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          color: Colors.white,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.bar_chart,
+                              color: Colors.teal,
+                              size: 26,
+                            ),
+                            title: const Text(
+                              'Analytics',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AnalyticsView(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+
+                        // Logout Button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 16.0,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 46,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: _logout,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.logout, size: 20),
+                                  const SizedBox(width: 8),
                                   const Text(
-                                    'Pending Approval',
+                                    'LOG OUT',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
@@ -270,247 +499,12 @@ class _CheckerViewState extends State<CheckerView> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${data.pendingTaskCount}',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      
-                      // Absent & Completed
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Card(
-                              elevation: 1,
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.remove_circle,
-                                          color: Colors.red,
-                                        ),
-                                        SizedBox(width: 4),
-                                        const Text(
-                                          'Absent',
-                                          style: TextStyle(fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${data.absentPeopleCount}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Card(
-                              elevation: 1,
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.check_circle,
-                                          color: Colors.green,
-                                        ),
-                                        SizedBox(width: 4),
-                                        const Text(
-                                          'Completed',
-                                          style: TextStyle(fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${data.completeTaskCount}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      
-                      // Modules Section
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Modules:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      
-                      // Module Cards
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        color: Colors.white,
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.verified_user,
-                            color: Colors.teal,
-                            size: 26,
-                          ),
-                          title: const Text(
-                            'Check Attendance',
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const ManageAttendanceView(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        color: Colors.white,
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.assignment,
-                            color: Colors.teal,
-                            size: 26,
-                          ),
-                          title: const Text(
-                            'Audit Tasks',
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const AuditTasksPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        color: Colors.white,
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.bar_chart,
-                            color: Colors.teal,
-                            size: 26,
-                          ),
-                          title: const Text(
-                            'Analytics',
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const AnalyticsView(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      
-                      // Logout Button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4.0,
-                          vertical: 16.0,
-                        ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 46,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              elevation: 0,
-                            ),
-                            onPressed: _logout,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.logout, size: 20),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'LOG OUT',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 ),
               );
               // (Removed duplicate/invalid _logout at the end of the file)

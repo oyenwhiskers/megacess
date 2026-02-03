@@ -5,7 +5,7 @@ import '../data/model/staff_brief_model.dart';
 
 class AddWorkerPage extends StatefulWidget {
   final int taskId;
-  const AddWorkerPage({Key? key, required this.taskId}) : super(key: key);
+  const AddWorkerPage({super.key, required this.taskId});
 
   @override
   State<AddWorkerPage> createState() => _AddWorkerPageState();

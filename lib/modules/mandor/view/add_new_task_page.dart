@@ -5,10 +5,10 @@ class AddNewTaskPage extends StatefulWidget {
   final int locationId;
   final String locationName;
   const AddNewTaskPage({
-    Key? key,
+    super.key,
     required this.locationId,
     required this.locationName,
-  }) : super(key: key);
+  });
 
   @override
   State<AddNewTaskPage> createState() => _AddNewTaskPageState();
@@ -34,8 +34,9 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() ||
         _selectedType == null ||
-        _selectedDate == null)
+        _selectedDate == null) {
       return;
+    }
     setState(() {
       _isSubmitting = true;
       _error = null;

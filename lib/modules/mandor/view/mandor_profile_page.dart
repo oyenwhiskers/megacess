@@ -4,7 +4,7 @@ import '../data/model/mandor_profile_model.dart';
 import '../data/service/mandor_profile_service.dart';
 
 class MandorProfilePage extends StatefulWidget {
-  const MandorProfilePage({Key? key}) : super(key: key);
+  const MandorProfilePage({super.key});
 
   @override
   State<MandorProfilePage> createState() => _MandorProfilePageState();

@@ -93,10 +93,10 @@ class ManageAttendanceStaffDetailView extends StatelessWidget {
   final int staffId;
   final int dateAttendanceId;
   const ManageAttendanceStaffDetailView({
-    Key? key,
+    super.key,
     required this.staffId,
     required this.dateAttendanceId,
-  }) : super(key: key);
+  });
 
   Future<void> _handleCheckOut(
     BuildContext context,

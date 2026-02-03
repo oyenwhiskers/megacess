@@ -6,7 +6,7 @@ import '../data/model/task_preview_model.dart';
 
 class TaskPreviewPage extends StatefulWidget {
   final int taskId;
-  const TaskPreviewPage({Key? key, required this.taskId}) : super(key: key);
+  const TaskPreviewPage({super.key, required this.taskId});
 
   @override
   State<TaskPreviewPage> createState() => _TaskPreviewPageState();
@@ -394,7 +394,7 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                           border: Border.all(color: Colors.transparent),
                         ),
                         child: DropdownButtonFormField<String>(
-                          value: selectedTaskType,
+                          initialValue: selectedTaskType,
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                           ),

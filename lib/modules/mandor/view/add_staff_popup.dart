@@ -5,8 +5,11 @@ import '../data/service/staff_service.dart';
 class AddStaffPopup extends StatefulWidget {
   final List<StaffModel> staffList;
   final Future<bool> Function(List<StaffModel>) onAdd;
-  const AddStaffPopup({Key? key, required this.staffList, required this.onAdd})
-    : super(key: key);
+  const AddStaffPopup({
+    super.key,
+    required this.staffList,
+    required this.onAdd,
+  });
 
   @override
   State<AddStaffPopup> createState() => _AddStaffPopupState();

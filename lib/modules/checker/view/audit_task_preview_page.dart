@@ -11,8 +11,7 @@ import 'package:megacess/modules/utility/secure_storage_service.dart';
 
 class AuditTaskPreviewPage extends StatefulWidget {
   final int taskId;
-  const AuditTaskPreviewPage({Key? key, required this.taskId})
-    : super(key: key);
+  const AuditTaskPreviewPage({super.key, required this.taskId});
 
   @override
   State<AuditTaskPreviewPage> createState() => _AuditTaskPreviewPageState();
@@ -1133,7 +1132,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     } catch (e) {
       // Completely ignore all disposal errors
     }
-    
+
     try {
       super.dispose();
     } catch (e) {
@@ -1213,12 +1212,12 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     } catch (e, stackTrace) {
       print('ERROR in _showMetaDataInputDialog: $e');
       print('StackTrace: $stackTrace');
-      
+
       // Clear dialog state on error
       if (mounted) {
         // Dialog state cleared
       }
-      
+
       // Don't rethrow to prevent red screen, just return null
       return null;
     } finally {
@@ -1433,7 +1432,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -1613,7 +1612,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -1885,7 +1884,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -2121,7 +2120,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -2295,7 +2294,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -2303,7 +2302,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           TextButton(
             onPressed: () {
               // Dispose all controllers
-              controllers.values.forEach((c) => c.dispose());
+              for (var c in controllers.values) {
+                c.dispose();
+              }
               Navigator.of(context).pop(null);
             },
             child: const Text('CANCEL'),
@@ -2351,7 +2352,9 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
               }
 
               // Dispose all controllers
-              controllers.values.forEach((c) => c.dispose());
+              for (var c in controllers.values) {
+                c.dispose();
+              }
               Navigator.of(context).pop(result);
             },
             child: const Text(
@@ -3410,460 +3413,481 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
     // Wrap the entire build in a try-catch to prevent red error screens
     try {
       return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text('Audit Task', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+        backgroundColor: const Color(0xFFD9D9D9),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF7ED957),
+          elevation: 0,
+          title: const Text(
+            'Audit Task',
+            style: TextStyle(color: Colors.black),
+          ),
+          iconTheme: const IconThemeData(color: Colors.black),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : _task == null
-          ? const Center(child: Text('No data found.'))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16), // Add some space at the top
-                  // Task header - simpler design as in the image
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(child: Text('Error: $_error'))
+            : _task == null
+            ? const Center(child: Text('No data found.'))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16), // Add some space at the top
+                    // Task header - simpler design as in the image
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _task!.taskName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                _task!.taskType,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildStatusBadge(_task!.taskStatus),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Created by:',
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                    Text(
+                      _task!.createdBy.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Created at:',
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                    Text(
+                      _task!.taskDate,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Worker details:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ..._task!.workers.map(
+                      (worker) => Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 2),
+                          ],
+                        ),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _task!.taskName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                                color: Colors.black,
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.grey.shade300),
+                                color: Colors.white,
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.person_outline,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
                               ),
                             ),
-                            Text(
-                              _task!.taskType,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Name: ${worker.fullName}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  // Dynamically display all meta fields
+                                  ...worker.meta.entries.map((entry) {
+                                    final String formattedKey = _formatMetaKey(
+                                      entry.key,
+                                    );
+                                    return Text(
+                                      '$formattedKey: ${entry.value}',
+                                      style: const TextStyle(fontSize: 14),
+                                    );
+                                  }),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      _buildStatusBadge(_task!.taskStatus),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Created by:',
-                    style: const TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-                  Text(
-                    _task!.createdBy.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Created at:',
-                    style: const TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-                  Text(
-                    _task!.taskDate,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Worker details:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._task!.workers.map(
-                    (worker) => Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 2),
-                        ],
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.grey.shade300),
-                              color: Colors.white,
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.person_outline,
-                                color: Colors.black,
-                                size: 30,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Name: ${worker.fullName}',
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                // Dynamically display all meta fields
-                                ...worker.meta.entries.map((entry) {
-                                  final String formattedKey = _formatMetaKey(
-                                    entry.key,
-                                  );
-                                  return Text(
-                                    '$formattedKey: ${entry.value}',
-                                    style: const TextStyle(fontSize: 14),
-                                  );
-                                }).toList(),
-                              ],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Evidence:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  const Text(
-                    'Evidence:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Media(insert at least one):',
-                    style: TextStyle(fontSize: 13, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 8),
-                  _isUploading
-                      ? const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                CircularProgressIndicator(),
-                                SizedBox(height: 8),
-                                Text('Uploading media...'),
-                              ],
-                            ),
-                          ),
-                        )
-                      : Container(),
-                  Container(
-                    height: 180,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          // Add Image Button
-                          InkWell(
-                            onTap: _showImageSourceSelector,
-                            child: Container(
-                              width: 160,
-                              height: 160,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: 1,
-                                    blurRadius: 2,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Media(insert at least one):',
+                      style: TextStyle(fontSize: 13, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 8),
+                    _isUploading
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Center(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(
-                                    Icons.add_photo_alternate,
-                                    size: 40,
-                                    color: Colors.blue,
-                                  ),
+                                children: [
+                                  CircularProgressIndicator(),
                                   SizedBox(height: 8),
-                                  Text(
-                                    'Add Image',
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
+                                  Text('Uploading media...'),
                                 ],
                               ),
                             ),
-                          ),
-
-                          // Display uploaded files
-                          ..._uploadedFiles.map((fileMap) {
-                            return Container(
-                              width: 160,
-                              height: 160,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Stack(
-                                children: [
-                                  // Media content
-                                  Positioned.fill(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(11),
-                                      child: _buildImageWidget(fileMap),
+                          )
+                        : Container(),
+                    Container(
+                      height: 180,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            // Add Image Button
+                            InkWell(
+                              onTap: _showImageSourceSelector,
+                              child: Container(
+                                width: 160,
+                                height: 160,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 1,
+                                      blurRadius: 2,
+                                      offset: const Offset(0, 1),
                                     ),
-                                  ),
-
-                                  // Delete button or loading indicator
-                                  Positioned(
-                                    top: 5,
-                                    right: 5,
-                                    child: fileMap['isDeleting'] == true
-                                        ? Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(
-                                                0.7,
-                                              ),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const SizedBox(
-                                              width: 18,
-                                              height: 18,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(Colors.white),
-                                              ),
-                                            ),
-                                          )
-                                        : GestureDetector(
-                                            onTap: () => _deleteMedia(fileMap),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red.withOpacity(
-                                                  0.7,
-                                                ),
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.3),
-                                                    blurRadius: 2,
-                                                    spreadRadius: 1,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: const Icon(
-                                                Icons.delete_outline,
-                                                color: Colors.white,
-                                                size: 18,
-                                              ),
-                                            ),
-                                          ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-
-                          // Placeholder if no images
-                          if (_uploadedFiles.isEmpty)
-                            Container(
-                              width: 160,
-                              height: 160,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: const Center(
+                                  ],
+                                ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
+                                  children: const [
                                     Icon(
-                                      Icons.image,
-                                      size: 32,
-                                      color: Colors.grey,
+                                      Icons.add_photo_alternate,
+                                      size: 40,
+                                      color: Colors.blue,
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      'No images yet',
-                                      style: TextStyle(color: Colors.grey),
+                                      'Add Image',
+                                      style: TextStyle(color: Colors.blue),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                          // Video Button - only show if platform is supported
-                          InkWell(
-                            onTap: _isPlatformSupportedForVideo
-                                ? _showVideoSourceSelector
-                                : () => ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Video upload is not supported on this platform',
+
+                            // Display uploaded files
+                            ..._uploadedFiles.map((fileMap) {
+                              return Container(
+                                width: 160,
+                                height: 160,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    // Media content
+                                    Positioned.fill(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(11),
+                                        child: _buildImageWidget(fileMap),
                                       ),
                                     ),
+
+                                    // Delete button or loading indicator
+                                    Positioned(
+                                      top: 5,
+                                      right: 5,
+                                      child: fileMap['isDeleting'] == true
+                                          ? Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(
+                                                  0.7,
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(Colors.white),
+                                                ),
+                                              ),
+                                            )
+                                          : GestureDetector(
+                                              onTap: () =>
+                                                  _deleteMedia(fileMap),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  6,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red.withOpacity(
+                                                    0.7,
+                                                  ),
+                                                  shape: BoxShape.circle,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.3),
+                                                      blurRadius: 2,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: const Icon(
+                                                  Icons.delete_outline,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+
+                            // Placeholder if no images
+                            if (_uploadedFiles.isEmpty)
+                              Container(
+                                width: 160,
+                                height: 160,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
                                   ),
-                            child: Container(
-                              width: 160,
-                              height: 160,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: 1,
-                                    blurRadius: 2,
-                                    offset: const Offset(0, 1),
+                                ),
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.image,
+                                        size: 32,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'No images yet',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _isPlatformSupportedForVideo
-                                        ? Icons.videocam
-                                        : Icons.videocam_off,
-                                    size: 40,
-                                    color: _isPlatformSupportedForVideo
-                                        ? Colors.red
-                                        : Colors.grey,
+                            // Video Button - only show if platform is supported
+                            InkWell(
+                              onTap: _isPlatformSupportedForVideo
+                                  ? _showVideoSourceSelector
+                                  : () => ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Video upload is not supported on this platform',
+                                            ),
+                                          ),
+                                        ),
+                              child: Container(
+                                width: 160,
+                                height: 160,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _isPlatformSupportedForVideo
-                                        ? 'Add Video'
-                                        : 'Video not supported',
-                                    style: TextStyle(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 1,
+                                      blurRadius: 2,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _isPlatformSupportedForVideo
+                                          ? Icons.videocam
+                                          : Icons.videocam_off,
+                                      size: 40,
                                       color: _isPlatformSupportedForVideo
                                           ? Colors.red
                                           : Colors.grey,
-                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ),
-                                  if (_isPlatformSupportedForVideo)
+                                    const SizedBox(height: 8),
                                     Text(
-                                      'Maximum 30 seconds',
+                                      _isPlatformSupportedForVideo
+                                          ? 'Add Video'
+                                          : 'Video not supported',
                                       style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 12,
+                                        color: _isPlatformSupportedForVideo
+                                            ? Colors.red
+                                            : Colors.grey,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                ],
+                                    if (_isPlatformSupportedForVideo)
+                                      Text(
+                                        'Maximum 30 seconds',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7ED957),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(44),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7ED957),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(44),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
+                            onPressed: _isApproving ? null : _approveTask,
+                            child: _isApproving
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Task Approved',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                           ),
-                          onPressed: _isApproving ? null : _approveTask,
-                          child: _isApproving
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Task Approved',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(44),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(44),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
+                            onPressed: (_isRejecting || _isApproving)
+                                ? null
+                                : _rejectTask,
+                            child: _isRejecting
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Task Rejected',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                           ),
-                          onPressed: (_isRejecting || _isApproving)
-                              ? null
-                              : _rejectTask,
-                          child: _isRejecting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Task Rejected',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-    );
+      );
     } catch (e) {
       // If there's any error in build, return a safe error widget instead of red screen
       print('Error in build method: $e');

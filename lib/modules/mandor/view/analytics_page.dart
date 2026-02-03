@@ -3,7 +3,7 @@ import '../data/service/manager_dashboard_service.dart';
 import '../data/model/task_analytics.dart';
 
 class AnalyticsPage extends StatefulWidget {
-  const AnalyticsPage({Key? key}) : super(key: key);
+  const AnalyticsPage({super.key});
 
   @override
   State<AnalyticsPage> createState() => _AnalyticsPageState();

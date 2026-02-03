@@ -5,7 +5,7 @@ import '../data/model/staff_model.dart';
 import 'staff_detail_page.dart';
 
 class MyStaffPage extends StatefulWidget {
-  const MyStaffPage({Key? key}) : super(key: key);
+  const MyStaffPage({super.key});
 
   @override
   State<MyStaffPage> createState() => _MyStaffPageState();

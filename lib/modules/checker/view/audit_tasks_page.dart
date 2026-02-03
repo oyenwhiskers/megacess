@@ -5,7 +5,7 @@ import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:megacess/modules/checker/view/manage_audit_task_page.dart';
 
 class AuditTasksPage extends StatefulWidget {
-  const AuditTasksPage({Key? key}) : super(key: key);
+  const AuditTasksPage({super.key});
 
   @override
   State<AuditTasksPage> createState() => _AuditTasksPageState();

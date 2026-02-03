@@ -8,41 +8,46 @@ import 'dart:async';
 
 void main() {
   // Comprehensive error suppression to prevent red screens
-  runZonedGuarded(() {
-    // Set up global error handlers before running the app
-    FlutterError.onError = (FlutterErrorDetails details) {
-      final String errorString = details.exception.toString().toLowerCase();
-      final String stackString = details.stack.toString().toLowerCase();
-      
-      // Suppress all dialog/disposal related errors
-      if (errorString.contains('_dependents') ||
-          errorString.contains('dependents.isempty') ||
-          errorString.contains('assertion') ||
-          errorString.contains('failed') ||
-          stackString.contains('dispose') ||
-          stackString.contains('modalscope') ||
-          stackString.contains('navigator') ||
-          stackString.contains('framework.dart') ||
-          stackString.contains('widgets') ||
-          details.library?.contains('flutter') == true) {
-        // Log for debugging but don't show to user
-        print('Suppressed Flutter error: ${errorString.length > 50 ? errorString.substring(0, 50) : errorString}...');
-        return;
-      }
-      
-      // For other errors, use default handler
-      FlutterError.presentError(details);
-    };
-    
-    runApp(const MyApp());
-  }, (error, stack) {
-    // Catch any uncaught errors in the error zone
-    print('Caught error in zone: $error');
-  });
+  runZonedGuarded(
+    () {
+      // Set up global error handlers before running the app
+      FlutterError.onError = (FlutterErrorDetails details) {
+        final String errorString = details.exception.toString().toLowerCase();
+        final String stackString = details.stack.toString().toLowerCase();
+
+        // Suppress all dialog/disposal related errors
+        if (errorString.contains('_dependents') ||
+            errorString.contains('dependents.isempty') ||
+            errorString.contains('assertion') ||
+            errorString.contains('failed') ||
+            stackString.contains('dispose') ||
+            stackString.contains('modalscope') ||
+            stackString.contains('navigator') ||
+            stackString.contains('framework.dart') ||
+            stackString.contains('widgets') ||
+            details.library?.contains('flutter') == true) {
+          // Log for debugging but don't show to user
+          print(
+            'Suppressed Flutter error: ${errorString.length > 50 ? errorString.substring(0, 50) : errorString}...',
+          );
+          return;
+        }
+
+        // For other errors, use default handler
+        FlutterError.presentError(details);
+      };
+
+      runApp(const MyApp());
+    },
+    (error, stack) {
+      // Catch any uncaught errors in the error zone
+      print('Caught error in zone: $error');
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +62,7 @@ class MyApp extends StatelessWidget {
       builder: (context, widget) {
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
           // Return white container instead of error - completely clean look
-          return Container(
-            color: Colors.white,
-            child: const SizedBox.expand(),
-          );
+          return Container(color: Colors.white, child: const SizedBox.expand());
         };
         return widget ?? const SizedBox();
       },

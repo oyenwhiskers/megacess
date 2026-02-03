@@ -8,10 +8,10 @@ class LocationTasksDetailPage extends StatefulWidget {
   final int locationId;
   final String locationName;
   const LocationTasksDetailPage({
-    Key? key,
+    super.key,
     required this.locationId,
     required this.locationName,
-  }) : super(key: key);
+  });
 
   @override
   State<LocationTasksDetailPage> createState() =>

@@ -4,7 +4,7 @@ import '../data/model/manager_models.dart';
 import 'manage_tasks_view.dart';
 
 class LocationView extends StatefulWidget {
-  const LocationView({Key? key}) : super(key: key);
+  const LocationView({super.key});
 
   @override
   State<LocationView> createState() => _LocationViewState();

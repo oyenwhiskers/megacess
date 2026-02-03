@@ -4,7 +4,7 @@ import '../data/service/staff_service.dart';
 
 class StaffDetailPage extends StatefulWidget {
   final int staffId;
-  const StaffDetailPage({Key? key, required this.staffId}) : super(key: key);
+  const StaffDetailPage({super.key, required this.staffId});
 
   @override
   State<StaffDetailPage> createState() => _StaffDetailPageState();

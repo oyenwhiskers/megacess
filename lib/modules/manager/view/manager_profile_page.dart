@@ -3,7 +3,7 @@ import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
 
 class ManagerProfilePage extends StatefulWidget {
-  const ManagerProfilePage({Key? key}) : super(key: key);
+  const ManagerProfilePage({super.key});
 
   @override
   State<ManagerProfilePage> createState() => _ManagerProfilePageState();
@@ -40,12 +40,12 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
     if (userImg == null || userImg.isEmpty) {
       return null;
     }
-    
+
     // Check if the URL already starts with http:// or https://
     if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
       return userImg;
     }
-    
+
     // If not, prepend the base URL
     return 'https://mwms.megacess.com/$userImg';
   }
@@ -210,8 +210,11 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
                           child: CircleAvatar(
                             radius: 60,
                             backgroundColor: Colors.grey[300],
-                            backgroundImage: _getFullImageUrl(profile!.userImg) != null
-                                ? NetworkImage(_getFullImageUrl(profile!.userImg)!)
+                            backgroundImage:
+                                _getFullImageUrl(profile!.userImg) != null
+                                ? NetworkImage(
+                                    _getFullImageUrl(profile!.userImg)!,
+                                  )
                                 : null,
                             child: _getFullImageUrl(profile!.userImg) == null
                                 ? const Icon(

@@ -6,7 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:megacess/modules/checker/data/model/pending_task_model.dart';
 
 class AnalyticsView extends StatelessWidget {
-  const AnalyticsView({Key? key}) : super(key: key);
+  const AnalyticsView({super.key});
 
   @override
   Widget build(BuildContext context) {

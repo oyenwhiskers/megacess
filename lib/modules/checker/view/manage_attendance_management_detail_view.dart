@@ -185,10 +185,10 @@ class ManageAttendanceManagementDetailView extends StatelessWidget {
   final int userId;
   final int dateAttendanceId;
   const ManageAttendanceManagementDetailView({
-    Key? key,
+    super.key,
     required this.userId,
     required this.dateAttendanceId,
-  }) : super(key: key);
+  });
 
   Future<void> _handleCheckIn(
     BuildContext context,
@@ -301,7 +301,7 @@ class ManageAttendanceManagementDetailView extends StatelessWidget {
             print('Data: ${snapshot.data}');
             print('Data.data: ${snapshot.data?.data}');
           }
-          
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {

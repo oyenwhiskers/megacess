@@ -5,7 +5,7 @@ import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:megacess/modules/checker/view/manage_attendance_details_view.dart';
 
 class ManageAttendanceView extends StatefulWidget {
-  const ManageAttendanceView({Key? key}) : super(key: key);
+  const ManageAttendanceView({super.key});
 
   @override
   State<ManageAttendanceView> createState() => _ManageAttendanceViewState();
@@ -480,8 +480,8 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
             right: 24,
             child: FloatingActionButton(
               backgroundColor: const Color(0xFF43C463),
-              child: const Icon(Icons.add, size: 32),
               onPressed: _showAddAttendanceDialog,
+              child: const Icon(Icons.add, size: 32),
             ),
           ),
         ],

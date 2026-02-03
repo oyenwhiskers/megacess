@@ -4,7 +4,7 @@ import '../data/model/task_model.dart';
 import 'location_tasks_detail_page.dart';
 
 class ManageTasksPage extends StatefulWidget {
-  const ManageTasksPage({Key? key}) : super(key: key);
+  const ManageTasksPage({super.key});
 
   @override
   State<ManageTasksPage> createState() => _ManageTasksPageState();

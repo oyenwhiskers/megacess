@@ -10,10 +10,10 @@ class ManageAttendanceDetailsView extends StatefulWidget {
   final int dateAttendanceId;
   final String dateLabel;
   const ManageAttendanceDetailsView({
-    Key? key,
+    super.key,
     required this.dateAttendanceId,
     required this.dateLabel,
-  }) : super(key: key);
+  });
 
   @override
   State<ManageAttendanceDetailsView> createState() =>
@@ -23,7 +23,7 @@ class ManageAttendanceDetailsView extends StatefulWidget {
 class _ManageAttendanceDetailsViewState
     extends State<ManageAttendanceDetailsView> {
   final TextEditingController _searchController = TextEditingController();
-  String _search = '';
+  final String _search = '';
   int _selectedTab = 0; // 0: Management, 1: Staff
 
   // Pagination variables for management
@@ -86,7 +86,7 @@ class _ManageAttendanceDetailsViewState
       print(
         'Loaded page ${response.currentPage}/${response.lastPage} - ${response.data.length} staff with real attendance',
       );
-      
+
       print('Response pagination details:');
       print('  currentPage: ${response.currentPage}');
       print('  lastPage: ${response.lastPage}');
@@ -111,7 +111,7 @@ class _ManageAttendanceDetailsViewState
         _staffTotalFromServer = response.total;
         _isLoadingStaff = false;
       });
-      
+
       print('UI state updated:');
       print('  _staffCurrentPage: $_staffCurrentPage');
       print('  _staffLastPage: $_staffLastPage');
@@ -206,7 +206,7 @@ class _ManageAttendanceDetailsViewState
       print(
         'Loaded page ${response.currentPage}/${response.lastPage} - ${response.data.length} management with real attendance',
       );
-      
+
       print('Management response pagination details:');
       print('  currentPage: ${response.currentPage}');
       print('  lastPage: ${response.lastPage}');
@@ -231,7 +231,7 @@ class _ManageAttendanceDetailsViewState
         _managementTotalFromServer = response.total;
         _isLoadingManagement = false;
       });
-      
+
       print('Management UI state updated:');
       print('  _managementCurrentPage: $_managementCurrentPage');
       print('  _managementLastPage: $_managementLastPage');
@@ -240,7 +240,8 @@ class _ManageAttendanceDetailsViewState
     } catch (e) {
       print('Error loading management: $e');
       setState(() {
-        _managementError = 'Failed to load management attendance: ${e.toString()}';
+        _managementError =
+            'Failed to load management attendance: ${e.toString()}';
         _isLoadingManagement = false;
       });
     }
@@ -271,7 +272,8 @@ class _ManageAttendanceDetailsViewState
       });
     } catch (e) {
       setState(() {
-        _managementError = 'Failed to load management attendance: ${e.toString()}';
+        _managementError =
+            'Failed to load management attendance: ${e.toString()}';
         _isLoadingManagement = false;
       });
     }
@@ -450,260 +452,283 @@ class _ManageAttendanceDetailsViewState
           Expanded(
             child: _selectedTab == 0
                 ? _isLoadingManagement
-                ? const Center(child: CircularProgressIndicator())
-                : _managementError != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _managementError!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _fetchManagementAttendanceWithPagination,
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : _managementList.isEmpty
-                ? const Center(
-                    child: Text('No management attendance records found.'),
-                  )
-                : Column(
-                    children: [
-                      // Page info header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Page $_managementCurrentPage of $_managementLastPage',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              'Showing ${((_managementCurrentPage - 1) * _managementPerPage) + 1}-${(_managementCurrentPage * _managementPerPage > _managementTotalFromServer) ? _managementTotalFromServer : (_managementCurrentPage * _managementPerPage)} of $_managementTotalFromServer',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      // Management list
-                      Expanded(
-                        child: ListView.builder(
-                          controller: _managementScrollController,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 0,
-                            vertical: 8,
-                          ),
-                          itemCount: _managementList.length,
-                          itemBuilder: (context, index) {
-                            final item = _managementList[index];
-                            return Container(
-                              margin: const EdgeInsets.only(
-                                bottom: 12,
-                                left: 16,
-                                right: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 3,
-                                    offset: Offset(0, 1),
-                                  ),
-                                ],
-                              ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundImage: item.userImg.isNotEmpty
-                                      ? NetworkImage(item.userImg)
-                                      : const AssetImage(
-                                              'assets/images/default_avatar.png',
-                                            )
-                                            as ImageProvider,
-                                  radius: 28,
-                                ),
-                                title: Text(
-                                  'Name: ${item.userName}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Status: ${item.status}'),
-                                    Text(
-                                      'Checked by: ${item.checkedinBy ?? '-'}',
-                                    ),
-                                  ],
-                                ),
-                                trailing: const Icon(Icons.chevron_right),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ManageAttendanceManagementDetailView(
-                                            userId: item.userId,
-                                            dateAttendanceId:
-                                                widget.dateAttendanceId,
-                                          ),
-                                    ),
-                                  );
-                                  if (result == true) {
-                                    _fetchManagementAttendanceWithPagination(
-                                      page: _managementCurrentPage,
-                                    );
-                                    setState(() {});
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      // Pagination controls
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            top: BorderSide(color: Colors.grey, width: 0.5),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // First and Previous buttons
-                            Row(
+                      ? const Center(child: CircularProgressIndicator())
+                      : _managementError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // First page button
-                                IconButton(
-                                  onPressed: _managementCurrentPage > 1
-                                      ? _goToFirstManagementPage
-                                      : null,
-                                  icon: const Icon(Icons.first_page),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: _managementCurrentPage > 1
-                                        ? const Color(0xFF43C463)
-                                        : Colors.grey[300],
-                                    foregroundColor: _managementCurrentPage > 1
-                                        ? Colors.white
-                                        : Colors.grey,
-                                  ),
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                  size: 48,
                                 ),
-                                const SizedBox(width: 8),
-                                // Previous page button
-                                IconButton(
-                                  onPressed: _managementCurrentPage > 1
-                                      ? _goToPreviousManagementPage
-                                      : null,
-                                  icon: const Icon(Icons.chevron_left),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: _managementCurrentPage > 1
-                                        ? const Color(0xFF43C463)
-                                        : Colors.grey[300],
-                                    foregroundColor: _managementCurrentPage > 1
-                                        ? Colors.white
-                                        : Colors.grey,
-                                  ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _managementError!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed:
+                                      _fetchManagementAttendanceWithPagination,
+                                  child: const Text('Retry'),
                                 ),
                               ],
                             ),
-                            // Page indicator
-                            Container(
+                          ),
+                        )
+                      : _managementList.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No management attendance records found.',
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            // Page info header
+                            Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF43C463).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '$_managementCurrentPage / $_managementLastPage',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF43C463),
-                                ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Page $_managementCurrentPage of $_managementLastPage',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    'Showing ${((_managementCurrentPage - 1) * _managementPerPage) + 1}-${(_managementCurrentPage * _managementPerPage > _managementTotalFromServer) ? _managementTotalFromServer : (_managementCurrentPage * _managementPerPage)} of $_managementTotalFromServer',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            // Next and Last buttons
-                            Row(
-                              children: [
-                                // Next page button
-                                IconButton(
-                                  onPressed: _managementCurrentPage < _managementLastPage
-                                      ? _goToNextManagementPage
-                                      : null,
-                                  icon: const Icon(Icons.chevron_right),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor:
-                                        _managementCurrentPage < _managementLastPage
-                                        ? const Color(0xFF43C463)
-                                        : Colors.grey[300],
-                                    foregroundColor:
-                                        _managementCurrentPage < _managementLastPage
-                                        ? Colors.white
-                                        : Colors.grey,
+                            const Divider(height: 1),
+                            // Management list
+                            Expanded(
+                              child: ListView.builder(
+                                controller: _managementScrollController,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 0,
+                                  vertical: 8,
+                                ),
+                                itemCount: _managementList.length,
+                                itemBuilder: (context, index) {
+                                  final item = _managementList[index];
+                                  return Container(
+                                    margin: const EdgeInsets.only(
+                                      bottom: 12,
+                                      left: 16,
+                                      right: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 3,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundImage: item.userImg.isNotEmpty
+                                            ? NetworkImage(item.userImg)
+                                            : const AssetImage(
+                                                    'assets/images/default_avatar.png',
+                                                  )
+                                                  as ImageProvider,
+                                        radius: 28,
+                                      ),
+                                      title: Text(
+                                        'Name: ${item.userName}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Status: ${item.status}'),
+                                          Text(
+                                            'Checked by: ${item.checkedinBy ?? '-'}',
+                                          ),
+                                        ],
+                                      ),
+                                      trailing: const Icon(Icons.chevron_right),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                      onTap: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ManageAttendanceManagementDetailView(
+                                                  userId: item.userId,
+                                                  dateAttendanceId:
+                                                      widget.dateAttendanceId,
+                                                ),
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          _fetchManagementAttendanceWithPagination(
+                                            page: _managementCurrentPage,
+                                          );
+                                          setState(() {});
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // Pagination controls
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Colors.grey,
+                                    width: 0.5,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                // Last page button
-                                IconButton(
-                                  onPressed: _managementCurrentPage < _managementLastPage
-                                      ? _goToLastManagementPage
-                                      : null,
-                                  icon: const Icon(Icons.last_page),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor:
-                                        _managementCurrentPage < _managementLastPage
-                                        ? const Color(0xFF43C463)
-                                        : Colors.grey[300],
-                                    foregroundColor:
-                                        _managementCurrentPage < _managementLastPage
-                                        ? Colors.white
-                                        : Colors.grey,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // First and Previous buttons
+                                  Row(
+                                    children: [
+                                      // First page button
+                                      IconButton(
+                                        onPressed: _managementCurrentPage > 1
+                                            ? _goToFirstManagementPage
+                                            : null,
+                                        icon: const Icon(Icons.first_page),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor:
+                                              _managementCurrentPage > 1
+                                              ? const Color(0xFF43C463)
+                                              : Colors.grey[300],
+                                          foregroundColor:
+                                              _managementCurrentPage > 1
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Previous page button
+                                      IconButton(
+                                        onPressed: _managementCurrentPage > 1
+                                            ? _goToPreviousManagementPage
+                                            : null,
+                                        icon: const Icon(Icons.chevron_left),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor:
+                                              _managementCurrentPage > 1
+                                              ? const Color(0xFF43C463)
+                                              : Colors.grey[300],
+                                          foregroundColor:
+                                              _managementCurrentPage > 1
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                  // Page indicator
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF43C463,
+                                      ).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '$_managementCurrentPage / $_managementLastPage',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF43C463),
+                                      ),
+                                    ),
+                                  ),
+                                  // Next and Last buttons
+                                  Row(
+                                    children: [
+                                      // Next page button
+                                      IconButton(
+                                        onPressed:
+                                            _managementCurrentPage <
+                                                _managementLastPage
+                                            ? _goToNextManagementPage
+                                            : null,
+                                        icon: const Icon(Icons.chevron_right),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor:
+                                              _managementCurrentPage <
+                                                  _managementLastPage
+                                              ? const Color(0xFF43C463)
+                                              : Colors.grey[300],
+                                          foregroundColor:
+                                              _managementCurrentPage <
+                                                  _managementLastPage
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Last page button
+                                      IconButton(
+                                        onPressed:
+                                            _managementCurrentPage <
+                                                _managementLastPage
+                                            ? _goToLastManagementPage
+                                            : null,
+                                        icon: const Icon(Icons.last_page),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor:
+                                              _managementCurrentPage <
+                                                  _managementLastPage
+                                              ? const Color(0xFF43C463)
+                                              : Colors.grey[300],
+                                          foregroundColor:
+                                              _managementCurrentPage <
+                                                  _managementLastPage
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
-                        ),
-                      ),
-                    ],
-                  )
+                        )
                 : _isLoadingStaff
                 ? const Center(child: CircularProgressIndicator())
                 : _staffError != null

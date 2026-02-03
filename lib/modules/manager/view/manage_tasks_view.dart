@@ -7,10 +7,10 @@ class ManageTasksView extends StatefulWidget {
   final String locationName;
 
   const ManageTasksView({
-    Key? key,
+    super.key,
     required this.locationId,
     required this.locationName,
-  }) : super(key: key);
+  });
 
   @override
   State<ManageTasksView> createState() => _ManageTasksViewState();
@@ -229,7 +229,7 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                           ],
                         ],
                       ),

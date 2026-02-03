@@ -6,6 +6,8 @@ import '../../mandor/view/manager_view.dart' as MandorView;
 import '../../checker/view/checker_view.dart';
 
 class LoginView extends StatefulWidget {
+  const LoginView({super.key});
+
   @override
   _LoginViewState createState() => _LoginViewState();
 }

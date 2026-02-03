@@ -4,7 +4,7 @@ import '../data/model/task_log_model.dart';
 
 class LogsTabView extends StatefulWidget {
   final int taskId;
-  const LogsTabView({Key? key, required this.taskId}) : super(key: key);
+  const LogsTabView({super.key, required this.taskId});
 
   @override
   State<LogsTabView> createState() => _LogsTabViewState();

@@ -34,7 +34,7 @@ class AttendanceService {
         },
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -59,7 +59,7 @@ class AttendanceService {
         },
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -77,7 +77,7 @@ class AttendanceService {
         data: {'date_attendance_id': dateAttendanceId, 'user_id': userId},
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -92,7 +92,7 @@ class AttendanceService {
       print('Fetching user detail for userId: $userId');
       final response = await dioClient.get('api/v1/users/$userId');
       print('User detail API response: ${response.data}');
-      
+
       if (response.data is Map && response.data['success'] == true) {
         return UserAttendanceDetailResponse.fromJson(response.data);
       } else {
@@ -101,7 +101,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch user attendance detail',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       print('DioError in fetchUserAttendanceDetail: ${e.message}');
       print('DioError response: ${e.response?.data}');
       if (e.response != null && e.response?.data != null) {
@@ -124,7 +124,7 @@ class AttendanceService {
         data: {'date_attendance_id': dateAttendanceId, 'staff_id': staffId},
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -149,7 +149,7 @@ class AttendanceService {
         },
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -174,7 +174,7 @@ class AttendanceService {
         },
       );
       return response.data as Map<String, dynamic>;
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
@@ -192,7 +192,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch staff detail',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch staff detail',
@@ -212,7 +212,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch audit task preview',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch audit task preview',
@@ -238,7 +238,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch audit tasks',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch audit tasks',
@@ -258,7 +258,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch locations',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch locations',
@@ -280,7 +280,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch pending tasks',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch pending tasks',
@@ -300,7 +300,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch analytics',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch analytics',
@@ -338,7 +338,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch staff attendance',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       print('DioError: ${e.message}'); // Debug
       print('Response: ${e.response?.data}'); // Debug
       if (e.response != null && e.response?.data != null) {
@@ -401,7 +401,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch staff with attendance',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       print('DioError: ${e.message}'); // Debug
       print('Response: ${e.response?.data}'); // Debug
       if (e.response != null && e.response?.data != null) {
@@ -437,7 +437,7 @@ class AttendanceService {
           response.data['message'] ?? 'Failed to fetch user attendance',
         );
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         throw Exception(
           e.response?.data['message'] ?? 'Failed to fetch user attendance',
@@ -648,7 +648,7 @@ class AttendanceService {
     String? search,
   }) async {
     try {
-      final response = await this.dioClient.get(
+      final response = await dioClient.get(
         'api/v1/attendance',
         queryParameters: {
           'page': page,
@@ -670,7 +670,7 @@ class AttendanceService {
       } else {
         return {'success': false, 'message': 'Unexpected response format'};
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
         return e.response?.data as Map<String, dynamic>;
       }
