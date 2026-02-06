@@ -6,7 +6,27 @@ import 'modules/mandor/view/manager_view.dart' as MandorView;
 import 'modules/checker/view/checker_view.dart';
 import 'dart:async';
 
+import 'core/config/flavor_config.dart';
+import 'core/config/env_config.dart';
+
 void main() {
+  // Initialize FlavorConfig using centralized AppConfig
+  // To switch environments, change the ENV constant in env_config.dart
+  FlavorConfig(
+    flavor: AppConfig.isProduction ? Flavor.production : Flavor.staging,
+    baseUrl: AppConfig.apiUrl,
+    baseDomain: AppConfig.baseDomain,
+    storageDomain: AppConfig.storageDomain,
+    flavorName: AppConfig.environmentName,
+  );
+
+  // Log current configuration for debugging
+  AppConfig.logConfiguration();
+
+  mainCommon();
+}
+
+void mainCommon() {
   // Comprehensive error suppression to prevent red screens
   runZonedGuarded(
     () {

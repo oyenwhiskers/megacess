@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class ManagerProfilePage extends StatefulWidget {
   const ManagerProfilePage({super.key});
@@ -47,7 +48,7 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
     }
 
     // If not, prepend the base URL
-    return 'https://mwms.megacess.com/$userImg';
+    return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
   Future<void> _fetchProfile() async {

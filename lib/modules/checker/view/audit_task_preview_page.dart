@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import 'package:megacess/modules/checker/data/model/audit_task_preview_model.dart';
 import 'package:megacess/modules/checker/data/service/attendance_service.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class AuditTaskPreviewPage extends StatefulWidget {
   final int taskId;
@@ -116,7 +117,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           if (resolvedUrl.isEmpty &&
               resolvedPath != null &&
               resolvedPath.isNotEmpty) {
-            const baseUrl = 'https://mwms.megacess.com/';
+            final baseUrl = '${FlavorConfig.instance.baseDomain}/';
             final cleanPath = resolvedPath.startsWith('/')
                 ? resolvedPath.substring(1)
                 : resolvedPath;
@@ -394,7 +395,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           if (resolvedUrl.isEmpty &&
               resolvedPath != null &&
               resolvedPath.isNotEmpty) {
-            const baseUrl = 'https://mwms.megacess.com/';
+            final baseUrl = '${FlavorConfig.instance.baseDomain}/';
             final cleanPath = resolvedPath.startsWith('/')
                 ? resolvedPath.substring(1)
                 : resolvedPath;

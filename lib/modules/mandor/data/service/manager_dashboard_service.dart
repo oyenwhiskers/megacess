@@ -3,8 +3,9 @@ import '../model/task_analytics.dart';
 import '../model/task_model.dart';
 import '../model/task_preview_model.dart';
 import '../model/task_log_model.dart';
-import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../utility/dio_client.dart';
+import '../../../../core/config/flavor_config.dart';
 
 class ManagerDashboardService {
   Future<Map<String, dynamic>?> assignWorkersToTask({
@@ -12,7 +13,7 @@ class ManagerDashboardService {
     required List<Map<String, dynamic>> workers,
   }) async {
     final response = await _dioClient.post(
-      'v1/tasks/$taskId/assign-workers',
+      'tasks/$taskId/assign-workers',
       data: {'workers': workers},
     );
     if (response.statusCode == 200 && response.data['success'] == true) {
@@ -27,7 +28,7 @@ class ManagerDashboardService {
   }) async {
     try {
       final response = await _dioClient.post(
-        'v1/tasks/$taskId/remove-workers',
+        'tasks/$taskId/remove-workers',
         data: {'staff_ids': workerIds},
       );
       return {'statusCode': response.statusCode, 'data': response.data};
@@ -60,7 +61,7 @@ class ManagerDashboardService {
       if (taskType != null) data['task_type'] = taskType;
       if (taskDate != null) data['task_date'] = taskDate;
 
-      final response = await _dioClient.put('v1/tasks/$taskId', data: data);
+      final response = await _dioClient.put('tasks/$taskId', data: data);
       return {'statusCode': response.statusCode, 'data': response.data};
     } on DioException catch (e) {
       return {
@@ -81,7 +82,7 @@ class ManagerDashboardService {
 
   Future<Map<String, dynamic>> deleteTask(int taskId) async {
     try {
-      final response = await _dioClient.delete('v1/tasks/$taskId');
+      final response = await _dioClient.delete('tasks/$taskId');
       return {'statusCode': response.statusCode, 'data': response.data};
     } on DioException catch (e) {
       return {
@@ -102,7 +103,7 @@ class ManagerDashboardService {
 
   Future<Map<String, dynamic>> submitTaskToChecker(int taskId) async {
     try {
-      final response = await _dioClient.post('v1/tasks/$taskId/submit');
+      final response = await _dioClient.post('tasks/$taskId/submit');
       return {'statusCode': response.statusCode, 'data': response.data};
     } on DioException catch (e) {
       return {
@@ -122,7 +123,7 @@ class ManagerDashboardService {
   }
 
   Future<List<TaskLogModel>> fetchTaskLogs(int taskId) async {
-    final response = await _dioClient.get('v1/tasks/$taskId/logs');
+    final response = await _dioClient.get('tasks/$taskId/logs');
     print('API LOGS RESPONSE: ${response.data}');
     if (response.statusCode == 200 &&
         response.data['success'] == true &&
@@ -142,7 +143,7 @@ class ManagerDashboardService {
   }
 
   Future<TaskPreviewModel?> fetchTaskPreview(int taskId) async {
-    final response = await _dioClient.get('v1/tasks/$taskId');
+    final response = await _dioClient.get('tasks/$taskId');
     if (response.statusCode == 200 &&
         response.data['success'] == true &&
         response.data['data'] != null) {
@@ -158,7 +159,7 @@ class ManagerDashboardService {
     required String taskDate,
   }) async {
     final response = await _dioClient.post(
-      'v1/tasks',
+      'tasks',
       data: {
         'location_id': locationId,
         'task_name': taskName,
@@ -179,7 +180,7 @@ class ManagerDashboardService {
     int page = 1,
   }) async {
     final response = await _dioClient.get(
-      'v1/locations/$locationId/tasks',
+      'locations/$locationId/tasks',
       queryParameters: {'page': page},
     );
     if (response.statusCode == 200 && response.data['success'] == true) {
@@ -189,7 +190,7 @@ class ManagerDashboardService {
   }
 
   Future<LocationListResponse?> fetchLocations() async {
-    final response = await _dioClient.get('v1/locations');
+    final response = await _dioClient.get('locations');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return LocationListResponse.fromJson(response.data);
     }
@@ -197,7 +198,7 @@ class ManagerDashboardService {
   }
 
   Future<TaskListResponse?> fetchTasks() async {
-    final response = await _dioClient.get('v1/tasks');
+    final response = await _dioClient.get('tasks');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return TaskListResponse.fromJson(response.data);
     }
@@ -205,12 +206,12 @@ class ManagerDashboardService {
   }
 
   final DioClient _dioClient = DioClient(
-    baseUrl: 'https://mwms.megacess.com/api/',
+    baseUrl: FlavorConfig.instance.baseUrl,
     storageService: SecureStorageService(),
   );
 
   Future<AnalyticsResponse?> fetchAnalytics() async {
-    final response = await _dioClient.get('v1/analytics/manager');
+    final response = await _dioClient.get('analytics/manager');
     if (response.statusCode == 200 && response.data['success'] == true) {
       final data = response.data['data'];
       return AnalyticsResponse.fromJson(data);
@@ -220,7 +221,7 @@ class ManagerDashboardService {
 
   // Tetap pertahankan method lama jika masih dipakai di tempat lain
   Future<TaskAnalytics?> fetchTaskAnalytics() async {
-    final response = await _dioClient.get('v1/analytics/manager');
+    final response = await _dioClient.get('analytics/manager');
     if (response.statusCode == 200 && response.data['success'] == true) {
       final data = response.data['data']['task_analytics'];
       return TaskAnalytics.fromJson(data);
@@ -230,7 +231,7 @@ class ManagerDashboardService {
 
   Future<Map<String, dynamic>?> fetchProfile() async {
     try {
-      final response = await _dioClient.get('v1/profile');
+      final response = await _dioClient.get('profile');
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data['data'];
       }
@@ -240,3 +241,5 @@ class ManagerDashboardService {
     return null;
   }
 }
+
+

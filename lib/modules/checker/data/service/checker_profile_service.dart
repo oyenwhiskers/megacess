@@ -1,6 +1,7 @@
 import '../model/checker_profile_model.dart';
-import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../utility/dio_client.dart';
+import '../../../../core/config/flavor_config.dart';
 import 'package:dio/dio.dart';
 
 class CheckerProfileService {
@@ -8,14 +9,14 @@ class CheckerProfileService {
 
   CheckerProfileService(SecureStorageService storageService)
     : _dioClient = DioClient(
-        baseUrl: 'https://mwms.megacess.com/api/',
+        baseUrl: FlavorConfig.instance.baseUrl,
         storageService: storageService,
       );
 
   /// GET v1/profile
   Future<CheckerProfile> fetchProfile() async {
     try {
-      final response = await _dioClient.get('v1/profile');
+      final response = await _dioClient.get('profile');
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null && data['success'] == true) {
@@ -36,10 +37,7 @@ class CheckerProfileService {
   /// POST v1/profile (for updating profile)
   Future<CheckerProfile> updateProfile(Map<String, dynamic> profileData) async {
     try {
-      final response = await _dioClient.post(
-        'v1/profile',
-        data: profileData,
-      );
+      final response = await _dioClient.post('profile', data: profileData);
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null && data['success'] == true) {
@@ -70,3 +68,4 @@ class CheckerProfileService {
     }
   }
 }
+

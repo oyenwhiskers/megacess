@@ -1,3 +1,5 @@
+import 'package:megacess/core/config/flavor_config.dart';
+
 class StaffDetailResponse {
   final bool success;
   final String message;
@@ -64,7 +66,7 @@ class StaffDetailData {
     String? imageUrl = json['staff_img'];
     // Add base URL if the image path is relative (starts with /storage/)
     if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
-      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      imageUrl = '${FlavorConfig.instance.baseDomain}$imageUrl';
       print('Converted relative staff detail image path to: $imageUrl');
     }
     

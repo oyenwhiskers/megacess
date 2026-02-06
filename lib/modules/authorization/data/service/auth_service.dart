@@ -1,10 +1,11 @@
 import '../model/login_response.dart';
 import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../../core/config/flavor_config.dart';
 import 'package:dio/dio.dart';
 
 class AuthService {
-  final String _baseUrl = 'https://mwms.megacess.com/api/';
+  final String _baseUrl = FlavorConfig.instance.baseUrl;
   final SecureStorageService _storageService = SecureStorageService();
   late final DioClient _dioClient = DioClient(
     baseUrl: _baseUrl,
@@ -14,7 +15,7 @@ class AuthService {
   /// Login with username and password, save token and role securely if successful
   Future<LoginResponse?> login(String username, String password) async {
     final response = await _dioClient.post(
-      'v1/auth/login',
+      'auth/login',
       data: {'user_nickname': username, 'password': password},
       options: Options(
         headers: {

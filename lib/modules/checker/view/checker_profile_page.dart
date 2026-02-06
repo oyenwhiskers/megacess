@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/model/checker_profile_model.dart';
 import '../data/service/checker_profile_service.dart';
 import '../../utility/secure_storage_service.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class CheckerProfilePage extends StatefulWidget {
   const CheckerProfilePage({super.key});
@@ -49,7 +50,7 @@ class _CheckerProfilePageState extends State<CheckerProfilePage> {
     }
 
     // If not, prepend the base URL
-    return 'https://mwms.megacess.com/$userImg';
+    return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
   Future<void> _fetchProfile() async {

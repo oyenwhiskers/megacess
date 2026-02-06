@@ -9,6 +9,7 @@ import '../../utility/secure_storage_service.dart';
 import 'manage_attendance_view.dart';
 import 'audit_tasks_page.dart';
 import 'checker_profile_page.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class CheckerView extends StatefulWidget {
   final String checkerName;
@@ -35,7 +36,7 @@ class _CheckerViewState extends State<CheckerView> {
     }
 
     // If not, prepend the base URL
-    return 'https://mwms.megacess.com/$userImg';
+    return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
   String? get _profileImageUrl {

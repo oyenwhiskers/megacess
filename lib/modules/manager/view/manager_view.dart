@@ -5,6 +5,7 @@ import '../../utility/secure_storage_service.dart';
 import 'location_view.dart';
 import 'analytics_view.dart';
 import 'manager_profile_page.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class ManagerView extends StatefulWidget {
   final String managerName;
@@ -33,7 +34,7 @@ class _ManagerViewState extends State<ManagerView> {
     }
 
     // If not, prepend the base URL
-    return 'https://mwms.megacess.com/$userImg';
+    return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
   String? get _profileImageUrl {

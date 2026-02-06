@@ -12,9 +12,9 @@ import 'package:megacess/modules/utility/dio_client.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart' as path;
-import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http_parser/http_parser.dart';
+import '../../../../core/config/flavor_config.dart';
 
 class AttendanceService {
   Future<Map<String, dynamic>> userCheckOut({
@@ -25,7 +25,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/user-attendance/check-out',
+        'user-attendance/check-out',
         data: {
           'date_attendance_id': dateAttendanceId,
           'user_id': userId,
@@ -50,7 +50,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/user-attendance/check-in',
+        'user-attendance/check-in',
         data: {
           'date_attendance_id': dateAttendanceId,
           'user_id': userId,
@@ -73,7 +73,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/user-attendance/mark-absent',
+        'user-attendance/mark-absent',
         data: {'date_attendance_id': dateAttendanceId, 'user_id': userId},
       );
       return response.data as Map<String, dynamic>;
@@ -90,7 +90,7 @@ class AttendanceService {
   }) async {
     try {
       print('Fetching user detail for userId: $userId');
-      final response = await dioClient.get('api/v1/users/$userId');
+      final response = await dioClient.get('users/$userId');
       print('User detail API response: ${response.data}');
 
       if (response.data is Map && response.data['success'] == true) {
@@ -120,7 +120,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/staff-attendance/mark-absent',
+        'staff-attendance/mark-absent',
         data: {'date_attendance_id': dateAttendanceId, 'staff_id': staffId},
       );
       return response.data as Map<String, dynamic>;
@@ -140,7 +140,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/staff-attendance/check-out',
+        'staff-attendance/check-out',
         data: {
           'date_attendance_id': dateAttendanceId,
           'staff_id': staffId,
@@ -165,7 +165,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.post(
-        'api/v1/staff-attendance/check-in',
+        'staff-attendance/check-in',
         data: {
           'date_attendance_id': dateAttendanceId,
           'staff_id': staffId,
@@ -184,7 +184,7 @@ class AttendanceService {
 
   Future<StaffDetailResponse> fetchStaffDetail({required int staffId}) async {
     try {
-      final response = await dioClient.get('api/v1/staff/$staffId');
+      final response = await dioClient.get('staff/$staffId');
       if (response.data is Map && response.data['success'] == true) {
         return StaffDetailResponse.fromJson(response.data);
       } else {
@@ -204,7 +204,7 @@ class AttendanceService {
 
   Future<AuditTaskPreviewModel?> fetchAuditTaskPreview(int taskId) async {
     try {
-      final response = await dioClient.get('api/v1/tasks/$taskId');
+      final response = await dioClient.get('tasks/$taskId');
       if (response.data is Map && response.data['success'] == true) {
         return AuditTaskPreviewModel.fromJson(response.data['data']);
       } else {
@@ -228,7 +228,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.get(
-        'api/v1/locations/$locationId/tasks',
+        'locations/$locationId/tasks',
         queryParameters: {'page': page},
       );
       if (response.data is Map && response.data['success'] == true) {
@@ -250,7 +250,7 @@ class AttendanceService {
 
   Future<LocationListResponse> fetchLocationList() async {
     try {
-      final response = await dioClient.get('api/v1/locations');
+      final response = await dioClient.get('locations');
       if (response.data is Map && response.data['success'] == true) {
         return LocationListResponse.fromJson(response.data);
       } else {
@@ -271,7 +271,7 @@ class AttendanceService {
   Future<PendingTaskListResponse> fetchPendingTasks() async {
     try {
       final response = await dioClient.get(
-        'api/v1/analytics/checker/pending-tasks',
+        'analytics/checker/pending-tasks',
       );
       if (response.data is Map && response.data['success'] == true) {
         return PendingTaskListResponse.fromJson(response.data);
@@ -292,7 +292,7 @@ class AttendanceService {
 
   Future<CheckerAnalytics> fetchCheckerAnalytics() async {
     try {
-      final response = await dioClient.get('api/v1/analytics/checker');
+      final response = await dioClient.get('analytics/checker');
       if (response.data is Map && response.data['success'] == true) {
         return CheckerAnalytics.fromJson(response.data);
       } else {
@@ -317,7 +317,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.get(
-        'api/v1/staff-attendance',
+        'staff-attendance',
         queryParameters: {
           'date_attendance_id': dateAttendanceId,
           'page': page,
@@ -388,7 +388,7 @@ class AttendanceService {
       ); // Debug
 
       final response = await dioClient.get(
-        'api/v1/staff',
+        'staff',
         queryParameters: queryParams,
       );
 
@@ -423,7 +423,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.get(
-        'api/v1/user-attendance',
+        'user-attendance',
         queryParameters: {
           'date_attendance_id': dateAttendanceId,
           'page': page,
@@ -450,7 +450,7 @@ class AttendanceService {
   Future<Map<String, dynamic>> createAttendance({required String date}) async {
     try {
       final response = await dioClient.post(
-        '/api/v1/attendance',
+        'attendance',
         data: {'date': date},
       );
       return response.data as Map<String, dynamic>;
@@ -463,7 +463,7 @@ class AttendanceService {
 
   AttendanceService(SecureStorageService storageService)
     : dioClient = DioClient(
-        baseUrl: 'https://mwms.megacess.com/',
+        baseUrl: FlavorConfig.instance.baseUrl,
         storageService: storageService,
       );
 
@@ -531,7 +531,7 @@ class AttendanceService {
 
       // Make the request
       final response = await dioClient.post(
-        'api/v1/files/upload',
+        'files/upload',
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
       );
@@ -600,7 +600,7 @@ class AttendanceService {
   Future<Map<String, dynamic>> getFileUrl(String path) async {
     try {
       final response = await dioClient.get(
-        'api/v1/files/url',
+        'files/url',
         queryParameters: {'path': path},
       );
 
@@ -624,7 +624,7 @@ class AttendanceService {
   Future<Map<String, dynamic>> deleteFile(String path) async {
     try {
       final response = await dioClient.delete(
-        'api/v1/files/delete',
+        'files/delete',
         data: {'path': path},
       );
 
@@ -649,7 +649,7 @@ class AttendanceService {
   }) async {
     try {
       final response = await dioClient.get(
-        'api/v1/attendance',
+        'attendance',
         queryParameters: {
           'page': page,
           'per_page': perPage,
@@ -664,7 +664,7 @@ class AttendanceService {
 
   Future<Map<String, dynamic>> deleteAttendance(int id) async {
     try {
-      final response = await dioClient.delete('api/v1/attendance/$id');
+      final response = await dioClient.delete('attendance/$id');
       if (response.data is Map) {
         return response.data as Map<String, dynamic>;
       } else {
@@ -799,7 +799,7 @@ class AttendanceService {
       }
 
       final response = await dioClient.post(
-        'api/v1/tasks/audits/$taskId/approve',
+        'tasks/audits/$taskId/approve',
         data: requestBody,
       );
 
@@ -836,7 +836,7 @@ class AttendanceService {
       print('Remarks: $remarks');
 
       final response = await dioClient.post(
-        'api/v1/tasks/audits/$taskId/reject',
+        'tasks/audits/$taskId/reject',
         data: requestBody,
       );
 
@@ -861,3 +861,5 @@ class AttendanceService {
 
   // ...existing code...
 }
+
+

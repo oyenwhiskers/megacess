@@ -1,6 +1,7 @@
 import '../model/checker_analytics.dart';
-import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../utility/dio_client.dart';
+import '../../../../core/config/flavor_config.dart';
 
 class CheckerAnalyticsService {
   final DioClient _dioClient;
@@ -9,12 +10,12 @@ class CheckerAnalyticsService {
     : _dioClient =
           dioClient ??
           DioClient(
-            baseUrl: 'https://mwms.megacess.com/api/',
+            baseUrl: FlavorConfig.instance.baseUrl,
             storageService: SecureStorageService(),
           );
 
   Future<CheckerAnalytics> fetchCheckerAnalytics() async {
-    final response = await _dioClient.get('v1/analytics/checker');
+    final response = await _dioClient.get('analytics/checker');
     if (response.statusCode == 200 &&
         response.data['success'] == true &&
         response.data['data'] != null) {
@@ -28,7 +29,7 @@ class CheckerAnalyticsService {
 
   Future<Map<String, dynamic>?> fetchProfile() async {
     try {
-      final response = await _dioClient.get('v1/profile');
+      final response = await _dioClient.get('profile');
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data['data'];
       }
@@ -38,3 +39,4 @@ class CheckerAnalyticsService {
     return null;
   }
 }
+

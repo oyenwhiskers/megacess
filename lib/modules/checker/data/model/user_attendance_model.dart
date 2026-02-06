@@ -1,3 +1,5 @@
+import 'package:megacess/core/config/flavor_config.dart';
+
 class UserAttendanceItem {
   final int userId;
   final String userImg;
@@ -24,7 +26,7 @@ class UserAttendanceItem {
     
     // Add base URL if the image path is relative (starts with /storage/)
     if (imageUrl.isNotEmpty && imageUrl.startsWith('/storage/')) {
-      imageUrl = 'https://mwms.megacess.com$imageUrl';
+      imageUrl = '${FlavorConfig.instance.baseDomain}$imageUrl';
       print('Converted relative user image path to: $imageUrl');
     }
     

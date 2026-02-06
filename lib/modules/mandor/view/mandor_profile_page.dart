@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart'; // Commented out - image editing disabled
 import '../data/model/mandor_profile_model.dart';
 import '../data/service/mandor_profile_service.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class MandorProfilePage extends StatefulWidget {
   const MandorProfilePage({super.key});
@@ -290,7 +291,7 @@ class _MandorProfilePageState extends State<MandorProfilePage> {
                                     ? NetworkImage(
                                         profile!.userImg!.startsWith('http')
                                             ? '${profile!.userImg!}?t=${DateTime.now().millisecondsSinceEpoch}'
-                                            : 'https://mwms.megacess.com${profile!.userImg!}?t=${DateTime.now().millisecondsSinceEpoch}',
+                                            : '${FlavorConfig.instance.baseDomain}${profile!.userImg!}?t=${DateTime.now().millisecondsSinceEpoch}',
                                       )
                                     : null,
                                 child:

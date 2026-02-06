@@ -1,6 +1,7 @@
 import '../model/manager_models.dart';
 import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../../core/config/flavor_config.dart';
 import 'package:dio/dio.dart';
 
 class ManagerService {
@@ -10,7 +11,7 @@ class ManagerService {
     : _dioClient =
           dioClient ??
           DioClient(
-            baseUrl: 'https://mwms.megacess.com/api/',
+            baseUrl: FlavorConfig.instance.baseUrl,
             storageService: SecureStorageService(),
           );
 
@@ -18,7 +19,7 @@ class ManagerService {
   Future<ManagerStats> getManagerStats() async {
     try {
       print('Fetching manager analytics from API...');
-      final response = await _dioClient.get('v1/analytics/manager');
+      final response = await _dioClient.get('analytics/manager');
       print('Manager analytics API response: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
@@ -46,7 +47,7 @@ class ManagerService {
   // Manager profile methods
   Future<ManagerProfile> fetchProfile() async {
     try {
-      final response = await _dioClient.get('v1/profile');
+      final response = await _dioClient.get('profile');
       if (response.statusCode == 200 && response.data['success'] == true) {
         return ManagerProfile.fromJson(response.data['data']);
       }
@@ -63,7 +64,7 @@ class ManagerService {
 
   Future<ManagerProfile> updateProfile(Map<String, dynamic> updateData) async {
     try {
-      final response = await _dioClient.post('v1/profile', data: updateData);
+      final response = await _dioClient.post('profile', data: updateData);
       if (response.statusCode == 200 && response.data['success'] == true) {
         return ManagerProfile.fromJson(response.data['data']);
       }
@@ -81,7 +82,7 @@ class ManagerService {
   // Analytics methods
   Future<Map<String, dynamic>> fetchManagerAnalytics() async {
     try {
-      final response = await _dioClient.get('v1/analytics/manager');
+      final response = await _dioClient.get('analytics/manager');
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data;
       }
@@ -98,7 +99,7 @@ class ManagerService {
 
   Future<Map<String, dynamic>> fetchUsageBreakdown() async {
     try {
-      final response = await _dioClient.get('v1/analytics/usage-breakdown');
+      final response = await _dioClient.get('analytics/usage-breakdown');
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data;
       }
@@ -119,7 +120,7 @@ class ManagerService {
   ) async {
     try {
       final response = await _dioClient.get(
-        'v1/tasks/location/$locationId/breakdown-by-location',
+        'tasks/location/$locationId/breakdown-by-location',
       );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return LocationTasksBreakdownResponse.fromJson(response.data);
@@ -141,7 +142,7 @@ class ManagerService {
   // Location management methods
   Future<List<LocationItem>> fetchLocations() async {
     try {
-      final response = await _dioClient.get('v1/locations');
+      final response = await _dioClient.get('locations');
       if (response.statusCode == 200 && response.data['success'] == true) {
         final List data = response.data['data'];
         return data.map((json) => LocationItem.fromJson(json)).toList();
@@ -160,7 +161,7 @@ class ManagerService {
   Future<LocationItem> createLocation(String name, String description) async {
     try {
       final response = await _dioClient.post(
-        'v1/locations',
+        'locations',
         data: {'name': name, 'description': description},
       );
       if (response.statusCode == 200 && response.data['success'] == true) {
@@ -179,7 +180,7 @@ class ManagerService {
 
   Future<bool> deleteLocation(int locationId) async {
     try {
-      final response = await _dioClient.delete('v1/locations/$locationId');
+      final response = await _dioClient.delete('locations/$locationId');
       return response.statusCode == 200 && response.data['success'] == true;
     } on DioException catch (e) {
       if (e.response != null) {
@@ -198,7 +199,7 @@ class ManagerService {
   ) async {
     try {
       final response = await _dioClient.put(
-        'v1/locations/$locationId',
+        'locations/$locationId',
         data: {'name': name, 'description': description},
       );
       if (response.statusCode == 200 && response.data['success'] == true) {
@@ -241,3 +242,5 @@ class ManagerService {
     return true;
   }
 }
+
+

@@ -1,10 +1,11 @@
 import '../model/staff_model.dart';
-import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../utility/dio_client.dart';
+import '../../../../core/config/flavor_config.dart';
 
 class StaffService {
   Future<bool> unclaimStaff(int staffId) async {
-    final response = await _dioClient.delete('v1/staff/$staffId/unclaim');
+    final response = await _dioClient.delete('staff/$staffId/unclaim');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return true;
     }
@@ -12,7 +13,7 @@ class StaffService {
   }
 
   Future<StaffModel?> getStaffDetail(int staffId) async {
-    final response = await _dioClient.get('v1/staff/$staffId');
+    final response = await _dioClient.get('staff/$staffId');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return StaffModel.fromJson(response.data['data']);
     }
@@ -20,7 +21,7 @@ class StaffService {
   }
 
   Future<bool> claimStaff(int staffId) async {
-    final response = await _dioClient.post('v1/staff/$staffId/claim');
+    final response = await _dioClient.post('staff/$staffId/claim');
     if (response.statusCode == 200 && response.data['success'] == true) {
       return true;
     }
@@ -33,8 +34,7 @@ class StaffService {
     : _dioClient =
           dioClient ??
           DioClient(
-            baseUrl:
-                'https://mwms.megacess.com/api/', // <-- Replace with your actual base URL
+            baseUrl: FlavorConfig.instance.baseUrl,
             storageService: SecureStorageService(),
           );
 
@@ -43,7 +43,7 @@ class StaffService {
     String? search,
   }) async {
     final response = await _dioClient.get(
-      'v1/staff',
+      'staff',
       queryParameters: {
         'page': page,
         if (search != null && search.isNotEmpty) 'search': search,
@@ -67,7 +67,7 @@ class StaffService {
   }
 
   Future<List<StaffModel>> fetchClaimedStaff() async {
-    final response = await _dioClient.get('v1/staff/my-staff');
+    final response = await _dioClient.get('staff/my-staff');
     if (response.statusCode == 200 && response.data['success'] == true) {
       final List data = response.data['data'];
       return data.map((json) => StaffModel.fromJson(json)).toList();
@@ -89,3 +89,5 @@ class PaginatedStaffResult {
     required this.total,
   });
 }
+
+

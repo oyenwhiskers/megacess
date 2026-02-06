@@ -1,6 +1,7 @@
 import '../model/mandor_profile_model.dart';
-import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
+import '../../../utility/dio_client.dart';
+import '../../../../core/config/flavor_config.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -11,14 +12,14 @@ class MandorProfileService {
     : _dioClient =
           dioClient ??
           DioClient(
-            baseUrl: 'https://mwms.megacess.com/api/',
+            baseUrl: FlavorConfig.instance.baseUrl,
             storageService: SecureStorageService(),
           );
 
   /// GET v1/profile
   Future<MandorProfile> fetchProfile() async {
     try {
-      final response = await _dioClient.get('v1/profile');
+      final response = await _dioClient.get('profile');
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null && data['success'] == true) {
@@ -40,7 +41,7 @@ class MandorProfileService {
   Future<MandorProfile> updateProfile(Map<String, dynamic> profileData) async {
     try {
       final response = await _dioClient.post(
-        'v1/profile',
+        'profile',
         data: profileData,
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
@@ -100,7 +101,7 @@ class MandorProfileService {
 
       // Upload to correct endpoint: v1/files/upload
       final uploadResponse = await _dioClient.post(
-        'v1/files/upload',
+        'files/upload',
         data: formData,
       );
 
@@ -176,7 +177,7 @@ class MandorProfileService {
       // Step 2: Update profile with the corrected image path using POST
       final profileData = {'user_img': finalPath};
       final profileResponse = await _dioClient.post(
-        'v1/profile',
+        'profile',
         data: profileData,
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
@@ -216,3 +217,5 @@ class MandorProfileService {
     }
   }
 }
+
+

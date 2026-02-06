@@ -1,6 +1,7 @@
 import '../data/model/task_analytics.dart';
 import '../data/service/manager_dashboard_service.dart';
 import '../../authorization/view-model/login_view_model.dart';
+import 'package:megacess/core/config/flavor_config.dart';
 
 class ManagerDashboardViewModel {
   Future<void> logout() async {
@@ -43,7 +44,7 @@ class ManagerDashboardViewModel {
     }
     
     // If not, prepend the base URL
-    return 'https://mwms.megacess.com/$userImg';
+    return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
   String? get profileImageUrl {
