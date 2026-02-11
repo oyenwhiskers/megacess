@@ -10,8 +10,8 @@ const String ENV =
 class AppConfig {
   // API Base URLs for each environment
   static const Map<String, String> _apiUrls = {
-    'staging': 'https://mwmsdemo.megacess.com/api/v1',
-    'production': 'https://mwms.megacess.com/api/v1',
+    'staging': 'https://mwmsdemo.megacess.com/api/v1/',
+    'production': 'https://mwms.megacess.com/api/v1/',
   };
 
   // Base Domain URLs for each environment
