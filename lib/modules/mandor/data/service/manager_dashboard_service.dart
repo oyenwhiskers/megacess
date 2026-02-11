@@ -222,6 +222,7 @@ class ManagerDashboardService {
   // Tetap pertahankan method lama jika masih dipakai di tempat lain
   Future<TaskAnalytics?> fetchTaskAnalytics() async {
     final response = await _dioClient.get('analytics/manager');
+    print('Manager Analytics Response: ${response.data}'); // DEBUG PRINT
     if (response.statusCode == 200 && response.data['success'] == true) {
       final data = response.data['data']['task_analytics'];
       return TaskAnalytics.fromJson(data);
@@ -241,5 +242,3 @@ class ManagerDashboardService {
     return null;
   }
 }
-
-

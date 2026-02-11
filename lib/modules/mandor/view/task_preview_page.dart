@@ -1209,8 +1209,10 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                                       elevation: 0,
                                     ),
                                     onPressed:
-                                        _task?.taskStatus.toLowerCase() ==
-                                            'in_progress'
+                                        (_task?.taskStatus.toLowerCase() ==
+                                                'in_progress' &&
+                                            (_task?.workers.isNotEmpty ??
+                                                false))
                                         ? () => _submitTaskToChecker()
                                         : null,
                                     child: const Text(

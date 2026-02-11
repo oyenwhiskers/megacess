@@ -29,15 +29,19 @@ class _LogsTabViewState extends State<LogsTabView> {
     });
     try {
       final logs = await _service.fetchTaskLogs(widget.taskId);
-      setState(() {
-        _logs = logs;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _logs = logs;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
