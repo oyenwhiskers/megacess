@@ -4,18 +4,20 @@
 // ==============================================
 
 const String ENV =
-    'staging'; // CHANGE THIS TO 'production' TO SWITCH ENVIRONMENTS
+    'local'; // CHANGE THIS TO 'staging' OR 'production' TO SWITCH ENVIRONMENTS
 
 // Environment Configuration Maps
 class AppConfig {
   // API Base URLs for each environment
   static const Map<String, String> _apiUrls = {
+    'local': 'http://192.168.0.4:8000/api/v1/',
     'staging': 'https://mwmsdemo.megacess.com/api/v1/',
     'production': 'https://mwms.megacess.com/api/v1/',
   };
 
   // Base Domain URLs for each environment
   static const Map<String, String> _domainUrls = {
+    'local': 'http://192.168.0.4:8000',
     'staging': 'https://mwmsdemo.megacess.com',
     'production': 'https://mwms.megacess.com',
   };
@@ -25,7 +27,7 @@ class AppConfig {
     final url = _apiUrls[ENV];
     if (url == null) {
       throw Exception(
-        'Invalid environment: "$ENV". Must be "staging" or "production".',
+        'Invalid environment: "$ENV". Must be "local", "staging" or "production".',
       );
     }
     return url;
@@ -36,7 +38,7 @@ class AppConfig {
     final domain = _domainUrls[ENV];
     if (domain == null) {
       throw Exception(
-        'Invalid environment: "$ENV". Must be "staging" or "production".',
+        'Invalid environment: "$ENV". Must be "local", "staging" or "production".',
       );
     }
     return domain;
@@ -54,6 +56,9 @@ class AppConfig {
 
   // Check if current environment is staging
   static bool get isStaging => ENV == 'staging';
+
+  // Check if current environment is local
+  static bool get isLocal => ENV == 'local';
 
   // Log current configuration (helpful for debugging)
   static void logConfiguration() {

@@ -13,7 +13,11 @@ void main() {
   // Initialize FlavorConfig using centralized AppConfig
   // To switch environments, change the ENV constant in env_config.dart
   FlavorConfig(
-    flavor: AppConfig.isProduction ? Flavor.production : Flavor.staging,
+    flavor: AppConfig.isProduction
+        ? Flavor.production
+        : AppConfig.isLocal
+            ? Flavor.local
+            : Flavor.staging,
     baseUrl: AppConfig.apiUrl,
     baseDomain: AppConfig.baseDomain,
     storageDomain: AppConfig.storageDomain,

@@ -1,4 +1,4 @@
-enum Flavor { production, staging }
+enum Flavor { production, staging, local }
 
 class FlavorConfig {
   final Flavor flavor;
@@ -40,4 +40,5 @@ class FlavorConfig {
 
   static bool isProduction() => _instance?.flavor == Flavor.production;
   static bool isStaging() => _instance?.flavor == Flavor.staging;
+  static bool isLocal() => _instance?.flavor == Flavor.local;
 }
