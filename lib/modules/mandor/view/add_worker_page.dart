@@ -28,7 +28,7 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
   String? fuelAmount;
 
   // Dropdown options
-  final List<String> fertilizerTypes = ['MOP', 'BORATE', 'NPK', 'UREA'];
+  List<String> fertilizerTypes = ['MOP', 'BORATE', 'NPK', 'UREA'];
   final List<String> pruningTypes = ['normal pruning', 'routine pruning'];
   final List<String> harvestingTypes = [
     'normal harvesting',
@@ -51,12 +51,17 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
       _isLoading = true;
     });
     try {
-      final task = await ManagerDashboardService().fetchTaskPreview(
+      final service = ManagerDashboardService();
+      final task = await service.fetchTaskPreview(
         widget.taskId,
       );
+      final dynamicFertilizers = await service.fetchFertilizerTypes();
       if (task != null) {
         setState(() {
           _taskType = task.taskType;
+          if (dynamicFertilizers.isNotEmpty) {
+            fertilizerTypes = dynamicFertilizers;
+          }
           _isLoading = false;
         });
       } else {

@@ -241,4 +241,19 @@ class ManagerDashboardService {
     }
     return null;
   }
+
+  Future<List<String>> fetchFertilizerTypes() async {
+    try {
+      final response = await _dioClient.get('fertilizers');
+      if (response.statusCode == 200 &&
+          response.data['success'] == true &&
+          response.data['data'] != null) {
+        final list = response.data['data'] as List;
+        return list.map((e) => e['name'] as String).toList();
+      }
+    } catch (e) {
+      print('Error fetching fertilizers: $e');
+    }
+    return [];
+  }
 }

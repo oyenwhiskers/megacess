@@ -65,7 +65,7 @@ void mainCommon() {
     },
     (error, stack) {
       // Catch any uncaught errors in the error zone
-      print('Caught error in zone: $error');
+      print('Caught error in zone: $error\n$stack');
     },
   );
 }

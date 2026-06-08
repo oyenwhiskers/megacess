@@ -35,6 +35,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
   // Method to pick and upload an image
   Future<void> _pickAndUploadImage(ImageSource source) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final XFile? pickedImage = await _picker.pickImage(
         source: source,
@@ -139,7 +140,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             const SnackBar(
               content: Text('Image uploaded successfully'),
               duration: Duration(seconds: 1),
@@ -148,7 +149,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
                 'Upload failed: ${response['message'] ?? 'Unknown error'}',
@@ -159,9 +160,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+        messenger.showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       }
     } finally {
       if (mounted) {
@@ -273,10 +272,11 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
   // Method to pick and upload a video with max duration of 30 seconds
   Future<void> _pickAndUploadVideo(ImageSource source) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       // First check platform support
       if (!_isPlatformSupportedForVideo) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Video upload is not supported on this platform'),
           ),
@@ -303,7 +303,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
 
       // Show uploading indicator immediately
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Uploading video...'),
             duration: Duration(seconds: 1),
@@ -356,9 +356,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to upload video: $e')));
+          messenger.showSnackBar(SnackBar(content: Text('Failed to upload video: $e')));
         }
         setState(() {
           _isUploading = false;
@@ -422,7 +420,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             const SnackBar(
               content: Text('Video uploaded successfully'),
               duration: Duration(seconds: 1),
@@ -431,7 +429,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
                 'Upload failed: ${response['message'] ?? 'Unknown error'}',
@@ -442,9 +440,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error with video: $e')));
+        messenger.showSnackBar(SnackBar(content: Text('Error with video: $e')));
       }
     } finally {
       if (mounted) {
@@ -1149,7 +1145,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: backgroundColor ?? Colors.red,
+          backgroundColor: backgroundColor ?? const Color(0xFF323232),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -2403,21 +2399,92 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
   Future<void> _approveTask() async {
     print('\n===== _approveTask STARTED =====');
 
-    // Validate that we have at least one image or video
-    if (_uploadedFiles.isEmpty) {
-      print('No uploaded files found');
+    // 1. Separate videos and images from uploaded files
+    String? taskVideo;
+    List<String> taskImages = [];
+
+    for (var file in _uploadedFiles) {
+      String? resolvedUrl;
+      if (file['url'] != null && file['url'].toString().isNotEmpty) {
+        resolvedUrl = file['url'].toString();
+      } else if (file['serverPath'] != null && file['serverPath'].toString().isNotEmpty) {
+        resolvedUrl = file['serverPath'].toString();
+      } else if (file['path'] != null && file['path'].toString().isNotEmpty) {
+        resolvedUrl = file['path'].toString();
+      }
+
+      if (file['isVideo'] == true) {
+        if (taskVideo == null && resolvedUrl != null && resolvedUrl.isNotEmpty) {
+          taskVideo = resolvedUrl;
+        }
+      } else {
+        if (resolvedUrl != null && resolvedUrl.isNotEmpty) {
+          taskImages.add(resolvedUrl);
+        }
+      }
+    }
+
+    // 2. Validate required fields BEFORE showing metadata dialog
+    if (taskVideo == null || taskVideo.isEmpty || taskImages.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Please upload at least one image or video before approving',
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+                SizedBox(width: 8),
+                Text('Evidence Required'),
+              ],
             ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'To approve this task, you must upload:',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      taskVideo == null || taskVideo.isEmpty ? Icons.close : Icons.check,
+                      color: taskVideo == null || taskVideo.isEmpty ? Colors.grey : Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('At least 1 Video evidence'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      taskImages.isEmpty ? Icons.close : Icons.check,
+                      color: taskImages.isEmpty ? Colors.grey : Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('At least 1 Image evidence'),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Please record or upload the missing media before approving.',
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
         );
       }
       return;
     }
-    print('Found ${_uploadedFiles.length} uploaded files');
 
     // Validate task data exists
     if (_task == null) {
@@ -2484,42 +2551,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         print('  - serverPath: ${_uploadedFiles[i]['serverPath']}');
       }
 
-      // Separate videos and images from uploaded files
-      String? taskVideo;
-      List<String> taskImages = [];
-
-      for (var file in _uploadedFiles) {
-        print(
-          'Processing file: isVideo=${file['isVideo']}, url=${file['url']}, serverPath=${file['serverPath']}, path=${file['path']}',
-        );
-
-        // prefer url, then serverPath, then local path
-        String? resolvedUrl;
-        if (file['url'] != null && file['url'].toString().isNotEmpty) {
-          resolvedUrl = file['url'].toString();
-        } else if (file['serverPath'] != null &&
-            file['serverPath'].toString().isNotEmpty) {
-          resolvedUrl = file['serverPath'].toString();
-        } else if (file['path'] != null && file['path'].toString().isNotEmpty) {
-          resolvedUrl = file['path'].toString();
-        }
-
-        if (file['isVideo'] == true) {
-          // Take the first video only
-          if (taskVideo == null &&
-              resolvedUrl != null &&
-              resolvedUrl.isNotEmpty) {
-            taskVideo = resolvedUrl;
-            print('Found video (resolved): $taskVideo');
-          }
-        } else {
-          // Add all images
-          if (resolvedUrl != null && resolvedUrl.isNotEmpty) {
-            taskImages.add(resolvedUrl);
-            print('Added image (resolved): $resolvedUrl');
-          }
-        }
-      }
+      // taskVideo and taskImages are already extracted at the start of _approveTask
 
       // Build worker_audit_meta from user input
       List<Map<String, dynamic>>? workerAuditMeta;
@@ -2599,7 +2631,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   content: Text(
                     'Failed to build worker data. Please try again.',
                   ),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Color(0xFF323232),
                 ),
               );
               setState(() {
@@ -2626,7 +2658,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   content: Text(
                     'Invalid worker data. Please check your input.',
                   ),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Color(0xFF323232),
                 ),
               );
               setState(() {
@@ -2730,40 +2762,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
       print('\n===== PAYLOAD JSON =====');
       print(payload);
 
-      // Validate required fields based on API requirements
-      if (taskVideo == null || taskVideo.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Task video is required. Please upload a video before approving.',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-          setState(() {
-            _isApproving = false;
-          });
-        }
-        return;
-      }
-
-      if (taskImages.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'At least one image is required. Please upload an image before approving.',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-          setState(() {
-            _isApproving = false;
-          });
-        }
-        return;
-      }
+      // Required fields already validated at the start of _approveTask
 
       // Call the approve API (use the payload map to make sure keys are aligned)
       print('\n===== CALLING API: approveAuditTask =====');
@@ -2784,7 +2783,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 content: Text(
                   'Worker audit meta is required for sanitation tasks. Please enter values for spraying or slashing.',
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: Color(0xFF323232),
                 duration: Duration(seconds: 3),
               ),
             );
@@ -2822,7 +2821,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 content: Text(
                   'Please enter at least one value for spraying or slashing.',
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: Color(0xFF323232),
                 duration: Duration(seconds: 3),
               ),
             );
@@ -2940,27 +2939,24 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                 },
               );
 
-              // Auto-close dialog and navigate back after 1.5 seconds
+              // Auto-close dialog and navigate back after 1.5 seconds (scheduled ONCE outside builder)
               Future.delayed(const Duration(milliseconds: 1500), () {
                 runZonedGuarded(
                   () {
                     if (mounted) {
                       try {
-                        // Close the success dialog
-                        Navigator.of(context).pop();
+                        // Close the success dialog on the root navigator
+                        Navigator.of(context, rootNavigator: true).pop();
 
-                        // Wait a bit then navigate back to previous screen
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          runZonedGuarded(
-                            () {
-                              if (mounted) {
-                                Navigator.of(context).pop(true);
-                              }
-                            },
-                            (error, stackTrace) {
-                              print('Navigation error (suppressed): $error');
-                            },
-                          );
+                        // Wait for dialog close animation (350ms) then pop page
+                        Future.delayed(const Duration(milliseconds: 350), () {
+                          if (mounted) {
+                            try {
+                              Navigator.of(context).pop(true);
+                            } catch (e) {
+                              print('Navigation error (suppressed): $e');
+                            }
+                          }
                         });
                       } catch (e) {
                         print('Navigation error (suppressed): $e');
@@ -3118,7 +3114,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: const Color(0xFF323232),
               duration: const Duration(seconds: 3),
             ),
           );
@@ -3130,7 +3126,7 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error approving task: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFF323232),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -3428,17 +3424,19 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-            ? Center(child: Text('Error: $_error'))
-            : _task == null
-            ? const Center(child: Text('No data found.'))
-            : SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        body: Stack(
+          children: [
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Center(child: Text('Error: $_error'))
+                : _task == null
+                ? const Center(child: Text('No data found.'))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                     const SizedBox(height: 16), // Add some space at the top
                     // Task header - simpler design as in the image
                     Row(
@@ -3568,8 +3566,8 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Media(insert at least one):',
-                      style: TextStyle(fontSize: 13, color: Colors.black54),
+                      'Media (both 1 video & at least 1 image are required):',
+                      style: TextStyle(fontSize: 13, color: Colors.redAccent, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     _isUploading
@@ -3888,6 +3886,38 @@ class _AuditTaskPreviewPageState extends State<AuditTaskPreviewPage> {
                   ],
                 ),
               ),
+            if (_isApproving)
+              Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7ED957)),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Approving task...',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       );
     } catch (e) {
       // If there's any error in build, return a safe error widget instead of red screen
