@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "megacess (Production)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_prod.dart"
+        },
+        {
+            "name": "megacess (Staging)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_staging.dart"
+        },
+        {
+            "name": "megacess (Development)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart"
+        }
+    ]
+}
