@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-import '../data/service/staff_service.dart';
+import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_text_field.dart';
 import '../data/model/staff_model.dart';
+import '../data/service/staff_service.dart';
 import 'staff_detail_page.dart';
 
 class MyStaffPage extends StatefulWidget {
@@ -23,10 +27,13 @@ class _MyStaffPageState extends State<MyStaffPage> {
   void initState() {
     super.initState();
     _fetchClaimedStaff();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      _fetchClaimedStaff();
-    });
+  }
+
+  @override
+  void dispose() {
     _refreshTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchClaimedStaff() async {
@@ -35,17 +42,24 @@ class _MyStaffPageState extends State<MyStaffPage> {
     });
     try {
       final staff = await _staffService.fetchClaimedStaff();
-      setState(() {
-        staffList = staff;
-        _isLoadingStaff = false;
-      });
+      if (mounted) {
+        setState(() {
+          staffList = staff;
+          _isLoadingStaff = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoadingStaff = false;
-      });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to load staff: $e')));
+      if (mounted) {
+        setState(() {
+          _isLoadingStaff = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load staff: $e'),
+            backgroundColor: AppColors.mcStatusRed,
+          ),
+        );
+      }
     }
   }
 
@@ -58,67 +72,40 @@ class _MyStaffPageState extends State<MyStaffPage> {
           ),
         )
         .toList();
+
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
+      backgroundColor: AppColors.mcBgApp,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                top: 18,
-                bottom: 12,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'My Staff',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
+            MegaAppHeader(
+              title: 'My Staff',
+              subtitle: 'Claimed plantation workers',
+              showBackButton: true,
             ),
-            const SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: MegaTextField(
                 controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'search staff...',
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
+                hintText: 'Search staff by name...',
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: AppColors.mcTextMuted,
+                  size: 20,
                 ),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          color: AppColors.mcTextMuted,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => searchQuery = '');
+                        },
+                      )
+                    : null,
                 onChanged: (value) {
                   setState(() {
                     searchQuery = value;
@@ -126,73 +113,185 @@ class _MyStaffPageState extends State<MyStaffPage> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
             Expanded(
               child: _isLoadingStaff
-                  ? const Center(child: CircularProgressIndicator())
-                  : filteredStaff.isEmpty
-                  ? const Center(child: Text('No staff found'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: filteredStaff.length,
-                      itemBuilder: (context, index) {
-                        final staff = filteredStaff[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Card(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            color: Colors.white,
-                            child: ListTile(
-                              leading: staff.staffImg.isNotEmpty
-                                  ? CircleAvatar(
-                                      radius: 22,
-                                      backgroundColor: Colors.grey[200],
-                                      child: ClipOval(
-                                        child: Image.network(
-                                          staff.staffImg,
-                                          width: 44,
-                                          height: 44,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return const Icon(
-                                                  Icons.account_circle,
-                                                  size: 40,
-                                                  color: Colors.black45,
-                                                );
-                                              },
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.mcForestGreen,
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: AppColors.mcForestGreen,
+                      onRefresh: _fetchClaimedStaff,
+                      child: filteredStaff.isEmpty
+                          ? ListView(
+                              children: [
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.4,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.group_outlined,
+                                          size: 56,
+                                          color: AppColors.mcTextMuted
+                                              .withOpacity(0.5),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          searchQuery.isEmpty
+                                              ? 'No staff assigned yet'
+                                              : 'No staff matching "$searchQuery"',
+                                          style: AppTypography.bodyMedium
+                                              .copyWith(
+                                                color: AppColors.mcTextMuted,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
+                              ),
+                              itemCount: filteredStaff.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final staff = filteredStaff[index];
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppColors.mcBorder,
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.02),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(14),
+                                      onTap: () async {
+                                        final result =
+                                            await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                StaffDetailPage(
+                                              staffId: staff.id,
+                                            ),
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          _fetchClaimedStaff();
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 24,
+                                              backgroundColor: AppColors
+                                                  .mcForestGreen
+                                                  .withOpacity(0.08),
+                                              child: staff.staffImg.isNotEmpty
+                                                  ? ClipOval(
+                                                      child: Image.network(
+                                                        staff.staffImg,
+                                                        width: 48,
+                                                        height: 48,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (context, error,
+                                                                stackTrace) {
+                                                          return const Icon(
+                                                            Icons.person_rounded,
+                                                            size: 26,
+                                                            color: AppColors
+                                                                .mcForestGreen,
+                                                          );
+                                                        },
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.person_rounded,
+                                                      size: 26,
+                                                      color: AppColors
+                                                          .mcForestGreen,
+                                                    ),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    staff.staffFullname,
+                                                    style: AppTypography
+                                                        .labelLarge
+                                                        .copyWith(
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: AppColors
+                                                          .mcTextPrimary,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.phone_outlined,
+                                                        size: 13,
+                                                        color: AppColors
+                                                            .mcTextMuted,
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        staff.staffPhone.isNotEmpty
+                                                            ? staff.staffPhone
+                                                            : 'No phone',
+                                                        style: AppTypography
+                                                            .caption
+                                                            .copyWith(
+                                                          color: AppColors
+                                                              .mcTextMuted,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: AppColors.mcForestGreen,
+                                              size: 22,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    )
-                                  : const Icon(
-                                      Icons.account_circle,
-                                      size: 40,
-                                      color: Colors.black45,
                                     ),
-                              title: Text(
-                                staff.staffFullname,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              subtitle: Text(staff.staffPhone),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () async {
-                                final result = await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        StaffDetailPage(staffId: staff.id),
                                   ),
                                 );
-                                if (result == true) {
-                                  _fetchClaimedStaff();
-                                }
                               },
                             ),
-                          ),
-                        );
-                      },
                     ),
             ),
           ],

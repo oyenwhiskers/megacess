@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:megacess/core/config/flavor_config.dart';
+import 'package:megacess/core/theme/app_colors.dart';
+import 'package:megacess/core/theme/app_typography.dart';
+import 'package:megacess/core/widgets/mega_app_header.dart';
 import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
-import 'package:megacess/core/config/flavor_config.dart';
 
 class ManagerProfilePage extends StatefulWidget {
   const ManagerProfilePage({super.key});
@@ -38,16 +41,10 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
   }
 
   String? _getFullImageUrl(String? userImg) {
-    if (userImg == null || userImg.isEmpty) {
-      return null;
-    }
-
-    // Check if the URL already starts with http:// or https://
+    if (userImg == null || userImg.isEmpty) return null;
     if (userImg.startsWith('http://') || userImg.startsWith('https://')) {
       return userImg;
     }
-
-    // If not, prepend the base URL
     return '${FlavorConfig.instance.baseDomain}/$userImg';
   }
 
@@ -55,18 +52,20 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
     setState(() => isLoading = true);
     try {
       final fetchedProfile = await _managerService.fetchProfile();
-      setState(() {
-        profile = fetchedProfile;
-        _phoneController.text = fetchedProfile.userPhone;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
       if (mounted) {
+        setState(() {
+          profile = fetchedProfile;
+          _phoneController.text = fetchedProfile.userPhone;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load profile: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.statusRejectedText,
           ),
         );
       }
@@ -74,67 +73,64 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
   }
 
   Future<void> _saveProfile() async {
-    // Validate phone number
     if (_phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Phone number is required'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.statusRejectedText,
         ),
       );
       return;
     }
 
-    // Validate password confirmation if password is provided
     if (_passwordController.text.isNotEmpty &&
         _passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Passwords do not match'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.statusRejectedText,
         ),
       );
       return;
     }
 
     setState(() => isUpdating = true);
+
     try {
-      final updateData = <String, dynamic>{
+      final Map<String, dynamic> updateData = {
         'user_phone': _phoneController.text.trim(),
       };
 
-      // Only include password if it's provided
       if (_passwordController.text.isNotEmpty) {
         updateData['user_password'] = _passwordController.text;
       }
 
-      final updatedProfile = await _managerService.updateProfile(updateData);
-
-      setState(() {
-        isUpdating = false;
-        profile = updatedProfile;
-      });
+      final updated = await _managerService.updateProfile(updateData);
 
       if (mounted) {
+        setState(() {
+          profile = updated;
+          isUpdating = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.statusCompletedText,
           ),
         );
-        // Clear password fields after successful update
         _passwordController.clear();
         _confirmPasswordController.clear();
       }
     } catch (e) {
-      setState(() => isUpdating = false);
       if (mounted) {
+        setState(() => isUpdating = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Error: ${e.toString().replaceFirst('Exception: ', '')}',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.statusRejectedText,
           ),
         );
       }
@@ -143,269 +139,370 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.mcBgApp,
+        appBar: MegaAppHeader(
+          title: 'My Profile',
+          showBackButton: true,
+        ),
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.mcForestGreen),
+          ),
+        ),
+      );
+    }
+
+    if (profile == null) {
+      return Scaffold(
+        backgroundColor: AppColors.mcBgApp,
+        appBar: const MegaAppHeader(
+          title: 'My Profile',
+          showBackButton: true,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: AppColors.statusRejectedText,
+                size: 48,
+              ),
+              const SizedBox(height: 12),
+              const Text('Failed to load profile details'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mcForestGreen,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _fetchProfile,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final p = profile!;
+    final avatarUrl = _getFullImageUrl(p.userImg);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : profile == null
-          ? const Center(child: Text('Failed to load profile'))
-          : Column(
-              children: [
-                // Header with gradient
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 32,
+      backgroundColor: AppColors.mcBgApp,
+      appBar: const MegaAppHeader(
+        title: 'My Profile',
+        subtitle: 'Executive Account & Settings',
+        showBackButton: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // 1. Profile Identity Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.mcBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(32),
-                      bottomRight: Radius.circular(32),
-                    ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 46,
+                    backgroundColor: AppColors.frond50,
+                    backgroundImage:
+                        avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                    child: avatarUrl == null
+                        ? const Icon(
+                            Icons.person,
+                            size: 48,
+                            color: AppColors.mcForestGreen,
+                          )
+                        : null,
                   ),
-                  child: SafeArea(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.black,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        const SizedBox(width: 8),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 12.0),
-                          child: Text(
-                            'Manage Profile',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 14),
+                  Text(
+                    p.userFullname.isNotEmpty ? p.userFullname : p.userNickname,
+                    style: AppTypography.headingH3.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                // Profile content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      children: [
-                        // Profile Avatar
-                        Center(
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.grey[300],
-                            backgroundImage:
-                                _getFullImageUrl(profile!.userImg) != null
-                                ? NetworkImage(
-                                    _getFullImageUrl(profile!.userImg)!,
-                                  )
-                                : null,
-                            child: _getFullImageUrl(profile!.userImg) == null
-                                ? const Icon(
-                                    Icons.account_circle,
-                                    size: 100,
-                                    color: Colors.black26,
-                                  )
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Phone Number Field
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Phone Number:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: TextField(
-                                controller: _phoneController,
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  hintText: 'Enter phone number',
-                                ),
-                                keyboardType: TextInputType.phone,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Password Field
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Password:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: TextField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  hintText: 'Enter new password',
-                                  suffixIcon: TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                    child: Text(
-                                      _obscurePassword ? 'show' : 'hide',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Confirm Password Field
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Confirm Password:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: TextField(
-                                controller: _confirmPasswordController,
-                                obscureText: _obscureConfirmPassword,
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  hintText: 'Confirm new password',
-                                  suffixIcon: TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscureConfirmPassword =
-                                            !_obscureConfirmPassword;
-                                      });
-                                    },
-                                    child: Text(
-                                      _obscureConfirmPassword ? 'show' : 'hide',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Save Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF007AFF),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            onPressed: isUpdating ? null : _saveProfile,
-                            child: isUpdating
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Save',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.frond50,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.frond200),
+                    ),
+                    child: Text(
+                      (p.userRole.isNotEmpty ? p.userRole : 'MANAGER').toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mcForestGreen,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(height: 16),
+
+            // 2. Personal Information Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.mcBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Personal Information', style: AppTypography.headingH4),
+                  const SizedBox(height: 12),
+                  _InfoItem(
+                    label: 'Full Name',
+                    value: p.userFullname.isNotEmpty ? p.userFullname : '-',
+                  ),
+                  const Divider(height: 20),
+                  _InfoItem(
+                    label: 'Nickname',
+                    value: p.userNickname.isNotEmpty ? p.userNickname : '-',
+                  ),
+                  const Divider(height: 20),
+                  _InfoItem(
+                    label: 'IC Number',
+                    value: p.userIc.isNotEmpty ? p.userIc : '-',
+                  ),
+                  const Divider(height: 20),
+                  _InfoItem(
+                    label: 'Gender',
+                    value: p.userGender.isNotEmpty ? p.userGender : '-',
+                  ),
+                  const Divider(height: 20),
+                  _InfoItem(
+                    label: 'Attendance (This Month)',
+                    value: '${p.attendanceCountMonth}',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 3. Edit Profile Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.mcBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Edit Details', style: AppTypography.headingH4),
+                  const SizedBox(height: 14),
+
+                  // Phone input
+                  Text('Phone Number', style: AppTypography.caption),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.mcBgApp,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.mcForestGreen),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // New Password input
+                  Text('New Password (Optional)', style: AppTypography.caption),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      hintText: 'Enter new password',
+                      hintStyle: const TextStyle(color: AppColors.textDisabled),
+                      filled: true,
+                      fillColor: AppColors.mcBgApp,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.mcForestGreen),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Confirm Password input
+                  Text('Confirm Password', style: AppTypography.caption),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    decoration: InputDecoration(
+                      hintText: 'Confirm new password',
+                      hintStyle: const TextStyle(color: AppColors.textDisabled),
+                      filled: true,
+                      fillColor: AppColors.mcBgApp,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.mcBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.mcForestGreen),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 4. Save Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mcForestGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: isUpdating ? null : _saveProfile,
+                child: isUpdating
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoItem extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTypography.caption),
+        Text(
+          value,
+          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 }

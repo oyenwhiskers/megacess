@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
 import '../data/model/manager_models.dart';
 import '../data/service/manager_service.dart';
 
@@ -32,366 +35,379 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF43C463),
-        elevation: 0,
-        title: const Text('Analytics', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _analyticsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF43C463)),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load analytics',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red[700],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _refreshAnalytics,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF43C463),
-                      foregroundColor: Colors.black,
-                    ),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          } else if (!snapshot.hasData) {
-            return const Center(child: Text('No analytics data found.'));
-          }
-
-          final rawData = snapshot.data!;
-          // Extract data from the API response structure
-          final dataSection = rawData['data'] ?? {};
-          final taskAnalyticsData = dataSection['task_analytics'] ?? {};
-
-          // Convert the raw data to expected structure
-          final taskAnalytics = TaskAnalytics(
-            totalTasks: taskAnalyticsData['total_tasks'] ?? 0,
-            pending: taskAnalyticsData['pending'] ?? 0,
-            inProgress: taskAnalyticsData['in_progress'] ?? 0,
-            completed: taskAnalyticsData['completed'] ?? 0,
-            rejected: taskAnalyticsData['rejected'] ?? 0,
-          );
-
-          final pending = taskAnalytics.pending;
-          final completed = taskAnalytics.completed;
-          final totalTasks = pending + completed;
-
-          print('DEBUG: Manager Analytics loaded successfully!');
-          print('DEBUG: Total Tasks: ${taskAnalytics.totalTasks}');
-          print('DEBUG: Pending Tasks: $pending');
-          print('DEBUG: Completed Tasks: $completed');
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              _refreshAnalytics();
-            },
-            color: const Color(0xFF43C463),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Task Analytics Cards
-                  _buildStatCard(
-                    title: 'Total Tasks',
-                    value: '${taskAnalytics.totalTasks}',
-                    icon: Icons.assignment,
-                    color: Colors.black87,
-                  ),
-                  _buildStatCard(
-                    title: 'Total In-Progress',
-                    value: '${taskAnalytics.inProgress}',
-                    icon: Icons.arrow_forward,
-                    color: Colors.blue,
-                  ),
-                  _buildStatCard(
-                    title: 'Total Pending',
-                    value: '${taskAnalytics.pending}',
-                    icon: Icons.pause_circle,
-                    color: Colors.orange,
-                  ),
-                  _buildStatCard(
-                    title: 'Total Reject',
-                    value: '${taskAnalytics.rejected}',
-                    icon: Icons.cancel,
-                    color: Colors.red,
-                  ),
-                  _buildStatCard(
-                    title: 'Total Completed',
-                    value: '${taskAnalytics.completed}',
-                    icon: Icons.check_circle,
-                    color: Colors.green,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Pending Tasks vs Completed Tasks Ratio
-                  if (totalTasks > 0) ...[
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+      backgroundColor: AppColors.mcBgApp,
+      body: SafeArea(
+        child: Column(
+          children: [
+            MegaAppHeader(
+              title: 'Analytics',
+              subtitle: 'Operations & resource breakdown',
+              showBackButton: true,
+            ),
+            Expanded(
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _analyticsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.mcForestGreen,
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 54,
+                            color: AppColors.mcStatusRed.withOpacity(0.8),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Failed to load analytics',
+                            style: AppTypography.headingLarge.copyWith(
+                              fontSize: 18,
+                              color: AppColors.mcStatusRed,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.mcTextMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _refreshAnalytics,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mcForestGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text('Retry'),
                           ),
                         ],
                       ),
+                    );
+                  } else if (!snapshot.hasData) {
+                    return Center(
+                      child: Text(
+                        'No analytics data found.',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.mcTextMuted,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final rawData = snapshot.data!;
+                  final dataSection = rawData['data'] ?? {};
+                  final taskAnalyticsData = dataSection['task_analytics'] ?? {};
+
+                  final taskAnalytics = TaskAnalytics(
+                    totalTasks: taskAnalyticsData['total_tasks'] ?? 0,
+                    pending: taskAnalyticsData['pending'] ?? 0,
+                    inProgress: taskAnalyticsData['in_progress'] ?? 0,
+                    completed: taskAnalyticsData['completed'] ?? 0,
+                    rejected: taskAnalyticsData['rejected'] ?? 0,
+                  );
+
+                  final pending = taskAnalytics.pending;
+                  final completed = taskAnalytics.completed;
+                  final totalTasks = pending + completed;
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      _refreshAnalytics();
+                    },
+                    color: AppColors.mcForestGreen,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                        vertical: 24,
-                        horizontal: 20,
+                        horizontal: 16,
+                        vertical: 14,
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Pending Tasks vs Completed Tasks Ratio',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Color(0xFF222B45),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-
-                          SizedBox(
-                            height: 260,
-                            width: 260,
-                            child: PieChart(
-                              PieChartData(
-                                sections: _buildPieChartSections(
-                                  pending,
-                                  completed,
+                          // Total Tasks Top Hero Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.mcBorder),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
-                                sectionsSpace: 0,
-                                centerSpaceRadius: 0,
-                              ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.mcForestGreen
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.analytics_outlined,
+                                    color: AppColors.mcForestGreen,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'TOTAL ASSIGNED TASKS',
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.mcTextMuted,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.6,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${taskAnalytics.totalTasks}',
+                                      style:
+                                          AppTypography.headingLarge.copyWith(
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.mcTextPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 12),
 
-                          const SizedBox(height: 24),
-
-                          // Legend
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 28,
-                            runSpacing: 10,
+                          // 2x2 Grid of Statuses
+                          Row(
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF7C948),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    'Total Pending Tasks',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
+                              Expanded(
+                                child: _buildStatCard(
+                                  title: 'In-Progress',
+                                  value: '${taskAnalytics.inProgress}',
+                                  icon: Icons.trending_up_rounded,
+                                  color: AppColors.mcStatusBlue,
+                                ),
                               ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF43C463),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    'Total Completed Tasks',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildStatCard(
+                                  title: 'Pending',
+                                  value: '${taskAnalytics.pending}',
+                                  icon: Icons.hourglass_top_rounded,
+                                  color: AppColors.mcStatusOrange,
+                                ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Simple completion rate card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Task Completion Rate',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
-                              children: [
-                                Text(
-                                  '$pending',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange,
-                                  ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  title: 'Completed',
+                                  value: '${taskAnalytics.completed}',
+                                  icon: Icons.check_circle_rounded,
+                                  color: AppColors.mcForestGreen,
                                 ),
-                                const Text('Pending'),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                Text(
-                                  '$completed',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildStatCard(
+                                  title: 'Rejected',
+                                  value: '${taskAnalytics.rejected}',
+                                  icon: Icons.cancel_rounded,
+                                  color: AppColors.mcStatusRed,
                                 ),
-                                const Text('Completed'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Usage Breakdown Analytics
-                  FutureBuilder<Map<String, dynamic>>(
-                    future: _usageBreakdownFuture,
-                    builder: (context, usageSnapshot) {
-                      if (usageSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF43C463),
+                              ),
+                            ],
                           ),
-                        );
-                      } else if (usageSnapshot.hasError) {
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.red[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red[300]!),
-                          ),
-                          child: Text(
-                            'Failed to load usage breakdown: ${usageSnapshot.error}',
-                            style: TextStyle(color: Colors.red[700]),
-                          ),
-                        );
-                      } else if (!usageSnapshot.hasData) {
-                        return const SizedBox.shrink();
-                      }
+                          const SizedBox(height: 16),
 
-                      final usageData = usageSnapshot.data!['data'] ?? {};
-                      final fertilizerBreakdown =
-                          usageData['fertilizer_breakdown'] as List<dynamic>? ??
-                          [];
-                      final herbicideBreakdown =
-                          usageData['herbicide_breakdown'] as List<dynamic>? ??
-                          [];
-
-                      return Column(
-                        children: [
-                          // Fertilizer Breakdown
-                          if (fertilizerBreakdown.isNotEmpty) ...[
-                            _buildUsageBreakdownCard(
-                              title: 'Fertilizer Usage by Location',
-                              data: fertilizerBreakdown,
-                              unit: 'kg',
-                              color: Colors.green,
-                              icon: Icons.eco,
-                              showTypeBreakdown: true,
+                          // Pie Chart Section
+                          if (totalTasks > 0) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.mcBorder),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.02),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Pending vs Completed Tasks',
+                                    style: AppTypography.labelLarge.copyWith(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.mcTextPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  Center(
+                                    child: SizedBox(
+                                      height: 180,
+                                      width: 180,
+                                      child: PieChart(
+                                        PieChartData(
+                                          sections: _buildPieChartSections(
+                                            pending,
+                                            completed,
+                                          ),
+                                          sectionsSpace: 2,
+                                          centerSpaceRadius: 36,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _buildLegendItem(
+                                        color: AppColors.mcForestGreen,
+                                        label: 'Completed ($completed)',
+                                      ),
+                                      _buildLegendItem(
+                                        color: AppColors.mcStatusOrange,
+                                        label: 'Pending ($pending)',
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 20),
                           ],
 
-                          // Herbicide Breakdown
-                          if (herbicideBreakdown.isNotEmpty) ...[
-                            _buildUsageBreakdownCard(
-                              title: 'Herbicide Usage by Location',
-                              data: herbicideBreakdown,
-                              unit: 'L',
-                              color: Colors.orange,
-                              icon: Icons.local_florist,
-                              showTypeBreakdown: false,
-                            ),
-                          ],
+                          // Usage Breakdown Analytics
+                          FutureBuilder<Map<String, dynamic>>(
+                            future: _usageBreakdownFuture,
+                            builder: (context, usageSnapshot) {
+                              if (usageSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(24.0),
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.mcForestGreen,
+                                    ),
+                                  ),
+                                );
+                              } else if (usageSnapshot.hasError) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppColors.mcStatusRed.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.mcStatusRed
+                                          .withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Failed to load usage breakdown: ${usageSnapshot.error}',
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.mcStatusRed,
+                                    ),
+                                  ),
+                                );
+                              } else if (!usageSnapshot.hasData) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final usageData =
+                                  usageSnapshot.data!['data'] ?? {};
+                              final fertilizerBreakdown =
+                                  usageData['fertilizer_breakdown']
+                                          as List<dynamic>? ??
+                                      [];
+                              final herbicideBreakdown =
+                                  usageData['herbicide_breakdown']
+                                          as List<dynamic>? ??
+                                      [];
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'RESOURCE USAGE BY LOCATION',
+                                    style: AppTypography.labelLarge.copyWith(
+                                      color: AppColors.mcTextMuted,
+                                      fontSize: 12,
+                                      letterSpacing: 0.8,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Fertilizer Breakdown
+                                  if (fertilizerBreakdown.isNotEmpty) ...[
+                                    _buildUsageBreakdownCard(
+                                      title: 'Fertilizer Usage',
+                                      data: fertilizerBreakdown,
+                                      unit: 'kg',
+                                      color: AppColors.mcForestGreen,
+                                      icon: Icons.grass_rounded,
+                                      showTypeBreakdown: true,
+                                    ),
+                                    const SizedBox(height: 14),
+                                  ],
+
+                                  // Herbicide Breakdown
+                                  if (herbicideBreakdown.isNotEmpty) ...[
+                                    _buildUsageBreakdownCard(
+                                      title: 'Herbicide Usage',
+                                      data: herbicideBreakdown,
+                                      unit: 'L',
+                                      color: AppColors.mcStatusBlue,
+                                      icon: Icons.water_drop_rounded,
+                                      showTypeBreakdown: false,
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
                         ],
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -403,43 +419,50 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     required Color color,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.mcBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(icon, size: 16, color: color),
-            ],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: color,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.mcTextMuted,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: AppTypography.headingLarge.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mcTextPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -449,50 +472,60 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   List<PieChartSectionData> _buildPieChartSections(int pending, int completed) {
     final total = pending + completed;
-
-    // Debug output for pie chart data
-    print('DEBUG: PIE CHART - Pending Tasks: $pending');
-    print('DEBUG: PIE CHART - Completed Tasks: $completed');
-    print('DEBUG: PIE CHART - Total Tasks: $total');
-
     if (total == 0) return [];
 
     final pendingRatio = (pending / total * 100);
     final completedRatio = (completed / total * 100);
 
-    print(
-      'DEBUG: PIE CHART - Pending Percentage: ${pendingRatio.toStringAsFixed(2)}%',
-    );
-    print(
-      'DEBUG: PIE CHART - Completed Percentage: ${completedRatio.toStringAsFixed(2)}%',
-    );
-
     return [
       PieChartSectionData(
         value: pendingRatio,
-        color: const Color(0xFFF7C948),
-        title: pendingRatio > 0 ? '${pendingRatio.toStringAsFixed(2)}%' : '',
-        titleStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 22,
-          color: Color(0xFF222B45),
+        color: AppColors.mcStatusOrange,
+        title: pendingRatio > 5 ? '${pendingRatio.toStringAsFixed(0)}%' : '',
+        titleStyle: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          fontSize: 12,
         ),
-        radius: 110,
+        radius: 46,
       ),
       PieChartSectionData(
         value: completedRatio,
-        color: const Color(0xFF43C463),
-        title: completedRatio > 0
-            ? '${completedRatio.toStringAsFixed(2)}%'
-            : '',
-        titleStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 22,
+        color: AppColors.mcForestGreen,
+        title:
+            completedRatio > 5 ? '${completedRatio.toStringAsFixed(0)}%' : '',
+        titleStyle: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.w700,
           color: Colors.white,
+          fontSize: 12,
         ),
-        radius: 110,
+        radius: 46,
       ),
     ];
+  }
+
+  Widget _buildLegendItem({required Color color, required String label}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.mcTextPrimary,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildUsageBreakdownCard({
@@ -508,11 +541,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.mcBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -522,19 +556,26 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                style: AppTypography.labelLarge.copyWith(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mcTextPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ...data.map(
             (item) => _buildLocationUsageItem(
               locationName: item['location_name'] ?? 'Unknown',
@@ -559,12 +600,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     Map<String, dynamic>? typeBreakdown,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: AppColors.mcBgApp,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.mcBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,10 +615,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             children: [
               Text(
                 locationName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+                style: AppTypography.labelLarge.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mcTextPrimary,
                 ),
               ),
               Column(
@@ -585,15 +625,17 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 children: [
                   Text(
                     '$totalAmount $unit',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                    style: AppTypography.labelLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: color,
                     ),
                   ),
                   Text(
                     '$taskCount task${taskCount != 1 ? 's' : ''}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.mcTextMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -601,10 +643,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           ),
           if (typeBreakdown != null) ...[
             const SizedBox(height: 8),
-            const Divider(height: 1),
+            const Divider(height: 1, color: AppColors.mcBorder),
             const SizedBox(height: 8),
             Wrap(
-              spacing: 8,
+              spacing: 6,
               runSpacing: 4,
               children: typeBreakdown.entries
                   .where((entry) => entry.value['amount'] > 0)
@@ -612,17 +654,18 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     (entry) => Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
-                        vertical: 4,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
+                        color: color.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: color.withOpacity(0.2)),
                       ),
                       child: Text(
                         '${entry.key}: ${entry.value['amount']} $unit',
-                        style: TextStyle(
+                        style: AppTypography.caption.copyWith(
                           fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           color: color,
                         ),
                       ),

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:megacess/modules/checker/data/model/audit_task_model.dart';
 import 'package:megacess/modules/checker/data/service/attendance_service.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
+import 'package:megacess/core/theme/app_colors.dart';
+import 'package:megacess/core/widgets/mega_app_header.dart';
+import 'package:megacess/core/widgets/mega_status_badge.dart';
 import 'package:megacess/modules/checker/view/audit_task_preview_page.dart';
 
 class ManageAuditTaskPage extends StatefulWidget {
@@ -273,7 +276,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -294,72 +297,23 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-    switch (status.toLowerCase()) {
-      case 'in_progress':
-        color = Colors.blue;
-        label = 'In-progress';
-        break;
-      case 'completed':
-        color = Colors.green;
-        label = 'Completed';
-        break;
-      case 'pending':
-        color = Colors.orange;
-        label = 'Pending';
-        break;
-      default:
-        color = Colors.grey;
-        label = status;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Return true to indicate refresh is needed
-        Navigator.of(context).pop(true);
-        return false; // Prevent default pop behavior since we're handling it
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) Navigator.of(context).pop(true);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFD9D9D9),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF7ED957),
-          elevation: 0,
-          title: const Text(
-            'Manage Audit Task',
-            style: TextStyle(color: Colors.black),
-          ),
-          iconTheme: const IconThemeData(color: Colors.black),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-          ),
+        backgroundColor: AppColors.mcBgApp,
+        appBar: MegaAppHeader(
+          title: 'Audit Tasks',
+          subtitle: _location?.name ?? widget.locationName,
+          showBackButton: true,
           actions: [
             if (_selectedTaskType != null || _selectedStatus != null)
               IconButton(
-                icon: const Icon(Icons.filter_alt),
-                color: Colors.white,
+                icon: const Icon(Icons.filter_alt, color: Colors.white),
                 onPressed: _resetFilters,
                 tooltip: 'Reset Filters',
               ),
@@ -483,10 +437,16 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                           duration: const Duration(milliseconds: 300),
                           height: _showFilterOptions ? 280 : 0,
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFB5EDA4,
-                            ), // Light green background
-                            borderRadius: BorderRadius.circular(15),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.mcBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           margin: const EdgeInsets.only(bottom: 10),
                           padding: EdgeInsets.symmetric(
@@ -557,8 +517,8 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                           boxShadow: [
                                             if (isSelected)
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.1,
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.1,
                                                 ),
                                                 blurRadius: 4,
                                                 offset: Offset(0, 2),
@@ -613,8 +573,8 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                           boxShadow: [
                                             if (isSelected)
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.1,
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.1,
                                                 ),
                                                 blurRadius: 4,
                                                 offset: Offset(0, 2),
@@ -710,27 +670,23 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                             _refreshData();
                                           }
                                         },
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(14),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
+                                            borderRadius: BorderRadius.circular(14),
+                                            border: Border.all(color: AppColors.mcBorder),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black12,
-                                                blurRadius: 3,
+                                                color: Colors.black.withValues(alpha: 0.03),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
                                               ),
                                             ],
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 12,
-                                          ),
+                                          padding: const EdgeInsets.all(14),
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Row(
                                                 children: [
@@ -738,7 +694,7 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
                                                     task.taskType,
                                                   ),
                                                   const Spacer(),
-                                                  _buildStatusBadge(
+                                                  MegaStatusBadge.fromString(
                                                     task.taskStatus,
                                                   ),
                                                 ],
@@ -773,11 +729,11 @@ class _ManageAuditTaskPageState extends State<ManageAuditTaskPage> {
             // Loading overlay when refreshing
             if (_isRefreshing)
               Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 child: const Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF7ED957),
+                      AppColors.mcForestGreen,
                     ),
                   ),
                 ),

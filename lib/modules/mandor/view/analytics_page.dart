@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
 import '../data/service/manager_dashboard_service.dart';
 import '../data/model/task_analytics.dart';
 
@@ -28,104 +31,125 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     });
     try {
       final data = await _service.fetchAnalytics();
-      setState(() {
-        _analytics = data;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _analytics = data;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Widget _buildTaskSummary(TaskAnalytics t) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+        // Total Tasks Hero Card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.mcBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 18.0,
-              horizontal: 8.0,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Total Tasks',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(
-                      Icons.calendar_today,
-                      size: 18,
-                      color: Colors.grey[700],
-                    ),
-                  ],
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.mcForestGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '${t.totalTasks}',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                child: const Icon(
+                  Icons.assignment_rounded,
+                  color: AppColors.mcForestGreen,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TOTAL SCHEDULED TASKS',
+                    style: AppTypography.caption.copyWith(
+                      letterSpacing: 0.6,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mcTextMuted,
+                      fontSize: 11,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${t.totalTasks}',
+                    style: AppTypography.headingLarge.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mcTextPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
+
+        // Status 2x2 Grid
         Row(
           children: [
             Expanded(
               child: _buildStatusCard(
                 'In-Progress',
                 t.inProgress,
-                Icons.play_arrow,
-                Colors.green,
+                Icons.trending_up_rounded,
+                AppColors.mcStatusBlue,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: _buildStatusCard(
                 'Pending',
                 t.pending,
-                Icons.pause_circle_filled,
-                Colors.amber,
+                Icons.hourglass_top_rounded,
+                AppColors.mcStatusOrange,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
               child: _buildStatusCard(
-                'Reject',
-                t.rejected,
-                Icons.cancel,
-                Colors.red,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildStatusCard(
                 'Completed',
                 t.completed,
-                Icons.check_circle,
-                Colors.green,
+                Icons.check_circle_rounded,
+                AppColors.mcForestGreen,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildStatusCard(
+                'Rejected',
+                t.rejected,
+                Icons.cancel_rounded,
+                AppColors.mcStatusRed,
               ),
             ),
           ],
@@ -135,29 +159,54 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   }
 
   Widget _buildStatusCard(String label, int value, IconData icon, Color color) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 13)),
-            const SizedBox(height: 2),
-            Text(
-              '$value',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: color,
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.mcBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
-        ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.mcTextMuted,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  '$value',
+                  style: AppTypography.labelLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: AppColors.mcTextPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -170,54 +219,79 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     required Color color,
     required IconData icon,
   }) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 32),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.mcBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.labelLarge.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mcTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      totalAmount.toStringAsFixed(1),
+                      style: AppTypography.headingLarge.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Total: ${totalAmount.toStringAsFixed(1)} $unit',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: color,
+                    const SizedBox(width: 4),
+                    Text(
+                      unit,
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mcTextMuted,
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Utilized across $taskCount task${taskCount != 1 ? 's' : ''}',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.mcTextMuted,
+                    fontSize: 12,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Used in $taskCount task${taskCount != 1 ? 's' : ''}',
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -225,63 +299,98 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text('Analytics', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : _analytics == null
-          ? const Center(child: Text('No data'))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 8.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildTaskSummary(_analytics!.taskAnalytics),
-                  const SizedBox(height: 16),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    child: Text(
-                      'Resource Usage Summary',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      backgroundColor: AppColors.mcBgApp,
+      body: SafeArea(
+        child: Column(
+          children: [
+            MegaAppHeader(
+              title: 'Analytics',
+              subtitle: 'Operations & resource metrics',
+              showBackButton: true,
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.mcForestGreen,
+                      ),
+                    )
+                  : _error != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Error: $_error',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.mcStatusRed,
+                          ),
+                        ),
+                      ),
+                    )
+                  : _analytics == null
+                  ? Center(
+                      child: Text(
+                        'No analytics data available',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.mcTextMuted,
+                        ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: AppColors.mcForestGreen,
+                      onRefresh: _fetchAnalytics,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 14.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildTaskSummary(_analytics!.taskAnalytics),
+                            const SizedBox(height: 20),
+                            Text(
+                              'RESOURCE USAGE SUMMARY',
+                              style: AppTypography.labelLarge.copyWith(
+                                color: AppColors.mcTextMuted,
+                                fontSize: 12,
+                                letterSpacing: 0.8,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildUsageCard(
+                              title: 'Fertilizer Usage',
+                              totalAmount: _analytics!.usageAnalytics
+                                  .fertilizerUsage.totalAmount,
+                              unit: _analytics!
+                                  .usageAnalytics.fertilizerUsage.unit,
+                              taskCount: _analytics!
+                                  .usageAnalytics.fertilizerUsage.taskCount,
+                              color: AppColors.mcForestGreen,
+                              icon: Icons.grass_rounded,
+                            ),
+                            _buildUsageCard(
+                              title: 'Herbicide Usage',
+                              totalAmount: _analytics!.usageAnalytics
+                                  .herbicideUsage.totalAmount,
+                              unit: _analytics!
+                                  .usageAnalytics.herbicideUsage.unit,
+                              taskCount: _analytics!
+                                  .usageAnalytics.herbicideUsage.taskCount,
+                              color: AppColors.mcStatusBlue,
+                              icon: Icons.water_drop_rounded,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  _buildUsageCard(
-                    title: 'Fertilizer Usage',
-                    totalAmount:
-                        _analytics!.usageAnalytics.fertilizerUsage.totalAmount,
-                    unit: _analytics!.usageAnalytics.fertilizerUsage.unit,
-                    taskCount:
-                        _analytics!.usageAnalytics.fertilizerUsage.taskCount,
-                    color: Colors.green,
-                    icon: Icons.grass,
-                  ),
-                  _buildUsageCard(
-                    title: 'Herbicide Usage',
-                    totalAmount:
-                        _analytics!.usageAnalytics.herbicideUsage.totalAmount,
-                    unit: _analytics!.usageAnalytics.herbicideUsage.unit,
-                    taskCount:
-                        _analytics!.usageAnalytics.herbicideUsage.taskCount,
-                    color: Colors.blue,
-                    icon: Icons.water_drop,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
             ),
+          ],
+        ),
+      ),
     );
   }
 }

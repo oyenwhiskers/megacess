@@ -1,5 +1,9 @@
 import 'logs_tab_view.dart';
 import 'package:flutter/material.dart';
+import 'package:megacess/core/theme/app_colors.dart';
+import 'package:megacess/core/theme/app_typography.dart';
+import 'package:megacess/core/widgets/mega_app_header.dart';
+import 'package:megacess/core/widgets/mega_status_badge.dart';
 import '../data/service/manager_dashboard_service.dart';
 import 'add_worker_page.dart';
 import '../data/model/task_preview_model.dart';
@@ -31,55 +35,22 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
     });
     try {
       final response = await _service.fetchTaskPreview(widget.taskId);
-      if (response != null) {
+      if (response != null && mounted) {
         _task = response;
       }
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
-  }
-
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-    switch (status.toLowerCase()) {
-      case 'in_progress':
-        color = Colors.blue;
-        label = 'In-progress';
-        break;
-      case 'completed':
-        color = Colors.green;
-        label = 'Completed';
-        break;
-      case 'pending':
-        color = Colors.orange;
-        label = 'Pending';
-        break;
-      default:
-        color = Colors.grey;
-        label = status;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
-      ),
-    );
   }
 
   Widget _buildWorkerCard(TaskWorkerModel worker) {
@@ -89,14 +60,21 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
+        border: Border.all(color: AppColors.mcBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: [
           const CircleAvatar(
-            radius: 22,
-            backgroundColor: Color(0xFFD9D9D9),
-            child: Icon(Icons.person, color: Colors.grey, size: 28),
+            radius: 20,
+            backgroundColor: AppColors.frond50,
+            child: Icon(Icons.person_outline, color: AppColors.mcForestGreen, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -501,8 +479,8 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7ED957),
-                                foregroundColor: Colors.black,
+                                backgroundColor: AppColors.mcForestGreen,
+                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -599,9 +577,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircleAvatar(
-                        backgroundColor: Color(0xFF7ED957),
+                        backgroundColor: AppColors.statusCompletedBg,
                         radius: 30,
-                        child: Icon(Icons.check, color: Colors.white, size: 40),
+                        child: Icon(Icons.check, color: AppColors.statusCompletedText, size: 40),
                       ),
                       const SizedBox(height: 15),
                       const Text(
@@ -724,8 +702,8 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7ED957),
-                          foregroundColor: Colors.black,
+                          backgroundColor: AppColors.mcForestGreen,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -783,9 +761,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircleAvatar(
-                        backgroundColor: Color(0xFF7ED957),
+                        backgroundColor: AppColors.statusCompletedBg,
                         radius: 30,
-                        child: Icon(Icons.check, color: Colors.white, size: 40),
+                        child: Icon(Icons.check, color: AppColors.statusCompletedText, size: 40),
                       ),
                       const SizedBox(height: 15),
                       const Text(
@@ -891,9 +869,9 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircleAvatar(
-                        backgroundColor: Color(0xFF7ED957),
+                        backgroundColor: AppColors.statusCompletedBg,
                         radius: 30,
-                        child: Icon(Icons.check, color: Colors.white, size: 40),
+                        child: Icon(Icons.check, color: AppColors.statusCompletedText, size: 40),
                       ),
                       const SizedBox(height: 15),
                       const Text(
@@ -975,259 +953,395 @@ class _TaskPreviewPageState extends State<TaskPreviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text(
-          'Task Preview',
-          style: TextStyle(color: Colors.black),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+      backgroundColor: AppColors.mcBgApp,
+      appBar: MegaAppHeader(
+        title: 'Task #${widget.taskId}',
+        subtitle: _task?.taskName ?? 'Supervisor Inspection',
+        showBackButton: true,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _tabIndex == 0
-                          ? const Color(0xFF7ED957)
-                          : Colors.white,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+          // Segmented Tabs
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            color: Colors.white,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.mcBgApp,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.mcBorder),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _tabIndex = 0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _tabIndex == 0 ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: _tabIndex == 0
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Task Details',
+                            style: TextStyle(
+                              color: _tabIndex == 0
+                                  ? AppColors.mcForestDark
+                                  : AppColors.textSecondary,
+                              fontWeight: _tabIndex == 0
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       ),
-                      elevation: 0,
-                    ),
-                    onPressed: () => setState(() => _tabIndex = 0),
-                    child: const Text(
-                      'Details',
-                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _tabIndex == 1
-                          ? const Color(0xFF7ED957)
-                          : Colors.white,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _tabIndex = 1),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _tabIndex == 1 ? Colors.white : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: _tabIndex == 1
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Activity Logs',
+                            style: TextStyle(
+                              color: _tabIndex == 1
+                                  ? AppColors.mcForestDark
+                                  : AppColors.textSecondary,
+                              fontWeight: _tabIndex == 1
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       ),
-                      elevation: 0,
-                    ),
-                    onPressed: () => setState(() => _tabIndex = 1),
-                    child: const Text(
-                      'Logs',
-                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+
+          // Content
           Expanded(
             child: _tabIndex == 0
                 ? _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _error != null
-                      ? Center(child: Text('Error: $_error'))
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 18,
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.mcForestGreen,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        ),
+                      )
+                    : _error != null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _task?.taskName ?? '',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 22,
-                                          ),
-                                        ),
-                                        Text(
-                                          _task?.taskType ?? '',
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: AppColors.statusRejectedText,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Error: $_error',
+                                    textAlign: TextAlign.center,
+                                    style: AppTypography.bodyRegular.copyWith(
+                                      color: AppColors.statusRejectedText,
                                     ),
                                   ),
-                                  _buildStatusBadge(_task?.taskStatus ?? ''),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.mcForestGreen,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: _fetchDetail,
+                                    child: const Text('Retry'),
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Created by: ${_task?.createdBy.name ?? ''}',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              Text(
-                                'Created at: ${_task?.createdAt.split(' ').first ?? ''}',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(height: 18),
-                              const Text(
-                                'Worker details:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header Card
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: AppColors.mcBorder),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.03),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.frond50,
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: AppColors.frond200,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              (_task?.taskType ?? '').toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.mcForestGreen,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                          MegaStatusBadge.fromString(
+                                            _task?.taskStatus ?? '',
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        _task?.taskName ?? '',
+                                        style: AppTypography.headingH3.copyWith(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.person_outline,
+                                            size: 14,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Created by: ${_task?.createdBy.name ?? '-'}',
+                                            style: AppTypography.caption,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Icon(
+                                            Icons.calendar_today_outlined,
+                                            size: 14,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _task?.createdAt.split(' ').first ?? '',
+                                            style: AppTypography.caption,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              ..._task?.workers.map(_buildWorkerCard) ?? [],
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        (_task?.taskStatus.toLowerCase() ==
-                                                'pending' ||
-                                            _task?.taskStatus.toLowerCase() ==
-                                                'rejected')
-                                        ? Colors.grey
-                                        : const Color(0xFF7ED957),
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                const SizedBox(height: 18),
+
+                                // Worker details header
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Assigned Workers (${_task?.workers.length ?? 0})',
+                                      style: AppTypography.headingH4,
                                     ),
-                                    elevation: 0,
-                                  ),
-                                  icon: const Icon(
-                                    Icons.add,
-                                    color: Colors.black,
-                                  ),
-                                  label: const Text(
-                                    'Add worker',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  onPressed:
-                                      (_task?.taskStatus.toLowerCase() ==
-                                              'pending' ||
-                                          _task?.taskStatus.toLowerCase() ==
-                                              'rejected')
-                                      ? null
-                                      : () async {
+                                    if (_task?.taskStatus.toLowerCase() ==
+                                            'in_progress')
+                                      TextButton.icon(
+                                        icon: const Icon(Icons.add, size: 16),
+                                        label: const Text('Add Worker'),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor:
+                                              AppColors.mcForestGreen,
+                                        ),
+                                        onPressed: () async {
                                           final result = await Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddWorkerPage(
-                                                    taskId: widget.taskId,
-                                                  ),
+                                              builder: (context) => AddWorkerPage(
+                                                taskId: widget.taskId,
+                                              ),
                                             ),
                                           );
                                           if (result == true) {
-                                            _fetchDetail(); // Refresh the task details
+                                            _fetchDetail();
                                           }
                                         },
+                                      ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 18),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed:
-                                          _task?.taskStatus.toLowerCase() ==
-                                              'in_progress'
-                                          ? _showEditTaskDialog
-                                          : null,
-                                      child: const Text(
-                                        'Edit',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                const SizedBox(height: 8),
+                                ..._task?.workers.map(_buildWorkerCard) ?? [],
+                                if ((_task?.workers.isEmpty ?? true)) ...[
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.mcBorder),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.red,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+                                    child: Center(
+                                      child: Column(
+                                        children: [
+                                          const Icon(
+                                            Icons.group_outlined,
+                                            size: 40,
+                                            color: AppColors.textDisabled,
                                           ),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed: _showDeleteConfirmation,
-                                      child: const Text(
-                                        'Remove',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'No workers assigned yet',
+                                            style: AppTypography.caption,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 8),
-                              Center(
-                                child: SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.5,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                const SizedBox(height: 20),
+
+                                // Action Buttons
+                                if (_task?.taskStatus.toLowerCase() ==
+                                    'in_progress') ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          icon: const Icon(
+                                            Icons.edit_outlined,
+                                            size: 16,
+                                          ),
+                                          label: const Text('Edit Task'),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: AppColors.mcForestDark,
+                                            side: const BorderSide(
+                                              color: AppColors.mcBorder,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 14,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed: _showEditTaskDialog,
+                                        ),
                                       ),
-                                      elevation: 0,
-                                    ),
-                                    onPressed:
-                                        (_task?.taskStatus.toLowerCase() ==
-                                                'in_progress' &&
-                                            (_task?.workers.isNotEmpty ??
-                                                false))
-                                        ? () => _submitTaskToChecker()
-                                        : null,
-                                    child: const Text(
-                                      'Send to checker',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            size: 16,
+                                          ),
+                                          label: const Text('Delete Task'),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                AppColors.statusRejectedText,
+                                            side: const BorderSide(
+                                              color: AppColors
+                                                  .statusRejectedBorder,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 14,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed: _showDeleteConfirmation,
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(
+                                        Icons.send_outlined,
+                                        size: 18,
+                                      ),
+                                      label: const Text('Submit to Checker'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            (_task?.workers.isNotEmpty ?? false)
+                                                ? AppColors.mcForestGreen
+                                                : Colors.grey.shade400,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      onPressed:
+                                          (_task?.workers.isNotEmpty ?? false)
+                                              ? () => _submitTaskToChecker()
+                                              : null,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
+                                ],
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          )
                 : LogsTabView(taskId: widget.taskId),
           ),
         ],

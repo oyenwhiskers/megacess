@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'core/config/flavor_config.dart';
 import 'main.dart';
 

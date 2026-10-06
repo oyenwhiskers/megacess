@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_status_badge.dart';
 import '../data/model/staff_model.dart';
 import '../data/service/staff_service.dart';
 
@@ -24,7 +28,9 @@ class _StaffDetailPageState extends State<StaffDetailPage> {
   Future<void> _fetchDetail() async {
     setState(() => isLoading = true);
     staff = await _staffService.getStaffDetail(widget.staffId);
-    setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
   }
 
   int getAge(String dob) {
@@ -45,134 +51,246 @@ class _StaffDetailPageState extends State<StaffDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : staff == null
-          ? const Center(child: Text('Staff not found'))
-          : Column(
-              children: [
-                // Header gradient
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 32,
-                  ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(32),
-                      bottomRight: Radius.circular(32),
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.black,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
+      backgroundColor: AppColors.mcBgApp,
+      body: SafeArea(
+        child: Column(
+          children: [
+            MegaAppHeader(
+              title: 'Staff Profile',
+              subtitle: 'Worker information & history',
+              showBackButton: true,
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.mcForestGreen,
+                      ),
+                    )
+                  : staff == null
+                  ? Center(
+                      child: Text(
+                        'Staff not found',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.mcTextMuted,
                         ),
-                        const SizedBox(width: 8),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 12.0),
-                          child: Text(
-                            'My Staff',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 16.0,
+                      ),
+                      child: Column(
+                        children: [
+                          // Profile Hero Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 24,
+                              horizontal: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.mcBorder,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.mcForestGreen
+                                          .withOpacity(0.3),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 46,
+                                    backgroundColor: AppColors.mcForestGreen
+                                        .withOpacity(0.08),
+                                    child: staff!.staffImg.isNotEmpty
+                                        ? ClipOval(
+                                            child: Image.network(
+                                              staff!.staffImg,
+                                              width: 92,
+                                              height: 92,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.person_rounded,
+                                                  size: 48,
+                                                  color: AppColors.mcForestGreen,
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.person_rounded,
+                                            size: 48,
+                                            color: AppColors.mcForestGreen,
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  staff!.staffFullname,
+                                  textAlign: TextAlign.center,
+                                  style: AppTypography.headingLarge.copyWith(
+                                    fontSize: 18,
+                                    color: AppColors.mcTextPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                MegaStatusBadge(
+                                  status: 'Active Staff',
+                                  color: AppColors.mcForestGreen,
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                // Avatar
-                Center(
-                  child: staff!.staffImg.isNotEmpty
-                      ? CircleAvatar(
-                          radius: 54,
-                          backgroundColor: Colors.white,
-                          backgroundImage: NetworkImage(staff!.staffImg),
-                        )
-                      : CircleAvatar(
-                          radius: 54,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.account_circle,
-                            size: 90,
-                            color: Colors.black26,
+                          const SizedBox(height: 16),
+
+                          // Details Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.mcBorder,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Personal Information',
+                                  style: AppTypography.labelLarge.copyWith(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.mcTextPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildDetailRow(
+                                  icon: Icons.wc_rounded,
+                                  label: 'Gender',
+                                  value: staff!.staffGender.isNotEmpty
+                                      ? staff!.staffGender
+                                      : 'Not specified',
+                                ),
+                                const Divider(
+                                  height: 24,
+                                  color: AppColors.mcBorder,
+                                ),
+                                _buildDetailRow(
+                                  icon: Icons.cake_outlined,
+                                  label: 'Age',
+                                  value: staff!.staffDob.isNotEmpty
+                                      ? '${getAge(staff!.staffDob)} years old'
+                                      : '-',
+                                ),
+                                const Divider(
+                                  height: 24,
+                                  color: AppColors.mcBorder,
+                                ),
+                                _buildDetailRow(
+                                  icon: Icons.phone_outlined,
+                                  label: 'Phone Number',
+                                  value: staff!.staffPhone.isNotEmpty
+                                      ? staff!.staffPhone
+                                      : 'None',
+                                ),
+                                const Divider(
+                                  height: 24,
+                                  color: AppColors.mcBorder,
+                                ),
+                                _buildDetailRow(
+                                  icon: Icons.calendar_month_outlined,
+                                  label: 'Attendance (This Month)',
+                                  value: staff!.attendanceCountMonth != null
+                                      ? '${staff!.attendanceCountMonth} days present'
+                                      : '-',
+                                  highlight: true,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                ),
-                const SizedBox(height: 24),
-                // Info Card
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.07),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Name: ${staff!.staffFullname}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Gender: ${staff!.staffGender}',
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Age: ${getAge(staff!.staffDob)}',
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Phone Number: ${staff!.staffPhone}',
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Attendance Record (This Month): ${staff!.attendanceCountMonth ?? '-'}',
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-              ],
+                    ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool highlight = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: highlight ? AppColors.mcForestGreen : AppColors.mcTextMuted,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.mcTextMuted,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: AppTypography.bodyMedium.copyWith(
+                  fontWeight:
+                      highlight ? FontWeight.w700 : FontWeight.w500,
+                  color: highlight
+                      ? AppColors.mcForestGreen
+                      : AppColors.mcTextPrimary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

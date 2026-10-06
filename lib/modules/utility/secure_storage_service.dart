@@ -35,4 +35,9 @@ class SecureStorageService {
   Future<void> deleteUserRole() async {
     await _storage.delete(key: _roleKey);
   }
+
+  /// Clear all locally persisted authentication state.
+  Future<void> clearSession() async {
+    await Future.wait([deleteToken(), deleteUserRole()]);
+  }
 }

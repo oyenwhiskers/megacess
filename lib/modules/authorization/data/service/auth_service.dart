@@ -1,4 +1,5 @@
 import '../model/login_response.dart';
+import '../model/user_role.dart';
 import '../../../utility/dio_client.dart';
 import '../../../utility/secure_storage_service.dart';
 import '../../../../core/config/flavor_config.dart';
@@ -28,12 +29,13 @@ class AuthService {
       final data = response.data;
       if (data['success'] == true && data['data'] != null) {
         final loginResponse = LoginResponse.fromJson(data['data']);
-        await _storageService.saveToken(loginResponse.token);
-        if (loginResponse.user.userRole.isNotEmpty) {
-          await _storageService.saveUserRole(loginResponse.user.userRole);
+        final role = UserRole.normalize(loginResponse.user.userRole);
+        if (!UserRole.isSupported(role)) {
+          throw StateError('This account role is not supported by the mobile app.');
         }
-        // Print the successful login response to console
-        print('Login success: ${response.data}');
+
+        await _storageService.saveToken(loginResponse.token);
+        await _storageService.saveUserRole(role);
         return loginResponse;
       }
     }
@@ -45,13 +47,64 @@ class AuthService {
     return _storageService.getUserRole();
   }
 
+  /// Validate a stored session with the backend and return its current role.
+  Future<String?> restoreSessionRole() async {
+    final token = await getToken();
+    if (token == null || token.isEmpty) {
+      await _storageService.clearSession();
+      return null;
+    }
+
+    try {
+      final response = await _dioClient.get('profile');
+      if (response.statusCode == 200 &&
+          response.data is Map &&
+          response.data['success'] == true &&
+          response.data['data'] is Map) {
+        final role = UserRole.normalize(
+          response.data['data']['user_role']?.toString() ?? '',
+        );
+        if (UserRole.isSupported(role)) {
+          await _storageService.saveUserRole(role);
+          return role;
+        }
+        await _storageService.clearSession();
+        return null;
+      }
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 401) {
+        await _storageService.clearSession();
+        return null;
+      }
+
+      // Keep a known session on temporary connectivity failures.
+      final storedRole = await getUserRole();
+      if (storedRole != null && UserRole.isSupported(storedRole)) {
+        return UserRole.normalize(storedRole);
+      }
+      return null;
+    }
+
+    await _storageService.clearSession();
+    return null;
+  }
+
   /// Get token securely
   Future<String?> getToken() async {
     return _storageService.getToken();
   }
 
-  /// Logout and clear token securely
+  /// Revoke the backend session and always clear local authentication state.
   Future<void> logout() async {
-    await _storageService.deleteToken();
+    try {
+      final token = await _storageService.getToken();
+      if (token != null && token.isNotEmpty) {
+        await _dioClient.post('auth/logout');
+      }
+    } catch (_) {
+      // Local logout must still succeed if the API cannot be reached.
+    } finally {
+      await _storageService.clearSession();
+    }
   }
 }

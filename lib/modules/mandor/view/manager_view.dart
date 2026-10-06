@@ -5,6 +5,11 @@ import 'analytics_page.dart';
 import 'manage_tasks_page.dart';
 import 'mandor_profile_page.dart';
 import '../../authorization/view/login_view.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_metric_card.dart';
+import '../../../core/widgets/mega_button.dart';
 
 class ManagerView extends StatefulWidget {
   final String managerName;
@@ -25,445 +30,248 @@ class _ManagerViewState extends State<ManagerView> {
 
   Future<void> _loadAnalytics() async {
     await _viewModel.loadAnalytics();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final analytics = _viewModel.analytics;
+    final userName = _viewModel.profile?['user_nickname'] ?? widget.managerName;
+    final profileImg = _viewModel.profileImageUrl;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppColors.mcBgApp,
+      appBar: MegaAppHeader(
+        title: 'Hello, $userName',
+        subtitle: 'Estate Supervisor (Mandor)',
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MandorProfilePage()),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 4),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.frond7,
+                backgroundImage: profileImg != null ? NetworkImage(profileImg) : null,
+                child: profileImg == null
+                    ? const Icon(Icons.person, color: Colors.white, size: 22)
+                    : null,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadAnalytics,
-          color: const Color(0xFF7ED957),
-          backgroundColor: Colors.white,
+          color: AppColors.frond6,
+          backgroundColor: AppColors.mcBgSurface,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 8.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header section title
+                Text(
+                  'Task Overview',
+                  style: AppTypography.titleMedium,
+                ),
+                const SizedBox(height: 12),
+
+                if (_viewModel.isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40.0),
+                    child: Center(child: CircularProgressIndicator(color: AppColors.frond6)),
+                  )
+                else if (analytics == null)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 16,
-                    ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF7ED957), Color(0xFFB2F7EF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
+                      color: AppColors.mcBgSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.mcBorder),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _viewModel.errorMessage ?? 'No task analytics data available.',
+                        style: AppTypography.caption,
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Hello, ${_viewModel.profile?['user_nickname'] ?? widget.managerName}',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                  )
+                else ...[
+                  // Grid of KPI Metric Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MegaMetricCard(
+                          label: 'Total Tasks',
+                          value: '${analytics.totalTasks}',
+                          subtitle: 'All assigned tasks',
+                          icon: Icons.assignment_outlined,
                         ),
-                        Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MandorProfilePage(),
-                                  ),
-                                );
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: Colors.white,
-                                radius: 22,
-                                backgroundImage:
-                                    _viewModel.profileImageUrl != null
-                                    ? NetworkImage(_viewModel.profileImageUrl!)
-                                    : null,
-                                child: _viewModel.profileImageUrl == null
-                                    ? Icon(
-                                        Icons.person,
-                                        color: Colors.grey[700],
-                                        size: 28,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: MegaMetricCard(
+                          label: 'In Progress',
+                          value: '${analytics.inProgress}',
+                          subtitle: 'Active in field',
+                          icon: Icons.play_arrow_outlined,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _viewModel.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : analytics == null
-                      ? Center(
-                          child: Text(_viewModel.errorMessage ?? 'No data'),
-                        )
-                      : Column(
-                          children: [
-                            Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              color: Colors.white,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 18.0,
-                                  horizontal: 8.0,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Total Tasks',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        SizedBox(width: 6),
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 18,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      '${analytics.totalTasks}',
-                                      style: TextStyle(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Card(
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    color: Colors.white,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            Icons.play_arrow,
-                                            color: Colors.green,
-                                            size: 22,
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'In-Progress',
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            '${analytics.inProgress}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Card(
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    color: Colors.white,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            Icons.pause_circle_filled,
-                                            color: Colors.amber,
-                                            size: 22,
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Pending',
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            '${analytics.pending}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.amber,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Card(
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    color: Colors.white,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            Icons.cancel,
-                                            color: Colors.red,
-                                            size: 22,
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Reject',
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            '${analytics.rejected}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Card(
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    color: Colors.white,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 22,
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Completed',
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            '${analytics.completed}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 14),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Modules:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Card(
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              color: Colors.white,
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.groups,
-                                  color: Colors.teal,
-                                  size: 26,
-                                ),
-                                title: Text(
-                                  'My Staff',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                trailing: Icon(Icons.chevron_right),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => const MyStaffPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Card(
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              color: Colors.white,
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.assignment,
-                                  color: Colors.teal,
-                                  size: 26,
-                                ),
-                                title: Text(
-                                  'Manage Tasks',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                trailing: Icon(Icons.chevron_right),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ManageTasksPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Card(
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              color: Colors.white,
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.bar_chart,
-                                  color: Colors.teal,
-                                  size: 26,
-                                ),
-                                title: Text(
-                                  'Analytics',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                trailing: Icon(Icons.chevron_right),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const AnalyticsPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            // LOG OUT BUTTON directly after modules
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4.0,
-                                vertical: 16.0,
-                              ),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 46,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  onPressed: () async {
-                                    await _viewModel.logout();
-                                    if (mounted) {
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (_) => LoginView(),
-                                        ),
-                                        (route) => false,
-                                      );
-                                    }
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.logout, size: 20),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'LOG OUT',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MegaMetricCard(
+                          label: 'Pending',
+                          value: '${analytics.pending}',
+                          subtitle: 'Awaiting audit',
+                          icon: Icons.hourglass_empty,
                         ),
-                  // ... Add bottom navigation or other widgets as needed
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: MegaMetricCard(
+                          label: 'Completed',
+                          value: '${analytics.completed}',
+                          subtitle: 'Verified & closed',
+                          icon: Icons.check_circle_outline,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              ),
+
+                const SizedBox(height: 24),
+
+                // Operational Modules Section
+                Text(
+                  'Operations & Labor',
+                  style: AppTypography.titleMedium,
+                ),
+                const SizedBox(height: 12),
+
+                _buildModuleTile(
+                  context,
+                  title: 'Manage Tasks',
+                  subtitle: 'Create tasks, select blocks & assign workers',
+                  icon: Icons.fact_check_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ManageTasksPage()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+
+                _buildModuleTile(
+                  context,
+                  title: 'My Staff',
+                  subtitle: 'Worker directory, active crew & assignments',
+                  icon: Icons.badge_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MyStaffPage()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+
+                _buildModuleTile(
+                  context,
+                  title: 'Task Analytics',
+                  subtitle: 'Field logs, block productivity & progress',
+                  icon: Icons.insights_outlined,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AnalyticsPage()),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                // Sign out button
+                MegaButton(
+                  text: 'Sign Out',
+                  icon: Icons.logout,
+                  variant: MegaButtonVariant.outline,
+                  width: double.infinity,
+                  onPressed: () async {
+                    await _viewModel.logout();
+                    if (context.mounted) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (_) => const LoginView()),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModuleTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.mcBgSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.mcBorder, width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: AppColors.frond0,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(icon, color: AppColors.frond6, size: 22),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTypography.bodyBold),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: AppTypography.captionMuted),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.mcTextDisabled, size: 20),
+            ],
           ),
         ),
       ),

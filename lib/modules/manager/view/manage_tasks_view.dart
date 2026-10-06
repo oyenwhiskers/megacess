@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_status_badge.dart';
+import '../../../core/widgets/mega_text_field.dart';
 import '../data/service/manager_service.dart';
 import '../data/model/manager_models.dart';
 
@@ -42,8 +47,6 @@ class _ManageTasksViewState extends State<ManageTasksView> {
   void initState() {
     super.initState();
     _fetchDetail();
-
-    // Add listener to search controller for real-time filtering
     _searchController.addListener(_filterWorkers);
   }
 
@@ -58,11 +61,9 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredWorkers = _workers.where((worker) {
-        // Filter by search query (worker name)
         bool matchesSearch =
             query.isEmpty || worker.workerName.toLowerCase().contains(query);
 
-        // Filter by task type (check if worker has any task matching the type)
         bool matchesTaskType =
             _selectedTaskType == null ||
             worker.tasks.any(
@@ -71,7 +72,6 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                   _selectedTaskType!.toLowerCase(),
             );
 
-        // Filter by status (check if worker has any task matching the status)
         bool matchesStatus =
             _selectedStatus == null ||
             worker.tasks.any(
@@ -82,13 +82,6 @@ class _ManageTasksViewState extends State<ManageTasksView> {
 
         return matchesSearch && matchesTaskType && matchesStatus;
       }).toList();
-    });
-  }
-
-  void _applyFilters() {
-    _filterWorkers();
-    setState(() {
-      _showFilterOptions = false;
     });
   }
 
@@ -104,68 +97,78 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF43C463),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    topRight: Radius.circular(18),
-                  ),
-                ),
+              // Dialog Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 12, 14),
                 child: Row(
                   children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor:
+                          AppColors.mcForestGreen.withOpacity(0.1),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: AppColors.mcForestGreen,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             worker.workerName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.white,
+                            style: AppTypography.headingLarge.copyWith(
+                              fontSize: 16,
+                              color: AppColors.mcTextPrimary,
                             ),
                           ),
-                          const SizedBox(height: 4),
                           Text(
-                            worker.workerPhone,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
+                            worker.workerPhone.isNotEmpty
+                                ? worker.workerPhone
+                                : 'No phone number',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.mcTextMuted,
                             ),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: AppColors.mcTextMuted,
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
               ),
+              const Divider(height: 1, color: AppColors.mcBorder),
+
+              // Tasks List
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(16),
                   itemCount: worker.tasks.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final task = worker.tasks[index];
                     return Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: AppColors.mcBgApp,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.mcBorder),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,56 +177,55 @@ class _ManageTasksViewState extends State<ManageTasksView> {
                             children: [
                               _buildTaskTypeBadge(task.taskType),
                               const Spacer(),
-                              _buildStatusBadge(task.taskStatus),
+                              MegaStatusBadge(status: task.taskStatus),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
                             task.taskName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                            style: AppTypography.labelLarge.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.mcTextPrimary,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 14,
-                                color: Colors.grey[600],
+                              const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 13,
+                                color: AppColors.mcTextMuted,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 5),
                               Text(
                                 task.taskDate,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.mcTextMuted,
                                 ),
                               ),
                             ],
                           ),
                           if (task.meta.isNotEmpty) ...[
                             const SizedBox(height: 8),
-                            const Divider(height: 1),
+                            const Divider(height: 1, color: AppColors.mcBorder),
                             const SizedBox(height: 8),
                             ...task.meta.entries.map((entry) {
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
+                                padding: const EdgeInsets.only(bottom: 3),
                                 child: Row(
                                   children: [
                                     Text(
                                       '${entry.key.replaceAll('_', ' ')}: ',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.mcTextMuted,
                                       ),
                                     ),
                                     Text(
                                       entry.value.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.mcTextPrimary,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
@@ -253,39 +255,42 @@ class _ManageTasksViewState extends State<ManageTasksView> {
       final response = await _service.fetchLocationTasksBreakdown(
         widget.locationId,
       );
-      _location = response.location;
-      _workers = response.workers;
-      _filteredWorkers =
-          _workers; // Initialize filtered workers with all workers
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _location = response.location;
+          _workers = response.workers;
+          _filteredWorkers = _workers;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _refreshData() async {
-    // Don't show the loading indicator during refresh
     try {
       final response = await _service.fetchLocationTasksBreakdown(
         widget.locationId,
       );
-      setState(() {
-        _location = response.location;
-        _workers = response.workers;
-        // Re-apply current filters to the updated workers list
-        _filterWorkers();
-      });
-      return;
+      if (mounted) {
+        setState(() {
+          _location = response.location;
+          _workers = response.workers;
+          _filterWorkers();
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-      return;
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+      }
     }
   }
 
@@ -295,52 +300,53 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     String label;
     switch (type.toLowerCase()) {
       case 'manuring':
-        color = Colors.green;
-        icon = Icons.eco;
+        color = AppColors.mcForestGreen;
+        icon = Icons.eco_outlined;
         label = 'Manuring';
         break;
       case 'pruning':
         color = Colors.orange;
-        icon = Icons.content_cut;
+        icon = Icons.content_cut_outlined;
         label = 'Pruning';
         break;
       case 'sanitation':
-        color = Colors.yellow[800]!;
-        icon = Icons.cleaning_services;
+        color = Colors.amber[800]!;
+        icon = Icons.cleaning_services_outlined;
         label = 'Sanitation';
         break;
       case 'harvesting':
-        color = Colors.brown;
-        icon = Icons.agriculture;
+        color = Colors.deepOrange;
+        icon = Icons.agriculture_outlined;
         label = 'Harvesting';
         break;
       case 'planting':
         color = Colors.teal;
-        icon = Icons.grass;
+        icon = Icons.grass_outlined;
         label = 'Planting';
         break;
       default:
-        color = Colors.grey;
-        icon = Icons.task;
+        color = AppColors.mcTextMuted;
+        icon = Icons.task_outlined;
         label = type;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
+          Icon(icon, color: color, size: 14),
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+            style: AppTypography.caption.copyWith(
               color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
             ),
           ),
         ],
@@ -348,507 +354,455 @@ class _ManageTasksViewState extends State<ManageTasksView> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-    switch (status.toLowerCase()) {
-      case 'in_progress':
-        color = Colors.blue;
-        label = 'In-progress';
-        break;
-      case 'completed':
-        color = Colors.green;
-        label = 'Completed';
-        break;
-      case 'pending':
-        color = Colors.orange;
-        label = 'Pending';
-        break;
-      default:
-        color = Colors.grey;
-        label = status;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Calculate if we have active filters
     bool hasActiveFilters =
         _selectedTaskType != null || _selectedStatus != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF43C463),
-        elevation: 0,
-        title: const Text('Manage Task', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          if (hasActiveFilters)
-            IconButton(
-              icon: const Icon(Icons.filter_alt),
-              color: Colors.white,
-              onPressed: _resetFilters,
-              tooltip: 'Reset Filters',
-            ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+      backgroundColor: AppColors.mcBgApp,
+      body: SafeArea(
+        child: Column(
+          children: [
+            MegaAppHeader(
+              title: 'Manage Tasks',
+              subtitle: _location?.name ?? widget.locationName,
+              showBackButton: true,
+              actions: [
+                if (hasActiveFilters)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.filter_alt_off_rounded,
+                      color: AppColors.mcStatusRed,
+                      size: 20,
+                    ),
+                    onPressed: _resetFilters,
+                    tooltip: 'Reset Filters',
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Location: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            _location?.name ?? widget.locationName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Total Workers: ',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          Text(
-                            '${_workers.length}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
+              ],
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.mcForestGreen,
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                    )
+                  : _error != null
+                  ? Center(
+                      child: Text(
+                        'Error: $_error',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.mcStatusRed,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
+                      ),
+                    )
+                  : RefreshIndicator(
+                      color: AppColors.mcForestGreen,
+                      onRefresh: _refreshData,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                decoration: InputDecoration(
-                                  hintText: 'Enter worker name..',
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: Colors.grey[700],
-                                  ),
-                                  suffixIcon: _searchController.text.isNotEmpty
-                                      ? IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                          },
-                                        )
-                                      : null,
+                            // Header Stats Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.group_outlined,
+                                      size: 18,
+                                      color: AppColors.mcForestGreen,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${_filteredWorkers.length} workers with tasks',
+                                      style: AppTypography.labelLarge.copyWith(
+                                        color: AppColors.mcTextPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _showFilterOptions = !_showFilterOptions;
-                                });
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size(60, 30),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Filter',
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  Icon(
-                                    Icons.filter_list,
-                                    color: Colors.black87,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Filter options panel
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        height: _showFilterOptions ? 280 : 0,
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFFB5EDA4,
-                          ), // Light green background
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: _showFilterOptions ? 16 : 0,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_back),
-                                    onPressed: () {
-                                      setState(() {
-                                        _showFilterOptions = false;
-                                      });
-                                    },
-                                  ),
-                                  const Text(
-                                    'Filter Options',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Select task type:',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: _taskTypes.map((type) {
-                                  bool isSelected = _selectedTaskType == type;
-                                  return InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedTaskType = isSelected
-                                            ? null
-                                            : type;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.white.withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Colors.green
-                                              : Colors.grey.shade300,
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        type,
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.green
-                                              : Colors.black87,
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16),
-                              const Divider(),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Select status',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: _statusOptions.map((status) {
-                                  bool isSelected = _selectedStatus == status;
-                                  return InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedStatus = isSelected
-                                            ? null
-                                            : status;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.white.withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Colors.blue
-                                              : Colors.grey.shade300,
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        status,
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.blue
-                                              : Colors.black87,
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _showFilterOptions = !_showFilterOptions;
+                                    });
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: hasActiveFilters
+                                        ? AppColors.mcForestGreen
+                                        : AppColors.mcTextMuted,
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
+                                      horizontal: 10,
+                                      vertical: 4,
                                     ),
                                   ),
-                                  onPressed: _applyFilters,
-                                  child: const Text(
-                                    'Confirm',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  icon: Icon(
+                                    _showFilterOptions
+                                        ? Icons.expand_less_rounded
+                                        : Icons.tune_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    hasActiveFilters
+                                        ? 'Filtered'
+                                        : 'Filters',
+                                    style: AppTypography.caption.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: hasActiveFilters
+                                          ? AppColors.mcForestGreen
+                                          : AppColors.mcTextMuted,
                                     ),
                                   ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Search bar
+                            MegaTextField(
+                              controller: _searchController,
+                              hintText: 'Search by worker name...',
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: AppColors.mcTextMuted,
+                                size: 20,
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.clear_rounded,
+                                        color: AppColors.mcTextMuted,
+                                        size: 18,
+                                      ),
+                                      onPressed: () =>
+                                          _searchController.clear(),
+                                    )
+                                  : null,
+                            ),
+
+                            // Filter collapsible panel
+                            if (_showFilterOptions) ...[
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: AppColors.mcBorder,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Task Type',
+                                      style: AppTypography.caption.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.mcTextPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _taskTypes.map((type) {
+                                        final isSel =
+                                            _selectedTaskType == type;
+                                        return FilterChip(
+                                          label: Text(type),
+                                          selected: isSel,
+                                          selectedColor: AppColors
+                                              .mcForestGreen
+                                              .withOpacity(0.15),
+                                          checkmarkColor:
+                                              AppColors.mcForestGreen,
+                                          labelStyle: AppTypography.caption
+                                              .copyWith(
+                                            color: isSel
+                                                ? AppColors.mcForestGreen
+                                                : AppColors.mcTextPrimary,
+                                            fontWeight: isSel
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                          ),
+                                          backgroundColor: AppColors.mcBgApp,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            side: BorderSide(
+                                              color: isSel
+                                                  ? AppColors.mcForestGreen
+                                                  : AppColors.mcBorder,
+                                            ),
+                                          ),
+                                          onSelected: (val) {
+                                            setState(() {
+                                              _selectedTaskType =
+                                                  val ? type : null;
+                                            });
+                                            _filterWorkers();
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Status',
+                                      style: AppTypography.caption.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.mcTextPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _statusOptions.map((st) {
+                                        final isSel = _selectedStatus == st;
+                                        return FilterChip(
+                                          label: Text(st),
+                                          selected: isSel,
+                                          selectedColor: AppColors
+                                              .mcForestGreen
+                                              .withOpacity(0.15),
+                                          checkmarkColor:
+                                              AppColors.mcForestGreen,
+                                          labelStyle: AppTypography.caption
+                                              .copyWith(
+                                            color: isSel
+                                                ? AppColors.mcForestGreen
+                                                : AppColors.mcTextPrimary,
+                                            fontWeight: isSel
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                          ),
+                                          backgroundColor: AppColors.mcBgApp,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            side: BorderSide(
+                                              color: isSel
+                                                  ? AppColors.mcForestGreen
+                                                  : AppColors.mcBorder,
+                                            ),
+                                          ),
+                                          onSelected: (val) {
+                                            setState(() {
+                                              _selectedStatus =
+                                                  val ? st : null;
+                                            });
+                                            _filterWorkers();
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'List of workers',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: _filteredWorkers.isEmpty
-                            ? Center(
-                                child: Text(
-                                  _searchController.text.isEmpty
-                                      ? 'No workers found.'
-                                      : 'No matching workers found for "${_searchController.text}"',
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: _refreshData,
-                                child: ListView.separated(
-                                  itemCount: _filteredWorkers.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: 12),
-                                  itemBuilder: (context, idx) {
-                                    final worker = _filteredWorkers[idx];
-                                    return InkWell(
-                                      onTap: () async {
-                                        // Show worker tasks detail
-                                        _showWorkerTasksDialog(worker);
-                                      },
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(14),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.08,
-                                              ),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
+
+                            const SizedBox(height: 12),
+
+                            // Workers List
+                            Expanded(
+                              child: _filteredWorkers.isEmpty
+                                  ? ListView(
+                                      children: [
+                                        SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.3,
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                Container(
-                                                  width: 40,
-                                                  height: 40,
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(
-                                                      0xFF43C463,
-                                                    ),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      '${idx + 1}',
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                Icon(
+                                                  Icons.assignment_late_outlined,
+                                                  size: 48,
+                                                  color: AppColors.mcTextMuted
+                                                      .withOpacity(0.5),
                                                 ),
-                                                const SizedBox(width: 12),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        worker.workerName,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 15,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        worker.workerPhone,
-                                                        style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 6,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(
-                                                      0xFF43C463,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          20,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    '${worker.totalTasks} tasks',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 12,
-                                                    ),
+                                                const SizedBox(height: 10),
+                                                Text(
+                                                  'No workers found matching filters',
+                                                  style: AppTypography
+                                                      .bodyMedium
+                                                      .copyWith(
+                                                    color: AppColors.mcTextMuted,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            if (worker.tasks.isNotEmpty) ...[
-                                              const SizedBox(height: 12),
-                                              const Divider(height: 1),
-                                              const SizedBox(height: 8),
-                                              Wrap(
-                                                spacing: 6,
-                                                runSpacing: 6,
-                                                children: worker.tasks.map((
-                                                  task,
-                                                ) {
-                                                  return _buildTaskTypeBadge(
-                                                    task.taskType,
-                                                  );
-                                                }).toList(),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : ListView.separated(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 16,
+                                      ),
+                                      itemCount: _filteredWorkers.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 10),
+                                      itemBuilder: (context, idx) {
+                                        final worker = _filteredWorkers[idx];
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: AppColors.mcBorder,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.02),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
                                               ),
                                             ],
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
+                                          ),
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              onTap: () =>
+                                                  _showWorkerTasksDialog(
+                                                worker,
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(14),
+                                                child: Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      radius: 20,
+                                                      backgroundColor: AppColors
+                                                          .mcForestGreen
+                                                          .withOpacity(0.08),
+                                                      child: Text(
+                                                        '${idx + 1}',
+                                                        style: AppTypography
+                                                            .labelLarge
+                                                            .copyWith(
+                                                          color: AppColors
+                                                              .mcForestGreen,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            worker.workerName,
+                                                            style: AppTypography
+                                                                .labelLarge
+                                                                .copyWith(
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: AppColors
+                                                                  .mcTextPrimary,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 3,
+                                                          ),
+                                                          Text(
+                                                            worker.workerPhone
+                                                                    .isNotEmpty
+                                                                ? worker
+                                                                    .workerPhone
+                                                                : 'No phone',
+                                                            style: AppTypography
+                                                                .caption
+                                                                .copyWith(
+                                                              color: AppColors
+                                                                  .mcTextMuted,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors
+                                                            .mcForestGreen
+                                                            .withOpacity(0.08),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20),
+                                                        border: Border.all(
+                                                          color: AppColors
+                                                              .mcForestGreen
+                                                              .withOpacity(0.2),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        '${worker.totalTasks} task${worker.totalTasks > 1 ? 's' : ''}',
+                                                        style: AppTypography
+                                                            .caption
+                                                            .copyWith(
+                                                          color: AppColors
+                                                              .mcForestGreen,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Icon(
+                                                      Icons
+                                                          .chevron_right_rounded,
+                                                      color: AppColors
+                                                          .mcForestGreen,
+                                                      size: 20,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-        ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

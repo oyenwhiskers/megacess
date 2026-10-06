@@ -58,18 +58,6 @@ class _LogsTabViewState extends State<LogsTabView> {
     }
   }
 
-  String _statusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      case 'in_progress':
-        return 'In-progress';
-      default:
-        return status;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:megacess/core/theme/app_colors.dart';
+import 'package:megacess/core/theme/app_typography.dart';
+import 'package:megacess/core/widgets/mega_app_header.dart';
 import 'package:megacess/modules/checker/data/model/attendance_model.dart';
 import 'package:megacess/modules/checker/data/service/attendance_service.dart';
 import 'package:megacess/modules/utility/secure_storage_service.dart';
@@ -12,258 +15,6 @@ class ManageAttendanceView extends StatefulWidget {
 }
 
 class _ManageAttendanceViewState extends State<ManageAttendanceView> {
-  Future<void> _showAddAttendanceDialog() async {
-    DateTime? selectedDate;
-    final TextEditingController dateController = TextEditingController();
-    bool isLoading = false;
-
-    String getFormattedDate(DateTime? date) {
-      if (date == null) return '';
-      final months = [
-        '',
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-      return '${date.day} ${months[date.month]} ${date.year}';
-    }
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 18,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Select Date:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () async {
-                        final now = DateTime.now();
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate ?? now,
-                          firstDate: DateTime(now.year - 2),
-                          lastDate: DateTime(now.year + 2),
-                        );
-                        if (picked != null) {
-                          setState(() {
-                            selectedDate = picked;
-                            dateController.text =
-                                "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-                          });
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today,
-                              color: Color(0xFF43C463),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                selectedDate != null
-                                    ? getFormattedDate(selectedDate)
-                                    : 'date...',
-                                style: const TextStyle(fontSize: 15),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : Container(
-                            margin: const EdgeInsets.only(top: 8),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF43C463),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
-                              ),
-                              onPressed: () async {
-                                if (dateController.text.isEmpty) return;
-                                setState(() => isLoading = true);
-                                try {
-                                  final resp = await _attendanceService
-                                      .createAttendance(
-                                        date: dateController.text,
-                                      );
-                                  if (resp['success'] == true &&
-                                      resp['message'] != null) {
-                                    Navigator.of(context).pop();
-                                    // Show custom snackbar for 1 second
-                                    final overlay = Overlay.of(context);
-                                    final overlayEntry = OverlayEntry(
-                                      builder: (ctx) => Positioned(
-                                        top:
-                                            MediaQuery.of(ctx).size.height *
-                                            0.45,
-                                        left:
-                                            MediaQuery.of(ctx).size.width *
-                                            0.15,
-                                        right:
-                                            MediaQuery.of(ctx).size.width *
-                                            0.15,
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 24,
-                                              vertical: 16,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black12,
-                                                  blurRadius: 8,
-                                                ),
-                                              ],
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                resp['message'].toString(),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                    overlay.insert(overlayEntry);
-                                    await Future.delayed(
-                                      const Duration(seconds: 1),
-                                    );
-                                    overlayEntry.remove();
-                                    _fetchAttendance();
-                                  }
-                                } catch (e) {
-                                  Navigator.of(context).pop();
-                                  final overlay = Overlay.of(context);
-                                  final overlayEntry = OverlayEntry(
-                                    builder: (ctx) => Positioned(
-                                      top:
-                                          MediaQuery.of(ctx).size.height * 0.45,
-                                      left:
-                                          MediaQuery.of(ctx).size.width * 0.15,
-                                      right:
-                                          MediaQuery.of(ctx).size.width * 0.15,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                            vertical: 16,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              24,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black12,
-                                                blurRadius: 8,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'Failed to add attendance.',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                  overlay.insert(overlayEntry);
-                                  await Future.delayed(
-                                    const Duration(seconds: 1),
-                                  );
-                                  overlayEntry.remove();
-                                }
-                              },
-                              child: const Text(
-                                'Create',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   late AttendanceService _attendanceService;
   late Future<AttendanceListResponse> _attendanceFuture;
   final TextEditingController _searchController = TextEditingController();
@@ -292,199 +43,469 @@ class _ManageAttendanceViewState extends State<ManageAttendanceView> {
     _fetchAttendance();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(
-                  top: 40,
-                  left: 16,
-                  right: 16,
-                  bottom: 18,
+  Future<void> _showAddAttendanceDialog() async {
+    DateTime? selectedDate;
+    final TextEditingController dateController = TextEditingController();
+    bool isLoading = false;
+
+    String getFormattedDate(DateTime? date) {
+      if (date == null) return '';
+      final months = [
+        '',
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+      return '${date.day} ${months[date.month]} ${date.year}';
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF43C463), Color(0xFFB2F7EF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(32),
-                    bottomRight: Radius.circular(32),
-                  ),
-                ),
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'New Muster Attendance',
+                          style: AppTypography.headingH4,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                          onPressed: () => Navigator.of(dialogCtx).pop(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Manage Attendance',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Select date to initialize muster attendance roster:',
+                      style: AppTypography.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: dialogCtx,
+                          initialDate: selectedDate ?? now,
+                          firstDate: DateTime(now.year - 2),
+                          lastDate: DateTime(now.year + 2),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.mcForestGreen,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedDate = picked;
+                            dateController.text =
+                                "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                          });
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.mcBgApp,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.mcBorder),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              color: AppColors.mcForestGreen,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                selectedDate != null
+                                    ? getFormattedDate(selectedDate)
+                                    : 'Select attendance date...',
+                                style: AppTypography.bodyRegular.copyWith(
+                                  color: selectedDate != null
+                                      ? AppColors.textPrimary
+                                      : AppColors.mcTextDisabled,
+                                  fontWeight: selectedDate != null
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.mcForestGreen,
+                              ),
+                            ),
+                          )
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mcForestGreen,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            onPressed: () async {
+                              if (dateController.text.isEmpty) return;
+                              setDialogState(() => isLoading = true);
+                              try {
+                                final resp = await _attendanceService
+                                    .createAttendance(
+                                      date: dateController.text,
+                                    );
+                                if (resp['success'] == true) {
+                                  if (dialogCtx.mounted) {
+                                    Navigator.of(dialogCtx).pop();
+                                  }
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          resp['message']?.toString() ??
+                                              'Attendance initialized',
+                                        ),
+                                        backgroundColor:
+                                            AppColors.statusCompletedText,
+                                      ),
+                                    );
+                                    _fetchAttendance();
+                                  }
+                                } else {
+                                  setDialogState(() => isLoading = false);
+                                  if (dialogCtx.mounted) {
+                                    ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          resp['message']?.toString() ??
+                                              'Failed to add attendance.',
+                                        ),
+                                        backgroundColor:
+                                            AppColors.statusRejectedText,
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                setDialogState(() => isLoading = false);
+                                if (dialogCtx.mounted) {
+                                  ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor:
+                                          AppColors.statusRejectedText,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text(
+                              'Create Attendance',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.mcBgApp,
+      appBar: const MegaAppHeader(
+        title: 'Muster Attendance',
+        showBackButton: true,
+      ),
+      body: Column(
+        children: [
+          // Search Input Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.mcBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
                   ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'search date',
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 14,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Color(0xFF43C463),
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                _onSearch('');
-                              },
-                            )
-                          : null,
-                    ),
-                    keyboardType: TextInputType.text,
-                    onChanged: _onSearch,
-                  ),
-                ),
+                ],
               ),
-              Expanded(
-                child: FutureBuilder<AttendanceListResponse>(
-                  future: _attendanceFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Failed to load attendance.'));
-                    } else if (!snapshot.hasData ||
-                        snapshot.data!.data.isEmpty) {
-                      return const Center(
-                        child: Text('No attendance records found.'),
-                      );
-                    }
-                    final attendance = snapshot.data!;
-                    // Filter for partial date match if search is not empty
-                    final filtered = _search.isEmpty
-                        ? attendance.data
-                        : attendance.data
-                              .where(
-                                (item) => item.date.toLowerCase().contains(
-                                  _search.toLowerCase(),
-                                ),
-                              )
-                              .toList();
-                    if (filtered.isEmpty) {
-                      return const Center(
-                        child: Text('No attendance records found.'),
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final item = filtered[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 3,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
+              child: TextField(
+                controller: _searchController,
+                style: AppTypography.bodyRegular,
+                decoration: InputDecoration(
+                  hintText: 'Search date (YYYY-MM-DD)...',
+                  hintStyle: AppTypography.quietLabel,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppColors.mcForestGreen,
+                    size: 20,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.clear,
+                            size: 18,
+                            color: AppColors.textSecondary,
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearch('');
+                          },
+                        )
+                      : null,
+                ),
+                onChanged: _onSearch,
+              ),
+            ),
+          ),
+
+          // Attendance Record List
+          Expanded(
+            child: FutureBuilder<AttendanceListResponse>(
+              future: _attendanceFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.mcForestGreen,
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.statusRejectedText,
+                            size: 40,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Failed to load attendance records.',
+                            style: AppTypography.headingH4,
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mcForestGreen,
+                              foregroundColor: Colors.white,
                             ),
-                            title: Row(
-                              children: [
-                                const Text(
-                                  'Date: ',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  item.date,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            onPressed: _fetchAttendance,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: const BoxDecoration(
+                            color: AppColors.frond50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.event_busy,
+                            size: 36,
+                            color: AppColors.mcForestGreen,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No Attendance Records',
+                          style: AppTypography.headingH4,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap + to create a new date muster',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final attendance = snapshot.data!;
+                final filtered = _search.isEmpty
+                    ? attendance.data
+                    : attendance.data
+                        .where(
+                          (item) => item.date.toLowerCase().contains(
+                            _search.toLowerCase(),
+                          ),
+                        )
+                        .toList();
+
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No matching attendance records found.',
+                      style: AppTypography.bodySmall,
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ManageAttendanceDetailsView(
+                              dateAttendanceId: item.id,
+                              dateLabel: item.date,
                             ),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      // You may need to import the details view at the top
-                                      // import 'manage_attendance_details_view.dart';
-                                      // Pass the id and date string
-                                      ManageAttendanceDetailsView(
-                                        dateAttendanceId: item.id,
-                                        dateLabel: item.date,
-                                      ),
-                                ),
-                              );
-                            },
                           ),
                         );
                       },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.mcBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.frond50,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_today_outlined,
+                                color: AppColors.mcForestGreen,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.date,
+                                    style: AppTypography.headingH4.copyWith(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Muster Roster #${item.id}',
+                                    style: AppTypography.metaLabel,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            bottom: 24,
-            right: 24,
-            child: FloatingActionButton(
-              backgroundColor: const Color(0xFF43C463),
-              onPressed: _showAddAttendanceDialog,
-              child: const Icon(Icons.add, size: 32),
+                );
+              },
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.mcForestDark,
+        foregroundColor: Colors.white,
+        elevation: 3,
+        onPressed: _showAddAttendanceDialog,
+        child: const Icon(Icons.add, size: 28),
       ),
     );
   }

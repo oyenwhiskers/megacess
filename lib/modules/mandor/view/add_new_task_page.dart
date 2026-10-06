@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_button.dart';
+import '../../../core/widgets/mega_text_field.dart';
 import '../data/service/manager_dashboard_service.dart';
 
 class AddNewTaskPage extends StatefulWidget {
@@ -31,10 +36,21 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
     'Planting',
   ];
 
+  @override
+  void dispose() {
+    _taskNameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() ||
         _selectedType == null ||
         _selectedDate == null) {
+      if (_selectedType == null || _selectedDate == null) {
+        setState(() {
+          _error = 'Please complete all fields.';
+        });
+      }
       return;
     }
     setState(() {
@@ -92,49 +108,60 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
               child: Material(
                 color: Colors.transparent,
                 child: Container(
-                  width: 260,
+                  width: 280,
                   padding: const EdgeInsets.symmetric(
-                    vertical: 32,
-                    horizontal: 18,
+                    vertical: 28,
+                    horizontal: 24,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.mcBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.check_circle,
-                        color: Color(0xFF43C463),
-                        size: 56,
-                      ),
-                      const SizedBox(height: 18),
-                      const Text(
-                        'Group Task successfully created!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.mcForestGreen.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.mcForestGreen,
+                          size: 48,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Task Created!',
+                        style: AppTypography.headingLarge.copyWith(
+                          fontSize: 18,
+                          color: AppColors.mcTextPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Group task has been successfully scheduled.',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.mcTextMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       SizedBox(
-                        width: 120,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF43C463),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 0,
-                          ),
+                        width: double.infinity,
+                        child: MegaButton(
+                          label: 'Done',
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
                         ),
                       ),
                     ],
@@ -143,7 +170,9 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
               ),
             ),
           );
-          Navigator.of(context).pop(true); // return success
+          if (mounted) {
+            Navigator.of(context).pop(true);
+          }
         }
       } else {
         setState(() {
@@ -155,9 +184,11 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
         _error = e.toString();
       });
     } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -165,39 +196,75 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7ED957),
-                  borderRadius: BorderRadius.circular(12),
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select Task Type',
+                      style: AppTypography.headingLarge.copyWith(
+                        fontSize: 16,
+                        color: AppColors.mcTextPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
                 ),
-                child: const Center(
-                  child: Text(
-                    'Choose the type of task',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
+                const Divider(color: AppColors.mcBorder),
+                ..._taskTypes.map(
+                  (type) {
+                    final isSelected = _selectedType == type;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.mcForestGreen.withOpacity(0.08)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        border: isSelected
+                            ? Border.all(color: AppColors.mcForestGreen)
+                            : null,
+                      ),
+                      child: ListTile(
+                        dense: true,
+                        title: Text(
+                          type,
+                          style: AppTypography.bodyMedium.copyWith(
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.mcForestGreen
+                                : AppColors.mcTextPrimary,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: AppColors.mcForestGreen,
+                                size: 20,
+                              )
+                            : null,
+                        onTap: () => Navigator.of(context).pop(type),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              ..._taskTypes.map(
-                (type) => ListTile(
-                  title: Center(
-                    child: Text(type, style: const TextStyle(fontSize: 16)),
-                  ),
-                  onTap: () => Navigator.of(context).pop(type),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -213,16 +280,16 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedDate ?? now,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year + 2),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: const Color(0xFF7ED957),
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.mcForestGreen,
               onPrimary: Colors.white,
-              onSurface: Colors.black,
+              onSurface: AppColors.mcTextPrimary,
             ),
           ),
           child: child!,
@@ -239,149 +306,238 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text('Manage Task', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                const Center(
-                  child: Text(
-                    'Add new task:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Task name:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _taskNameController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter task name..',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Task name required'
-                      : null,
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Type of task:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: _showTaskTypePicker,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _selectedType ?? 'Select one..',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: _selectedType == null
-                            ? Colors.grey
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Date created:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: _showDatePicker,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _selectedDate == null
-                          ? 'Select one..'
-                          : _selectedDate!.toIso8601String().split('T').first,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: _selectedDate == null
-                            ? Colors.grey
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                if (_error != null) ...[
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 10),
-                ],
-                Center(
-                  child: SizedBox(
-                    width: 180,
-                    height: 44,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: const BorderSide(color: Colors.black12),
-                      ),
-                      onPressed: _isSubmitting ? null : _submit,
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Confirm',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                    ),
-                  ),
-                ),
-              ],
+      backgroundColor: AppColors.mcBgApp,
+      body: SafeArea(
+        child: Column(
+          children: [
+            MegaAppHeader(
+              title: 'Create Task',
+              subtitle: widget.locationName,
+              showBackButton: true,
             ),
-          ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.mcBorder,
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Task Details',
+                              style: AppTypography.headingLarge.copyWith(
+                                fontSize: 16,
+                                color: AppColors.mcTextPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Task name field
+                            MegaTextField(
+                              controller: _taskNameController,
+                              label: 'Task Name',
+                              hintText: 'e.g. Block A Manuring Cycle 2',
+                              prefixIcon: const Icon(
+                                Icons.assignment_outlined,
+                                color: AppColors.mcTextMuted,
+                                size: 20,
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Task name is required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Type of task selector
+                            Text(
+                              'Task Type',
+                              style: AppTypography.labelLarge.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.mcTextPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: _showTaskTypePicker,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.mcBorder,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.category_outlined,
+                                          color: AppColors.mcTextMuted,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          _selectedType ?? 'Select task type...',
+                                          style: AppTypography.bodyMedium
+                                              .copyWith(
+                                            color: _selectedType == null
+                                                ? AppColors.mcTextMuted
+                                                : AppColors.mcTextPrimary,
+                                            fontWeight: _selectedType == null
+                                                ? FontWeight.normal
+                                                : FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      color: AppColors.mcTextMuted,
+                                      size: 22,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Date picker selector
+                            Text(
+                              'Task Scheduled Date',
+                              style: AppTypography.labelLarge.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.mcTextPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: _showDatePicker,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.mcBorder,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_outlined,
+                                          color: AppColors.mcTextMuted,
+                                          size: 19,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          _selectedDate == null
+                                              ? 'Select date...'
+                                              : _selectedDate!
+                                                  .toIso8601String()
+                                                  .split('T')
+                                                  .first,
+                                          style: AppTypography.bodyMedium
+                                              .copyWith(
+                                            color: _selectedDate == null
+                                                ? AppColors.mcTextMuted
+                                                : AppColors.mcTextPrimary,
+                                            fontWeight: _selectedDate == null
+                                                ? FontWeight.normal
+                                                : FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Icon(
+                                      Icons.event_rounded,
+                                      color: AppColors.mcTextMuted,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.mcStatusRed.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.mcStatusRed.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            _error!,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.mcStatusRed,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      MegaButton(
+                        label: 'Create Task',
+                        isLoading: _isSubmitting,
+                        onPressed: _isSubmitting ? null : _submit,
+                        icon: const Icon(
+                          Icons.add_task_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -3,6 +3,10 @@ import '../data/service/manager_dashboard_service.dart';
 import '../data/model/task_model.dart';
 import 'add_new_task_page.dart';
 import 'task_preview_page.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/mega_app_header.dart';
+import '../../../core/widgets/mega_status_badge.dart';
 
 class LocationTasksDetailPage extends StatefulWidget {
   final int locationId;
@@ -240,58 +244,41 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
   }
 
   Widget _buildTaskTypeBadge(String type) {
-    Color color;
     IconData icon;
-    String label;
     switch (type.toLowerCase()) {
       case 'manuring':
-        color = Colors.green;
-        icon = Icons.eco;
-        label = 'Manuring';
+        icon = Icons.eco_outlined;
         break;
       case 'pruning':
-        color = Colors.orange;
-        icon = Icons.content_cut;
-        label = 'Pruning';
+        icon = Icons.content_cut_outlined;
         break;
       case 'sanitation':
-        color = Colors.yellow[800]!;
-        icon = Icons.cleaning_services;
-        label = 'Sanitation';
+        icon = Icons.cleaning_services_outlined;
         break;
       case 'harvesting':
-        color = Colors.brown;
-        icon = Icons.agriculture;
-        label = 'Harvesting';
+        icon = Icons.agriculture_outlined;
         break;
       case 'planting':
-        color = Colors.teal;
-        icon = Icons.grass;
-        label = 'Planting';
+        icon = Icons.grass_outlined;
         break;
       default:
-        color = Colors.grey;
-        icon = Icons.task;
-        label = type;
+        icon = Icons.assignment_outlined;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.frond0,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.frond2, width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 6),
+          Icon(icon, color: AppColors.frond6, size: 14),
+          const SizedBox(width: 4),
           Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
+            type.isNotEmpty ? (type[0].toUpperCase() + type.substring(1)) : '',
+            style: AppTypography.badgeLabel.copyWith(color: AppColors.frond7),
           ),
         ],
       ),
@@ -299,40 +286,20 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
   }
 
   Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
     switch (status.toLowerCase()) {
       case 'in_progress':
-        color = Colors.blue;
-        label = 'In-progress';
-        break;
+      case 'in-progress':
+        return const MegaStatusBadge(status: MegaStatus.inProgress);
       case 'completed':
-        color = Colors.green;
-        label = 'Completed';
-        break;
+        return const MegaStatusBadge(status: MegaStatus.completed);
       case 'pending':
-        color = Colors.orange;
-        label = 'Pending';
-        break;
+        return const MegaStatusBadge(status: MegaStatus.pending);
+      case 'rejected':
+      case 'reject':
+        return const MegaStatusBadge(status: MegaStatus.rejected);
       default:
-        color = Colors.grey;
-        label = status;
+        return MegaStatusBadge(status: MegaStatus.inProgress, customLabel: status);
     }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
-      ),
-    );
   }
 
   @override
@@ -342,17 +309,18 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
         _selectedTaskType != null || _selectedStatus != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFD9D9D9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7ED957),
-        elevation: 0,
-        title: const Text('Manage Task', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
+      backgroundColor: AppColors.mcBgApp,
+      appBar: MegaAppHeader(
+        title: _location?.name ?? widget.locationName,
+        subtitle: 'Tasks & Field Allocations',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
           if (hasActiveFilters)
             IconButton(
-              icon: const Icon(Icons.filter_alt),
-              color: Colors.white,
+              icon: const Icon(Icons.filter_alt_off, color: Colors.white),
               onPressed: _resetFilters,
               tooltip: 'Reset Filters',
             ),
@@ -474,10 +442,16 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                         duration: const Duration(milliseconds: 300),
                         height: _showFilterOptions ? 280 : 0,
                         decoration: BoxDecoration(
-                          color: const Color(
-                            0xFFB5EDA4,
-                          ), // Light green background
-                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.mcBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: EdgeInsets.symmetric(
@@ -698,24 +672,14 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                                           _fetchDetail();
                                         }
                                       },
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(12),
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black12,
-                                              blurRadius: 3,
-                                            ),
-                                          ],
+                                          color: AppColors.mcBgSurface,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.mcBorder, width: 1),
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 12,
-                                        ),
+                                        padding: const EdgeInsets.all(14),
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -731,21 +695,15 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 8),
+                                            const SizedBox(height: 10),
                                             Text(
                                               task.taskName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                              ),
+                                              style: AppTypography.titleMedium,
                                             ),
-                                            const SizedBox(height: 2),
+                                            const SizedBox(height: 4),
                                             Text(
-                                              'Created at: ${task.createdAt.split(' ').first}  Created by: ${task.createdBy.name}',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black54,
-                                              ),
+                                              'Date: ${task.taskDate} • Created by: ${task.createdBy.name}',
+                                              style: AppTypography.captionMuted,
                                             ),
                                           ],
                                         ),
@@ -762,11 +720,11 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
             bottom: 18,
             right: 18,
             child: FloatingActionButton(
-              backgroundColor: Colors.white,
-              elevation: 3,
+              backgroundColor: AppColors.frond6,
+              foregroundColor: Colors.white,
+              elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-                side: BorderSide(color: Colors.black12),
+                borderRadius: BorderRadius.circular(16),
               ),
               onPressed: () async {
                 final result = await Navigator.push(
@@ -780,12 +738,17 @@ class _LocationTasksDetailPageState extends State<LocationTasksDetailPage> {
                 );
                 if (result == true) {
                   _fetchDetail();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Task added successfully!')),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Task added successfully!'),
+                        backgroundColor: AppColors.mcStatusSuccess,
+                      ),
+                    );
+                  }
                 }
               },
-              child: const Icon(Icons.add, color: Colors.black, size: 32),
+              child: const Icon(Icons.add, size: 28),
             ),
           ),
         ],
